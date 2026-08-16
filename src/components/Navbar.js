@@ -63,7 +63,7 @@ export default function Navbar() {
   return (
     <>
       {/* HEADER / NAVIGATION CONTAINER */}
-      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <header className="w-full bg-white relative py-4 border-b border-zinc-100/50">
         {/* MAIN HEADER ROW (Middle) */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
           
@@ -184,25 +184,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* CATEGORY NAVIGATION ROW (Bottom - Desktop only) */}
-        <div className="hidden md:block w-full mt-2">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-center">
-            <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium">
-              <Link href="/" className="hover:text-zinc-950 transition-colors duration-200">Home</Link>
-              <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200">Shop</Link>
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/products?category=${cat.slug}`}
-                  className="hover:text-zinc-950 transition-colors duration-200"
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </div>
-
         {/* FULL-WIDTH SEARCH OVERLAY */}
         {showSearchOverlay && (
           <div className="absolute inset-0 bg-white z-50 flex items-center px-4 sm:px-6 lg:px-8 border-b border-zinc-200 animate-in fade-in duration-150">
@@ -229,6 +210,25 @@ export default function Navbar() {
           </div>
         )}
       </header>
+
+      {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
+      <div className="hidden md:block sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
+          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium">
+            <Link href="/" className="hover:text-zinc-950 transition-colors duration-200">Home</Link>
+            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200">Shop</Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="hover:text-zinc-950 transition-colors duration-200"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
 
       {/* MOBILE SIDEBAR DRAWER (Offcanvas Menu) */}
       {showMobileDrawer && (
