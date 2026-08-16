@@ -31,7 +31,13 @@ export default function RegisterPage() {
       if (res.success) {
         setSuccess('Registration successful! Redirecting to login page...');
         setTimeout(() => {
-          router.push('/login');
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (redirect) {
+            router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
+          } else {
+            router.push('/login');
+          }
         }, 1500);
       } else {
         setError(res.message || 'Registration failed. Try again.');

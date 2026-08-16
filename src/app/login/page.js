@@ -22,7 +22,21 @@ export default function LoginPage() {
     try {
       const res = await login(email, password);
       if (res.success) {
-        router.push('/');
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        
+        if (redirect && redirect.startsWith('/')) {
+          router.push(redirect);
+        } else if (typeof document !== 'undefined' && document.referrer && document.referrer.includes(window.location.host)) {
+          const referrerPath = new URL(document.referrer).pathname;
+          if (referrerPath !== '/login' && referrerPath !== '/register') {
+            router.push(referrerPath);
+          } else {
+            router.push('/');
+          }
+        } else {
+          router.push('/');
+        }
       } else {
         setError(res.message || 'Login failed. Please check your credentials.');
       }
