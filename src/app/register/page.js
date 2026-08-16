@@ -64,14 +64,14 @@ export default function RegisterPage() {
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xl font-black tracking-[0.15em] text-zinc-950 uppercase">
             <Store className="h-5 w-5 text-teal-600" />
-            <span>SHOPNEST</span>
+            <span>ONWEAR</span>
           </Link>
         </div>
 
         {/* Welcome Info */}
         <div className="mb-6">
           <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">SIGN UP</h2>
-          <p className="text-sm text-zinc-400 mt-2 font-medium">Create your ShopNest customer account</p>
+          <p className="text-sm text-zinc-400 mt-2 font-medium">Create your OnWear customer account</p>
         </div>
 
         {error && (

@@ -54,14 +54,14 @@ export default function LoginPage() {
         <div className="mb-10">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xl font-black tracking-[0.15em] text-zinc-950 uppercase">
             <Store className="h-5 w-5 text-teal-600" />
-            <span>SHOPNEST</span>
+            <span>ONWEAR</span>
           </Link>
         </div>
 
         {/* Welcome Info */}
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">SIGN IN</h2>
-          <p className="text-sm text-zinc-400 mt-2 font-medium">Access your ShopNest account</p>
+          <p className="text-sm text-zinc-400 mt-2 font-medium">Access your OnWear account</p>
         </div>
 
         {error && (
@@ -164,7 +164,7 @@ export default function LoginPage() {
         <div className="absolute bottom-20 right-20 text-right z-10 text-white select-none">
           <p className="text-xs font-bold tracking-[0.4em] uppercase text-teal-400 mb-2">NEW ARRIVALS COLLECTION</p>
           <h1 className="text-4xl font-extrabold tracking-wider uppercase mb-1 leading-none">ELEVATE STYLE</h1>
-          <p className="text-zinc-300 text-sm tracking-widest font-light">Find your signature clothing comfort at ShopNest</p>
+          <p className="text-zinc-300 text-sm tracking-widest font-light">Find your signature clothing comfort at OnWear</p>
         </div>
       </div>
     </div>

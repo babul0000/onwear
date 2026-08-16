@@ -78,10 +78,10 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* CENTER: Centered Logo ("SHOPNEST" in clean uppercase bold font) */}
+          {/* CENTER: Centered Logo ("ONWEAR" in clean uppercase bold font) */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <Link href="/" className="flex items-center text-3xl font-bold tracking-[0.2em] text-zinc-950 hover:opacity-90 transition-opacity uppercase">
-              SHOPNEST
+              ONWEAR
             </Link>
           </div>
 
@@ -241,7 +241,7 @@ export default function Navbar() {
           <div className="fixed top-0 bottom-0 right-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl p-6 flex flex-col gap-6 animate-in slide-in-from-right duration-300 ease-out">
             <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
               <Link href="/" onClick={() => setShowMobileDrawer(false)} className="text-xl font-bold tracking-wider text-zinc-950 uppercase">
-                SHOPNEST
+                ONWEAR
               </Link>
               <button
                 onClick={() => setShowMobileDrawer(false)}

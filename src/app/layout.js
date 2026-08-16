@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ShopNest - Premium E-Commerce Platform",
-  description: "A secure, modern, and type-safe e-commerce experience built with Next.js, Express, and PostgreSQL",
+  title: "OnWear - Unique Way of Elegance",
+  description: "A secure, modern, and premium men's clothing e-commerce experience built with Next.js, Express, and PostgreSQL",
 };
 
 export default function RootLayout({ children }) {
