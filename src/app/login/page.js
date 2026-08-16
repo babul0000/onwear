@@ -39,14 +39,14 @@ export default function LoginPage() {
       {/* LEFT COLUMN: Form Container (Occupies 5 columns on desktop) */}
       <div className="relative md:col-span-5 bg-white flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-16 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         
-        {/* RIPPED PAPER SVG OVERLAY (Visible on desktop, points rightwards overlaying the image) */}
-        <div className="absolute top-0 bottom-0 right-[-19px] w-[20px] h-full text-white fill-current z-20 pointer-events-none hidden md:block select-none">
+        {/* SMOOTH WAVY SVG OVERLAY (Visible on desktop, points rightwards overlaying the image) */}
+        <div className="absolute top-0 bottom-0 right-[-23px] w-[24px] h-full text-white fill-current z-20 pointer-events-none hidden md:block select-none">
           <svg
             viewBox="0 0 100 1000"
             preserveAspectRatio="none"
             className="h-full w-full"
           >
-            <path d="M0,0 L60,0 Q65,20 55,40 T75,80 T50,120 T70,160 T55,200 T65,240 T45,280 T75,320 T50,360 T70,400 T55,440 T65,480 T45,520 T75,560 T50,600 T70,640 T55,680 T65,720 T45,760 T75,800 T50,840 T70,880 T55,920 T65,960 T45,1000 L0,1000 Z" />
+            <path d="M0,0 L70,0 C75,80 65,160 80,240 C95,320 70,400 85,480 C100,560 75,640 90,720 C105,800 80,880 95,960 C100,980 90,990 85,1000 L0,1000 Z" />
           </svg>
         </div>
 
