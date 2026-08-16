@@ -63,7 +63,7 @@ export default function Navbar() {
   return (
     <>
       {/* HEADER / NAVIGATION CONTAINER */}
-      <header className="w-full bg-white relative py-4">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         {/* MAIN HEADER ROW (Middle) */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
           
