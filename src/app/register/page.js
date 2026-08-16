@@ -45,7 +45,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-zinc-50 font-sans">
+    <div className="h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-zinc-50 font-sans overflow-y-auto md:overflow-hidden">
       {/* LEFT COLUMN: Form Container (Occupies 5 columns on desktop) */}
       <div className="relative md:col-span-5 bg-white flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-16 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         
