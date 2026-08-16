@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import { API_URL } from '../config';
-import { ArrowRight, ShoppingBag, Star, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star } from 'lucide-react';
 
 export default function Home() {
   const [categories, setCategories] = useState([]);
@@ -34,102 +34,101 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-16 pb-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-zinc-50 py-20 lg:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
-            <div className="flex flex-col gap-6 text-left">
-              <span className="inline-flex max-w-max items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                New Arrivals Available Now
-              </span>
-              <h1 className="text-4xl font-extrabold tracking-tight text-zinc-950 sm:text-6xl">
-                Find Your Premium Comfort at <span className="text-indigo-600">ShopNest</span>
-              </h1>
-              <p className="text-lg text-zinc-600 max-w-lg">
-                Discover a curated collection of state-of-the-art gadgets, apparel, home essentials, and books. All at unbeatable prices.
-              </p>
-              <div className="flex gap-4">
-                <Link
-                  href="/products"
-                  className="rounded-full bg-indigo-600 px-6 py-3 text-base font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/15 flex items-center gap-2"
-                >
-                  <span>Shop Collection</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/categories"
-                  className="rounded-full bg-white border border-zinc-200 px-6 py-3 text-base font-semibold text-zinc-700 hover:bg-zinc-50 transition-all"
-                >
-                  Browse Categories
-                </Link>
-              </div>
-            </div>
-            <div className="hidden lg:block relative">
-              <div className="aspect-[4/3] rounded-2xl bg-zinc-100 shadow-xl overflow-hidden border border-zinc-200/50">
-                <img
-                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600"
-                  alt="ShopNest Banner"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+    <div className="flex flex-col gap-20 pb-24 bg-white">
+      {/* 1. HERO SECTION (Editorial Style, split screen layout with fashion models) */}
+      <section className="relative w-full min-h-[85vh] bg-zinc-50 flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600"
+            alt="Men's Premium Clothing Collection"
+            className="w-full h-full object-cover object-top opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full z-10 py-20">
+          <div className="max-w-xl flex flex-col gap-6 text-left">
+            <span className="text-xs font-bold tracking-[0.25em] text-teal-600 uppercase">
+              NEW ARRIVALS 2026
+            </span>
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-zinc-950 uppercase leading-none">
+              THE ART OF <br />
+              <span className="text-teal-600">MODERN STYLE</span>
+            </h1>
+            <p className="text-base text-zinc-500 max-w-md leading-relaxed font-medium">
+              Explore our new curated capsule collection of premium men's shirts, tailored pants, heavyweight tees, and refined denim.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/products"
+                className="rounded-full bg-zinc-950 px-8 py-4 text-xs font-bold tracking-wider text-white hover:bg-zinc-800 transition-all shadow-lg flex items-center gap-2 uppercase"
+              >
+                <span>Shop Collection</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/products?category=denim"
+                className="rounded-full bg-white border border-zinc-200 px-8 py-4 text-xs font-bold tracking-wider text-zinc-700 hover:bg-zinc-50 transition-all uppercase"
+              >
+                Explore Denim
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-indigo-50 p-3 text-indigo-600">
-              <Truck className="h-6 w-6" />
+      {/* 2. MINIMALIST TRUST BANNER */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-y border-zinc-100 py-10">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-teal-50 p-3 text-teal-600">
+              <Truck className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-zinc-900">Fast Shipping</h3>
-              <p className="text-sm text-zinc-500">Free delivery on orders over $150</p>
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Fast Shipping</h3>
+              <p className="text-xs text-zinc-400 mt-1 font-medium">Free home delivery on order value above $50</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-indigo-50 p-3 text-indigo-600">
-              <ShieldCheck className="h-6 w-6" />
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-teal-50 p-3 text-teal-600">
+              <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-zinc-900">Secure Payments</h3>
-              <p className="text-sm text-zinc-500">100% secure checkouts & Cash on Delivery</p>
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Premium Quality</h3>
+              <p className="text-xs text-zinc-400 mt-1 font-medium">Finest hand-selected organic fabrics and fits</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-indigo-50 p-3 text-indigo-600">
-              <RefreshCw className="h-6 w-6" />
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-teal-50 p-3 text-teal-600">
+              <RefreshCw className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-zinc-900">Easy Returns</h3>
-              <p className="text-sm text-zinc-500">7-day hassle-free exchange policy</p>
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Easy Exchange</h3>
+              <p className="text-xs text-zinc-400 mt-1 font-medium">Hassle-free 7-day return and exchange policy</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
-        <div className="flex items-end justify-between">
+      {/* 3. DYNAMIC CATEGORIES GRID (Clean Cards, Hover Zoom) */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-10">
+        <div className="flex items-end justify-between border-b border-zinc-50 pb-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Shop by Category</h2>
-            <p className="text-sm text-zinc-500 mt-1">Explore our range of e-commerce departments</p>
+            <h2 className="text-2xl font-black tracking-wider text-zinc-950 uppercase">Shop by Category</h2>
+            <p className="text-xs text-zinc-400 mt-1 font-medium">Browse our premium departments</p>
           </div>
-          <Link href="/categories" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+          <Link href="/categories" className="text-xs font-bold uppercase tracking-wider text-teal-600 hover:text-teal-700 flex items-center gap-1">
             <span>View All</span>
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse flex flex-col items-center gap-3">
-                <div className="aspect-square w-full rounded-2xl bg-zinc-200"></div>
-                <div className="h-4 w-2/3 rounded bg-zinc-200"></div>
+              <div key={i} className="animate-pulse flex flex-col gap-3">
+                <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
+                <div className="h-3 w-2/3 rounded bg-zinc-100 mx-auto"></div>
               </div>
             ))}
           </div>
@@ -139,16 +138,17 @@ export default function Home() {
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
-                className="group flex flex-col items-center gap-3 text-center"
+                className="group flex flex-col items-center gap-3"
               >
-                <div className="relative aspect-square w-full rounded-2xl bg-zinc-100 overflow-hidden border border-zinc-200/60 shadow-sm group-hover:shadow-md transition-all">
+                <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-sm transition-all duration-300">
                   <img
-                    src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=200'}
+                    src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=300'}
                     alt={cat.name}
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
                 </div>
-                <h3 className="font-semibold text-sm text-zinc-700 group-hover:text-indigo-600 transition-colors">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-zinc-700 group-hover:text-teal-600 transition-colors">
                   {cat.name}
                 </h3>
               </Link>
@@ -157,16 +157,45 @@ export default function Home() {
         )}
       </section>
 
-      {/* Featured Products Section */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Featured Products</h2>
-            <p className="text-sm text-zinc-500 mt-1">Our top picks and best sellers of the week</p>
+      {/* 4. PREMIUM LOOKBOOK HIGHLIGHT (Unique Section) */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl bg-zinc-950 overflow-hidden text-white shadow-xl min-h-[50vh]">
+          <div className="lg:col-span-5 p-10 sm:p-16 flex flex-col justify-center gap-6">
+            <span className="text-xs font-bold tracking-[0.25em] text-teal-400 uppercase">THE OUTFIT INSPIRATION</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase leading-none">THE DENIM OVERCOAT LOOK</h2>
+            <p className="text-sm text-zinc-400 leading-relaxed font-medium">
+              Combine our signature Indigo Denim Overshirt with tailormade stretch pants for a modern casual lookup that fits both office work and weekend outings.
+            </p>
+            <div>
+              <Link
+                href="/products?category=denim"
+                className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-teal-400 hover:text-white border-b-2 border-teal-400 pb-1.5 transition-colors duration-300"
+              >
+                <span>Shop This Look</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
-          <Link href="/products" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-            <span>See All Products</span>
-            <ArrowRight className="h-4 w-4" />
+          <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-full overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000"
+              alt="Denim Lookbook Collection"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 5. MINIMALIST FEATURED PRODUCTS GRID */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-10">
+        <div className="flex items-end justify-between border-b border-zinc-50 pb-4">
+          <div>
+            <h2 className="text-2xl font-black tracking-wider text-zinc-950 uppercase">Featured Products</h2>
+            <p className="text-xs text-zinc-400 mt-1 font-medium">Handpicked styles of the season</p>
+          </div>
+          <Link href="/products" className="text-xs font-bold uppercase tracking-wider text-teal-600 hover:text-teal-700 flex items-center gap-1">
+            <span>View Catalog</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
@@ -174,9 +203,9 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-3">
-                <div className="aspect-[4/3] w-full rounded-2xl bg-zinc-200"></div>
-                <div className="h-4 w-3/4 rounded bg-zinc-200"></div>
-                <div className="h-4 w-1/3 rounded bg-zinc-200"></div>
+                <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
+                <div className="h-4 w-3/4 rounded bg-zinc-100"></div>
+                <div className="h-3 w-1/3 rounded bg-zinc-100"></div>
               </div>
             ))}
           </div>
@@ -187,41 +216,55 @@ export default function Home() {
               return (
                 <div
                   key={prod.id}
-                  className="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm hover:shadow-md transition-all"
+                  className="group relative flex flex-col rounded-2xl bg-white border border-zinc-100 p-3 hover:shadow-lg transition-all duration-300"
                 >
-                  <Link href={`/products/${prod.id}`} className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100">
+                  {/* Badge */}
+                  {discount && (
+                    <span className="absolute left-5 top-5 z-10 rounded-full bg-teal-500 px-2.5 py-1 text-[9px] font-bold text-white tracking-wider uppercase">
+                      Sale
+                    </span>
+                  )}
+
+                  <Link href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
                     <img
                       src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
                       alt={prod.name}
-                      className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-500"
                     />
                   </Link>
-                  <div className="mt-4 flex flex-col flex-1">
-                    <span className="text-xs font-medium text-zinc-400">{prod.category?.name}</span>
-                    <Link href={`/products/${prod.id}`} className="font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors mt-1 block line-clamp-1">
+
+                  <div className="mt-4 flex flex-col flex-1 px-1">
+                    <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">{prod.category?.name}</span>
+                    <Link href={`/products/${prod.id}`} className="font-bold text-zinc-900 group-hover:text-teal-600 transition-colors mt-1 block text-sm tracking-tight line-clamp-1">
                       {prod.name}
                     </Link>
 
-                    {/* Price Tag */}
-                    <div className="mt-2 flex items-baseline gap-2">
-                      {discount ? (
-                        <>
-                          <span className="text-lg font-bold text-zinc-900">${prod.discountPrice}</span>
-                          <span className="text-sm text-zinc-400 line-through">${prod.price}</span>
-                        </>
-                      ) : (
-                        <span className="text-lg font-bold text-zinc-900">${prod.price}</span>
-                      )}
+                    {/* Price and Rating Row */}
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-baseline gap-1.5">
+                        {discount ? (
+                          <>
+                            <span className="text-base font-extrabold text-zinc-900">${prod.discountPrice}</span>
+                            <span className="text-xs text-zinc-400 line-through font-medium">${prod.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-base font-extrabold text-zinc-900">${prod.price}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        <Star className="h-3 w-3 fill-current" />
+                        <span className="text-[10px] font-bold text-zinc-500">4.8</span>
+                      </div>
                     </div>
 
                     {/* Add to Cart button */}
-                    <div className="mt-4 pt-4 border-t border-zinc-100">
+                    <div className="mt-4 pt-4 border-t border-zinc-50">
                       <button
                         onClick={() => addToCart(prod.id, 1)}
                         disabled={prod.stock === 0}
-                        className="w-full flex items-center justify-center gap-2 rounded-full bg-zinc-900 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 rounded-full bg-zinc-950 py-2.5 text-xs font-bold text-white hover:bg-zinc-800 transition-colors uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
                       >
-                        <ShoppingBag className="h-4 w-4" />
+                        <ShoppingBag className="h-3.5 w-3.5" />
                         <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
                       </button>
                     </div>
