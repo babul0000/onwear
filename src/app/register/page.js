@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
+import { Mail, Lock, User, Phone, MapPin, Store } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -44,99 +45,180 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center py-20 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md flex flex-col gap-8 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-zinc-950">Create Account</h2>
-          <p className="text-sm text-zinc-500 mt-2">Sign up for your customer account</p>
+    <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-zinc-50 font-sans">
+      {/* LEFT COLUMN: Form Container (Occupies 5 columns on desktop) */}
+      <div className="relative md:col-span-5 bg-white flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-16 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        
+        {/* RIPPED PAPER SVG OVERLAY (Visible on desktop, points rightwards overlaying the image) */}
+        <div className="absolute top-0 bottom-0 right-[-19px] w-[20px] h-full text-white fill-current z-20 pointer-events-none hidden md:block select-none">
+          <svg
+            viewBox="0 0 100 1000"
+            preserveAspectRatio="none"
+            className="h-full w-full"
+          >
+            <path d="M0,0 L60,0 Q65,20 55,40 T75,80 T50,120 T70,160 T55,200 T65,240 T45,280 T75,320 T50,360 T70,400 T55,440 T65,480 T45,520 T75,560 T50,600 T70,640 T55,680 T65,720 T45,760 T75,800 T50,840 T70,880 T55,920 T65,960 T45,1000 L0,1000 Z" />
+          </svg>
+        </div>
+
+        {/* Brand Logo Header */}
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xl font-black tracking-[0.15em] text-zinc-950 uppercase">
+            <Store className="h-5 w-5 text-teal-600" />
+            <span>SHOPNEST</span>
+          </Link>
+        </div>
+
+        {/* Welcome Info */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">SIGN UP</h2>
+          <p className="text-sm text-zinc-400 mt-2 font-medium">Create your ShopNest customer account</p>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">
+          <div className="rounded-2xl bg-red-50 p-4 text-xs font-semibold text-red-600 mb-6">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-lg bg-green-50 p-4 text-sm font-medium text-green-700">
+          <div className="rounded-2xl bg-green-50 p-4 text-xs font-semibold text-green-600 mb-6">
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-zinc-700">Full Name</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Full Name Input */}
+          <div className="relative w-full">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              placeholder="John Doe"
+              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
+              placeholder="full name"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-zinc-700">Email Address</label>
+          {/* Email Input */}
+          <div className="relative w-full">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              placeholder="john@example.com"
+              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
+              placeholder="e-mail"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-zinc-700">Password</label>
+          {/* Password Input */}
+          <div className="relative w-full">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              placeholder="Min. 6 characters"
+              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
+              placeholder="password"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-zinc-700">Phone Number</label>
+          {/* Phone Input */}
+          <div className="relative w-full">
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              placeholder="017xxxxxxxx"
+              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
+              placeholder="phone number"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-zinc-700">Shipping Address</label>
+          {/* Address Input */}
+          <div className="relative w-full">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              placeholder="House/Street, Area, City"
+              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
+              placeholder="shipping address"
             />
           </div>
 
+          {/* Terms checkbox */}
+          <div className="flex items-center gap-2 px-1 py-1">
+            <input
+              type="checkbox"
+              id="terms"
+              defaultChecked
+              className="rounded border-teal-200 text-teal-500 focus:ring-teal-400 w-4 h-4"
+            />
+            <label htmlFor="terms" className="text-xs text-zinc-400 font-semibold cursor-pointer select-none">
+              I agree to the terms of service & policies
+            </label>
+          </div>
+
+          {/* Action Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-indigo-600 py-3 text-base font-semibold text-white hover:bg-indigo-700 transition-colors shadow-md disabled:bg-zinc-200 disabled:text-zinc-400 mt-2"
+            className="w-40 rounded-full bg-teal-400 hover:bg-teal-500 text-white font-extrabold py-3.5 text-xs tracking-wider transition-all shadow-md hover:shadow-lg hover:scale-102 duration-200 uppercase mt-2 disabled:bg-zinc-200 disabled:text-zinc-400"
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {loading ? 'CREATING...' : 'SIGN UP'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-zinc-500">
+        {/* Social logins */}
+        <div className="mt-8">
+          <div className="flex items-center gap-4">
+            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3b5998] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm">
+              <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.8c4.56-.93 8-4.96 8-9.8z"/>
+              </svg>
+            </button>
+            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-zinc-200 hover:bg-zinc-50 hover:scale-105 transition-all shadow-sm">
+              <svg className="h-5 w-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.832 0-8.232-3.893-8.232-8.529S7.408 1.457 12.24 1.457c2.477 0 4.183.993 5.378 2.128l3.1-3.1C18.665.414 15.657 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.618 0 12.28-5.357 12.28-12.24 0-.829-.071-1.636-.2-1.957H12.24z"/>
+              </svg>
+            </button>
+            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1da1f2] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm">
+              <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p className="mt-10 text-sm text-zinc-400 font-medium">
           Already have an account?{' '}
-          <Link href="/login" className="font-bold text-indigo-600 hover:text-indigo-700 underline">
+          <Link href="/login" className="font-bold text-teal-500 hover:text-teal-600 underline">
             Login here
           </Link>
         </p>
+      </div>
+
+      {/* RIGHT COLUMN: Clothing Brand Presentation Image (Occupies 7 columns on desktop) */}
+      <div className="relative md:col-span-7 hidden md:block overflow-hidden bg-zinc-950">
+        {/* Background Image: Premium Summer Clothing Model */}
+        <img
+          src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200"
+          alt="Premium Clothing Model Collection"
+          className="absolute inset-0 h-full w-full object-cover opacity-95 transition-transform duration-1000 hover:scale-102"
+        />
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/30 to-transparent" />
+        
+        {/* Centered Premium Content Branding */}
+        <div className="absolute bottom-20 right-20 text-right z-10 text-white select-none">
+          <p className="text-xs font-bold tracking-[0.4em] uppercase text-teal-400 mb-2">JOIN THE FASHION NEST</p>
+          <h1 className="text-4xl font-extrabold tracking-wider uppercase mb-1 leading-none">START JOURNEY</h1>
+          <p className="text-zinc-300 text-sm tracking-widest font-light">Get special privileges, save wishlists, track shopping orders</p>
+        </div>
       </div>
     </div>
   );
