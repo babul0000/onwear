@@ -11,7 +11,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,7 +26,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await register(name, email, password, phone, address);
+      const res = await register(name, email, password, phone, '');
       if (res.success) {
         setSuccess('Registration successful! Redirecting to login page...');
         setTimeout(() => {
@@ -144,17 +143,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Address Input */}
-          <div className="relative w-full">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-400 h-4.5 w-4.5 pointer-events-none" />
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-teal-50/70 border border-teal-100/50 rounded-full py-3.5 pl-12 pr-6 text-sm text-teal-900 placeholder-teal-300 outline-none focus:bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 transition-all font-medium"
-              placeholder="shipping address"
-            />
-          </div>
+
 
           {/* Terms checkbox */}
           <div className="flex items-center gap-2 px-1 py-1">
