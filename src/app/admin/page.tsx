@@ -5,7 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../config';
 import Link from 'next/link';
-import { Users, ShoppingBag, Receipt, DollarSign, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
+import { 
+  Users, ShoppingBag, Receipt, DollarSign, Clock, CheckCircle2, 
+  ChevronRight, ArrowRight, Star, Tag, RefreshCw, Eye, Percent, ArrowUpRight
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const { token, user } = useAuth();
@@ -19,6 +22,7 @@ export default function AdminDashboard() {
     pending: 0,
     delivered: 0
   });
+  const [productList, setProductList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,156 +31,330 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  useEffect(() => {
+  const loadStatsAndProducts = async () => {
     if (!token) return;
+    try {
+      const [usersRes, productsRes, ordersRes] = await Promise.all([
+        fetch(`${API_URL}/users`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/products?limit=9999&includeDeleted=true`),
+        fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
 
-    async function loadStats() {
-      try {
-        const [usersRes, productsRes, ordersRes] = await Promise.all([
-          fetch(`${API_URL}/users`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_URL}/products?limit=9999&includeDeleted=true`),
-          fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } })
-        ]);
+      const usersData = await usersRes.json();
+      const productsData = await productsRes.json();
+      const ordersData = await ordersRes.json();
 
-        const usersData = await usersRes.json();
-        const productsData = await productsRes.json();
-        const ordersData = await ordersRes.json();
+      const userCount = usersData.success ? usersData.data.length : 0;
+      const productCount = productsData.success ? productsData.data.length : 0;
+      const ordersList = ordersData.success ? ordersData.data : [];
+      const prodList = productsData.success ? productsData.data : [];
 
-        const userCount = usersData.success ? usersData.data.length : 0;
-        const productCount = productsData.success ? productsData.data.length : 0;
-        const ordersList = ordersData.success ? ordersData.data : [];
+      setProductList(prodList.slice(0, 5)); // Keep first 5 for the catalog summary
 
-        // Compute revenue (Paid orders total amount)
-        const totalRevenue = ordersList
-          .filter((o) => o.paymentStatus === 'PAID')
-          .reduce((sum, o) => sum + o.totalAmount, 0);
+      // Compute revenue (Paid orders total amount)
+      const totalRevenue = ordersList
+        .filter((o: any) => o.paymentStatus === 'PAID')
+        .reduce((sum: number, o: any) => sum + o.totalAmount, 0);
 
-        const pendingOrders = ordersList.filter((o) => o.status === 'PENDING').length;
-        const deliveredOrders = ordersList.filter((o) => o.status === 'DELIVERED').length;
+      const pendingOrders = ordersList.filter((o: any) => o.status === 'PENDING').length;
+      const deliveredOrders = ordersList.filter((o: any) => o.status === 'DELIVERED').length;
 
-        setStats({
-          users: userCount,
-          products: productCount,
-          orders: ordersList.length,
-          revenue: totalRevenue,
-          pending: pendingOrders,
-          delivered: deliveredOrders
-        });
-      } catch (err) {
-        console.error('Error fetching admin statistics:', err);
-      } finally {
-        setLoading(false);
-      }
+      setStats({
+        users: userCount,
+        products: productCount,
+        orders: ordersList.length,
+        revenue: totalRevenue,
+        pending: pendingOrders,
+        delivered: deliveredOrders
+      });
+    } catch (err) {
+      console.error('Error fetching admin statistics:', err);
+    } finally {
+      setLoading(false);
     }
-    loadStats();
+  };
+
+  useEffect(() => {
+    loadStatsAndProducts();
   }, [token]);
 
   if (!token || !user || user.role !== 'admin') {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-zinc-800">Access Denied</h2>
-        <p className="text-zinc-500 text-sm">Only administrators can access this page.</p>
-      </div>
-    );
+    return null;
   }
 
-  const statCards = [
-    { title: 'Total Revenue', value: `$${stats.revenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-50 border-green-200' },
-    { title: 'Total Orders', value: stats.orders, icon: Receipt, color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
-    { title: 'Pending Orders', value: stats.pending, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-200' },
-    { title: 'Delivered Orders', value: stats.delivered, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { title: 'Total Products', value: stats.products, icon: ShoppingBag, color: 'text-rose-600 bg-rose-50 border-rose-200' },
-    { title: 'Registered Users', value: stats.users, icon: Users, color: 'text-blue-600 bg-blue-50 border-blue-200' }
-  ];
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-950 flex items-center gap-2">
-            <LayoutDashboard className="h-8 w-8 text-indigo-600" />
-            <span>Admin Dashboard</span>
-          </h1>
-          <p className="text-sm text-zinc-500 mt-1">Real-time store summaries and inventory metrics</p>
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      
+      {/* 1. BLUE AD BANNER */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        {/* Decorative Grid Icons */}
+        <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none select-none">
+          <svg className="h-full w-auto" viewBox="0 0 200 200" fill="currentColor">
+            <path d="M0 0h200v200H0z" />
+          </svg>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs font-semibold">
-          <Link href="/admin/products" className="rounded-full bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800 transition-colors">
-            Manage Products
-          </Link>
-          <Link href="/admin/categories" className="rounded-full bg-white border border-zinc-200 px-4 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors">
-            Manage Categories
-          </Link>
-          <Link href="/admin/orders" className="rounded-full bg-white border border-zinc-200 px-4 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors">
-            Manage Orders
-          </Link>
+        
+        <div className="z-10 flex flex-col gap-1.5 max-w-xl">
+          <span className="inline-flex w-fit items-center rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+            Grow Sales
+          </span>
+          <h3 className="text-xl sm:text-2xl font-black tracking-tight">The easiest way to increase sales up to 22 times.</h3>
+          <p className="text-xs sm:text-sm text-blue-100/90 font-medium">Unleash the power of this sales tactic and increase your revenue by 22 times.</p>
+        </div>
+        
+        <Link 
+          href="/admin/products"
+          className="z-10 bg-white hover:bg-zinc-50 text-indigo-700 font-extrabold px-6 py-3 rounded-full text-xs tracking-wider uppercase transition-all shadow-md shrink-0"
+        >
+          Get Started
+        </Link>
+      </div>
+
+      {/* 2. FOUR SUMMARY METRICS CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Card 1: Delivery */}
+        <div className="bg-white rounded-3xl border border-zinc-200/80 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Clock className="h-4.5 w-4.5" />
+            </div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Delivery</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-50 pt-3">
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">{stats.pending}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Processing</p>
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">{stats.delivered}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Processed</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Payment */}
+        <div className="bg-white rounded-3xl border border-zinc-200/80 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="h-4.5 w-4.5" />
+            </div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Payment</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-50 pt-3">
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">${stats.revenue.toFixed(0)}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Revenue</p>
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">{stats.orders}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Total Orders</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Product */}
+        <div className="bg-white rounded-3xl border border-zinc-200/80 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+              <ShoppingBag className="h-4.5 w-4.5" />
+            </div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Product</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-50 pt-3">
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">{stats.products}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">In Catalog</p>
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">0</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Blocked</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Response */}
+        <div className="bg-white rounded-3xl border border-zinc-200/80 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Users className="h-4.5 w-4.5" />
+            </div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Users</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-50 pt-3">
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">{stats.users}</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Customers</p>
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-zinc-900">1</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Administrators</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse h-32 border border-zinc-200 bg-white rounded-2xl"></div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {statCards.map((card, i) => {
-            const Icon = card.icon;
-            return (
-              <div
-                key={i}
-                className="flex items-center justify-between border border-zinc-200 bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-zinc-500">{card.title}</span>
-                  <span className="text-3xl font-extrabold text-zinc-900">{card.value}</span>
-                </div>
-                <div className={`rounded-2xl border p-4 ${card.color}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* 3. CHART AND STATISTICS LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Left Side: Selling Chart Area */}
+        <div className="lg:col-span-8 bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">Selling Overview</span>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-3xl font-black text-zinc-950">${stats.revenue.toFixed(2)}</span>
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-600">
+                <ArrowUpRight className="h-3 w-3" />
+                <span>+25.02%</span>
+              </span>
+            </div>
+            <span className="text-xs text-zinc-400 font-medium">(Current session calculated)</span>
+          </div>
 
-      {/* Admin Modules Navigation Panel */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col gap-6 mt-4">
-        <h3 className="font-bold text-zinc-900 border-b border-zinc-100 pb-4 text-lg">Quick Access Administration Modules</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link
+          {/* SVG line area chart */}
+          <div className="w-full relative h-48 bg-zinc-50/50 rounded-2xl overflow-hidden mt-2 border border-zinc-100 p-2">
+            <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <path 
+                d="M0,120 Q50,70 100,100 T200,50 T300,110 T400,40 T500,90 L500,150 L0,150 Z" 
+                fill="url(#chartGrad)" 
+              />
+              <path 
+                d="M0,120 Q50,70 100,100 T200,50 T300,110 T400,40 T500,90" 
+                fill="none" 
+                stroke="#6366f1" 
+                strokeWidth="2.5" 
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-x-0 bottom-1.5 flex justify-between px-4 text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+              <span>00h</span>
+              <span>06h</span>
+              <span>12h</span>
+              <span>18h</span>
+              <span>24h</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Four Statistics Blocks */}
+        <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+          {/* Visitor Stat */}
+          <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Total Visitor</p>
+            <div>
+              <p className="text-2xl font-black text-zinc-950 mt-2">1,240</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">vs yesterday</p>
+              <span className="text-[10px] font-extrabold text-red-500">-0.05%</span>
+            </div>
+          </div>
+
+          {/* Product Seen Stat */}
+          <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Product Seen</p>
+            <div>
+              <p className="text-2xl font-black text-zinc-950 mt-2">8,250</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">vs yesterday</p>
+              <span className="text-[10px] font-extrabold text-red-500">-5.27%</span>
+            </div>
+          </div>
+
+          {/* Order Stat */}
+          <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Order</p>
+            <div>
+              <p className="text-2xl font-black text-zinc-950 mt-2">{stats.orders}</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">vs yesterday</p>
+              <span className="text-[10px] font-extrabold text-emerald-600">+12.05%</span>
+            </div>
+          </div>
+
+          {/* Conversion Rate Stat */}
+          <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Conversion</p>
+            <div>
+              <p className="text-2xl font-black text-zinc-950 mt-2">4.50%</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">vs yesterday</p>
+              <span className="text-[10px] font-extrabold text-emerald-600">+3.26%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. PRODUCT LISTING CATALOG OVERVIEW TABLE */}
+      <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h4 className="font-extrabold text-zinc-950 text-base">Active Products Overview</h4>
+            <p className="text-xs text-zinc-500 mt-0.5">Recent active items currently published in the catalog</p>
+          </div>
+          <Link 
             href="/admin/products"
-            className="flex flex-col gap-2 border border-zinc-100 p-4 rounded-xl hover:bg-zinc-50 transition-colors hover:border-indigo-200"
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1 self-start"
           >
-            <h4 className="font-bold text-zinc-900 text-sm">Product Inventory</h4>
-            <p className="text-xs text-zinc-500">Create, edit, soft delete products and update stocks.</p>
-          </Link>
-
-          <Link
-            href="/admin/categories"
-            className="flex flex-col gap-2 border border-zinc-100 p-4 rounded-xl hover:bg-zinc-50 transition-colors hover:border-indigo-200"
-          >
-            <h4 className="font-bold text-zinc-900 text-sm">Product Categories</h4>
-            <p className="text-xs text-zinc-500">Manage categories, slugs, descriptions, and statuses.</p>
-          </Link>
-
-          <Link
-            href="/admin/orders"
-            className="flex flex-col gap-2 border border-zinc-100 p-4 rounded-xl hover:bg-zinc-50 transition-colors hover:border-indigo-200"
-          >
-            <h4 className="font-bold text-zinc-900 text-sm">Customer Orders</h4>
-            <p className="text-xs text-zinc-500">View shipping addresses, verify totals, update tracking statuses.</p>
-          </Link>
-
-          <Link
-            href="/admin/users"
-            className="flex flex-col gap-2 border border-zinc-100 p-4 rounded-xl hover:bg-zinc-50 transition-colors hover:border-indigo-200"
-          >
-            <h4 className="font-bold text-zinc-900 text-sm">User Directory</h4>
-            <p className="text-xs text-zinc-500">Monitor registered accounts, change roles, check details.</p>
+            <span>Manage Catalog</span>
+            <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+
+        {loading ? (
+          <div className="p-8 text-center text-xs text-zinc-400">Loading catalog...</div>
+        ) : productList.length === 0 ? (
+          <div className="p-8 text-center text-xs text-zinc-400">No products found. Add products to get started!</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm text-zinc-500">
+              <thead className="bg-zinc-50/50 text-[10px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-100">
+                <tr>
+                  <th className="px-6 py-3.5">Product Name</th>
+                  <th className="px-6 py-3.5">SKU</th>
+                  <th className="px-6 py-3.5">Price</th>
+                  <th className="px-6 py-3.5">Stock</th>
+                  <th className="px-6 py-3.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 text-xs">
+                {productList.map((prod) => (
+                  <tr key={prod.id} className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-zinc-900 flex items-center gap-3">
+                      {prod.image ? (
+                        <img 
+                          src={prod.image} 
+                          alt={prod.name} 
+                          className="h-9 w-9 rounded-xl object-cover border border-zinc-100 shadow-sm"
+                        />
+                      ) : (
+                        <div className="h-9 w-9 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 border border-zinc-100">
+                          <ShoppingBag className="h-4.5 w-4.5" />
+                        </div>
+                      )}
+                      <span className="truncate max-w-xs">{prod.name}</span>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-zinc-500 font-bold">{prod.sku}</td>
+                    <td className="px-6 py-4 font-extrabold text-zinc-900">${prod.price.toFixed(2)}</td>
+                    <td className="px-6 py-4 font-bold">
+                      <span className={prod.stock === 0 ? 'text-red-500' : 'text-zinc-600'}>
+                        {prod.stock} units
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase border ${
+                        prod.status === 'ACTIVE' 
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                          : 'bg-zinc-100 text-zinc-500 border-zinc-200'
+                      }`}>
+                        {prod.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

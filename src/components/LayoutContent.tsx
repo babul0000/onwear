@@ -8,12 +8,13 @@ import Footer from './Footer';
 export default function LayoutContent({ children }) {
   const pathname = usePathname();
   const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isAdminPage = pathname.startsWith('/admin');
 
   return (
     <div className="min-h-full flex flex-col">
-      {!isAuthPage && <Navbar />}
+      {!isAuthPage && !isAdminPage && <Navbar />}
       <main className="flex-1 flex flex-col">{children}</main>
-      {!isAuthPage && <Footer />}
+      {!isAuthPage && !isAdminPage && <Footer />}
     </div>
   );
 }
