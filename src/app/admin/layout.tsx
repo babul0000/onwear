@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pageTitle = menuNames[pathname] || 'Admin Panel';
 
   return (
-    <div className="min-h-screen flex bg-zinc-950 font-sans text-zinc-300">
+    <div className="min-h-screen flex bg-zinc-50 font-sans text-zinc-900">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
         <AdminHeader pageTitle={pageTitle} />

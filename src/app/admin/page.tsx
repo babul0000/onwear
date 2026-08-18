@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { API_URL } from '../../config';
 import Link from 'next/link';
 import { 
-  Users, ShoppingBag, DollarSign, Clock, Truck, ShoppingCart, Percent, Tag, ArrowRight
+  Users, ShoppingBag, DollarSign, Clock, Truck, ShoppingCart, ArrowRight
 } from 'lucide-react';
 import QuickAddProduct from '../../components/QuickAddProduct';
 import SalesOverviewChart from '../../components/SalesOverviewChart';
@@ -99,25 +99,27 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto text-zinc-300">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto text-zinc-700">
       
-      {/* 1. GROWTH MARKETING BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950 via-slate-900 to-zinc-950 border border-zinc-900/60 p-6 sm:p-8 text-white shadow-2xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        {/* Glow Filters */}
-        <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 h-40 w-40 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+      {/* 1. GROWTH MARKETING BANNER (Premium light-gradient visual) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-indigo-500/10">
+        <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none select-none">
+          <svg className="h-full w-auto" viewBox="0 0 200 200" fill="currentColor">
+            <path d="M0 0h200v200H0z" />
+          </svg>
+        </div>
         
         <div className="z-10 flex flex-col gap-1.5 max-w-xl">
-          <span className="inline-flex w-fit items-center rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.1)]">
+          <span className="inline-flex w-fit items-center rounded-full bg-white/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
             Grow Your Store
           </span>
           <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">Discover sales opportunities and improve your store performance.</h3>
-          <p className="text-xs text-zinc-400 font-medium">Optimize catalog options, track customer transactions, and launch targeted promotional coupons.</p>
+          <p className="text-xs text-blue-100/90 font-medium">Optimize catalog options, track customer transactions, and launch targeted promotional coupons.</p>
         </div>
         
         <Link 
           href="/admin/products"
-          className="z-10 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold px-6 py-3 rounded-full text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(99,102,241,0.2)] shrink-0 flex items-center gap-1.5 border border-indigo-500/20"
+          className="z-10 bg-white hover:bg-zinc-50 text-indigo-700 font-extrabold px-6 py-3 rounded-full text-xs tracking-wider uppercase transition-all shadow-md shrink-0 flex items-center gap-1.5"
         >
           <span>Quick Start</span>
           <ArrowRight className="h-3.5 w-3.5" />
@@ -128,81 +130,81 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Card 1: Delivery */}
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-4">
+        <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+            <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
               <Truck className="h-4.5 w-4.5" />
             </div>
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Delivery</span>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Delivery</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-zinc-900 pt-3">
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-55 pt-3">
             <div>
-              <p className="text-2xl font-black text-white">{stats.processingShipments}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Processing</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.processingShipments}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Processing</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{stats.completedDeliveries}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Completed</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.completedDeliveries}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Completed</p>
             </div>
           </div>
         </div>
 
         {/* Card 2: Payment */}
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-4">
+        <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
               <DollarSign className="h-4.5 w-4.5" />
             </div>
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Payment</span>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Payment</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-zinc-900 pt-3">
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-55 pt-3">
             <div>
-              <p className="text-2xl font-black text-white">৳{stats.revenue.toLocaleString()}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Revenue</p>
+              <p className="text-2xl font-black text-zinc-950">৳{stats.revenue.toLocaleString()}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Revenue</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{stats.totalOrders}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Orders</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.totalOrders}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Orders</p>
             </div>
           </div>
         </div>
 
         {/* Card 3: Product */}
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-4">
+        <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+            <div className="h-8 w-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
               <ShoppingBag className="h-4.5 w-4.5" />
             </div>
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Products</span>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Products</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-zinc-900 pt-3">
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-55 pt-3">
             <div>
-              <p className="text-2xl font-black text-white">{stats.activeProducts}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Active</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.activeProducts}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Active</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{stats.blockedProducts}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Blocked</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.blockedProducts}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Blocked</p>
             </div>
           </div>
         </div>
 
         {/* Card 4: Users */}
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-4">
+        <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
               <Users className="h-4.5 w-4.5" />
             </div>
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Users</span>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Users</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-zinc-900 pt-3">
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-55 pt-3">
             <div>
-              <p className="text-2xl font-black text-white">{stats.customersCount}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Customers</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.customersCount}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Customers</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{stats.adminsCount}</p>
-              <p className="text-[9px] text-zinc-500 font-extrabold uppercase mt-0.5 tracking-wider">Admins</p>
+              <p className="text-2xl font-black text-zinc-950">{stats.adminsCount}</p>
+              <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-0.5 tracking-wider">Admins</p>
             </div>
           </div>
         </div>
