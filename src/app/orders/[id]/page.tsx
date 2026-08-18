@@ -6,7 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../config';
 import { Truck, ShoppingBag, ArrowLeft } from 'lucide-react';
 
-export default function OrderDetailsPage({ params }) {
+export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const orderId = resolvedParams.id;
 

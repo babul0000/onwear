@@ -140,7 +140,7 @@ export default function ProfilePage() {
               <span>Default Shipping Address</span>
             </label>
             <textarea
-              rows="3"
+              rows={3}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600 resize-none"

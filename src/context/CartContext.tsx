@@ -1,21 +1,36 @@
 'use client';
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { API_URL } from '../config';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
-const CartContext = createContext();
+export interface CartContextType {
+  cart: any;
+  wishlist: any;
+  fetchCart: () => Promise<void>;
+  fetchWishlist: () => Promise<void>;
+  addToCart: (productId: any, quantity?: number) => Promise<{ success: boolean; message?: string }>;
+  updateCartItem: (cartItemId: any, quantity: number) => Promise<{ success: boolean; message?: string }>;
+  removeFromCart: (cartItemId: any) => Promise<{ success: boolean; message?: string }>;
+  clearCart: () => Promise<{ success: boolean }>;
+  addToWishlist: (productId: any) => Promise<{ success: boolean; message?: string }>;
+  removeFromWishlist: (productId: any) => Promise<{ success: boolean; message?: string }>;
+  isInWishlist: (productId: any) => boolean;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+}
 
-export const CartProvider = ({ children }) => {
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { token, user } = useAuth();
-  const [cart, setCart] = useState(null);
-  const [wishlist, setWishlist] = useState(null);
+  const [cart, setCart] = useState<any>(null);
+  const [wishlist, setWishlist] = useState<any>(null);
 
   // Toast notification state
-  const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({ message: '', type: 'success', visible: false });
 
-  const showToast = (message, type = 'success') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type, visible: true });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, visible: false }));
@@ -62,7 +77,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productId: any, quantity: number = 1) => {
     if (!token) {
       showToast('Please login to add items to cart', 'error');
       return { success: false };
@@ -92,7 +107,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const updateCartItem = async (cartItemId, quantity) => {
+  const updateCartItem = async (cartItemId: any, quantity: number) => {
     if (!token) return { success: false };
     try {
       const res = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
@@ -118,7 +133,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const removeFromCart = async (cartItemId) => {
+  const removeFromCart = async (cartItemId: any) => {
     if (!token) return { success: false };
     try {
       const res = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
@@ -159,7 +174,7 @@ export const CartProvider = ({ children }) => {
     return { success: false };
   };
 
-  const addToWishlist = async (productId) => {
+  const addToWishlist = async (productId: any) => {
     if (!token) {
       showToast('Please login to add items to wishlist', 'error');
       return { success: false };
@@ -185,7 +200,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const removeFromWishlist = async (productId) => {
+  const removeFromWishlist = async (productId: any) => {
     if (!token) return { success: false };
     try {
       const res = await fetch(`${API_URL}/wishlist/${productId}`, {
@@ -207,7 +222,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const isInWishlist = (productId) => {
+  const isInWishlist = (productId: any) => {
     if (!wishlist || !wishlist.items) return false;
     return wishlist.items.some((item) => item.productId === productId);
   };
@@ -248,4 +263,10 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};

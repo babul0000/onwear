@@ -1,14 +1,24 @@
 'use client';
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { API_URL } from '../config';
 
-const AuthContext = createContext();
+export interface AuthContextType {
+  user: any;
+  token: string | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (name: string, email: string, password: string, phone: string, address: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
+  updateProfile: (name: string, phone: string, address: string) => Promise<{ success: boolean; message?: string }>;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('shopnest_token');
@@ -20,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const fetchUserProfile = async (jwtToken) => {
+  const fetchUserProfile = async (jwtToken: string) => {
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
         headers: {
@@ -42,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -61,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, phone, address) => {
+  const register = async (name: string, email: string, password: string, phone: string, address: string) => {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -83,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const updateProfile = async (name, phone, address) => {
+  const updateProfile = async (name: string, phone: string, address: string) => {
     if (!token || !user) return { success: false, message: 'Not authenticated' };
 
     try {
@@ -115,4 +125,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

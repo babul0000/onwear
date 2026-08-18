@@ -216,7 +216,7 @@ export default function AdminCategoriesPage() {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-zinc-500">Description</label>
               <textarea
-                rows="3"
+                rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600 resize-none"

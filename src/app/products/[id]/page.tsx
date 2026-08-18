@@ -7,7 +7,7 @@ import { useCart } from '../../../context/CartContext';
 import { API_URL } from '../../../config';
 import { Star, ShoppingBag, Heart, Trash2, Edit } from 'lucide-react';
 
-export default function ProductDetailsPage({ params }) {
+export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const productId = resolvedParams.id;
 
@@ -278,7 +278,7 @@ export default function ProductDetailsPage({ params }) {
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-zinc-700">Review details:</label>
                   <textarea
-                    rows="4"
+                    rows={4}
                     placeholder="Tell others what you think about this product..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
