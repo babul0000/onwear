@@ -110,7 +110,7 @@ export default function Navbar() {
                           <p className="font-bold text-zinc-900 truncate">{user.name}</p>
                           <p className="text-[10px] text-zinc-400 truncate">{user.email}</p>
                         </div>
-                        {user.role === 'ADMIN' && (
+                        {user.role === 'admin' && (
                           <Link
                             href="/admin"
                             onClick={() => setShowAccountDropdown(false)}

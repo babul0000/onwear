@@ -325,7 +325,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                       </span>
                     </div>
                     {/* Trash review if it's the customer's review */}
-                    {user && (user.id === rev.userId || user.role === 'ADMIN') && (
+                    {user && (user.id === rev.userId || user.role === 'admin') && (
                       <button
                         onClick={() => handleDeleteReview(rev.id)}
                         className="text-zinc-400 hover:text-red-500 transition-colors p-2"

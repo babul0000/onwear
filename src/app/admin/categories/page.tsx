@@ -39,7 +39,7 @@ export default function AdminCategoriesPage() {
   };
 
   useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'admin') {
       router.push('/');
     }
   }, [user]);
@@ -125,7 +125,7 @@ export default function AdminCategoriesPage() {
     setStatus('ACTIVE');
   };
 
-  if (!token || !user || user.role !== 'ADMIN') {
+  if (!token || !user || user.role !== 'admin') {
     return null;
   }
 

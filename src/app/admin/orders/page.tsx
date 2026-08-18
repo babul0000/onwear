@@ -38,7 +38,7 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'admin') {
       router.push('/');
     }
   }, [user]);
@@ -97,7 +97,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (!token || !user || user.role !== 'ADMIN') {
+  if (!token || !user || user.role !== 'admin') {
     return null;
   }
 

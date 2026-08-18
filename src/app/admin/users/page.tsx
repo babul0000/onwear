@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'admin') {
       router.push('/');
     }
   }, [user]);
@@ -44,7 +44,7 @@ export default function AdminUsersPage() {
 
   const handleToggleRole = async (userId, currentRole) => {
     setError('');
-    const newRole = currentRole === 'ADMIN' ? 'CUSTOMER' : 'ADMIN';
+    const newRole = currentRole === 'admin' ? 'customer' : 'admin';
 
     if (!confirm(`Are you sure you want to change this user role to ${newRole}?`)) return;
 
@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!token || !user || user.role !== 'ADMIN') {
+  if (!token || !user || user.role !== 'admin') {
     return null;
   }
 
@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 text-zinc-500 max-w-xs truncate">{u.address || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                        u.role === 'ADMIN'
+                        u.role === 'admin'
                           ? 'bg-amber-50 text-amber-700 border-amber-200'
                           : 'bg-zinc-50 text-zinc-700 border-zinc-200'
                       }`}>

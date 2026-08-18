@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'admin') {
       router.push('/');
     }
   }, [user]);
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
     loadStats();
   }, [token]);
 
-  if (!token || !user || user.role !== 'ADMIN') {
+  if (!token || !user || user.role !== 'admin') {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Access Denied</h2>
