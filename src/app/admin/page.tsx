@@ -7,7 +7,7 @@ import { API_URL } from '../../config';
 import Link from 'next/link';
 import { 
   Users, ShoppingBag, Receipt, DollarSign, Clock, CheckCircle2, 
-  ChevronRight, ArrowRight, Star, Tag, RefreshCw, Eye, Percent, ArrowUpRight
+  ChevronRight, Plus, AlertCircle, Sparkles, FolderTree, Tag, Eye, Percent, ArrowUpRight
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -23,7 +23,20 @@ export default function AdminDashboard() {
     delivered: 0
   });
   const [productList, setProductList] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Quick Add Product Form States
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [sku, setSku] = useState('');
+  const [image, setImage] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== 'admin') {
@@ -34,21 +47,24 @@ export default function AdminDashboard() {
   const loadStatsAndProducts = async () => {
     if (!token) return;
     try {
-      const [usersRes, productsRes, ordersRes] = await Promise.all([
+      const [usersRes, productsRes, ordersRes, categoriesRes] = await Promise.all([
         fetch(`${API_URL}/users`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/products?limit=9999&includeDeleted=true`),
-        fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/categories`)
       ]);
 
       const usersData = await usersRes.json();
       const productsData = await productsRes.json();
       const ordersData = await ordersRes.json();
+      const categoriesData = await categoriesRes.json();
 
       const userCount = usersData.success ? usersData.data.length : 0;
       const productCount = productsData.success ? productsData.data.length : 0;
       const ordersList = ordersData.success ? ordersData.data : [];
       const prodList = productsData.success ? productsData.data : [];
-
+      
+      setCategories(categoriesData.success ? categoriesData.data : []);
       setProductList(prodList.slice(0, 5)); // Keep first 5 for the catalog summary
 
       // Compute revenue (Paid orders total amount)
@@ -78,6 +94,59 @@ export default function AdminDashboard() {
     loadStatsAndProducts();
   }, [token]);
 
+  const handleQuickAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+    setFormLoading(true);
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    const body = {
+      name,
+      slug,
+      price: parseFloat(price),
+      discountPrice: null,
+      stock: parseInt(stock),
+      sku,
+      image: image || undefined,
+      categoryId,
+      status: 'ACTIVE'
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setFormSuccess('Product successfully added!');
+        setName('');
+        setPrice('');
+        setStock('');
+        setSku('');
+        setImage('');
+        setCategoryId('');
+        
+        // Reload all stats and the product table
+        await loadStatsAndProducts();
+      } else {
+        setFormError(data.message || 'Failed to add product.');
+      }
+    } catch (err) {
+      console.error(err);
+      setFormError('Server error while adding product.');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   if (!token || !user || user.role !== 'admin') {
     return null;
   }
@@ -87,7 +156,6 @@ export default function AdminDashboard() {
       
       {/* 1. BLUE AD BANNER */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        {/* Decorative Grid Icons */}
         <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none select-none">
           <svg className="h-full w-auto" viewBox="0 0 200 200" fill="currentColor">
             <path d="M0 0h200v200H0z" />
@@ -209,7 +277,6 @@ export default function AdminDashboard() {
             <span className="text-xs text-zinc-400 font-medium">(Current session calculated)</span>
           </div>
 
-          {/* SVG line area chart */}
           <div className="w-full relative h-48 bg-zinc-50/50 rounded-2xl overflow-hidden mt-2 border border-zinc-100 p-2">
             <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
               <defs>
@@ -242,7 +309,6 @@ export default function AdminDashboard() {
 
         {/* Right Side: Four Statistics Blocks */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-4">
-          {/* Visitor Stat */}
           <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Total Visitor</p>
             <div>
@@ -252,7 +318,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Product Seen Stat */}
           <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Product Seen</p>
             <div>
@@ -262,7 +327,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Order Stat */}
           <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Order</p>
             <div>
@@ -272,7 +336,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Conversion Rate Stat */}
           <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Conversion</p>
             <div>
@@ -284,7 +347,112 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 4. PRODUCT LISTING CATALOG OVERVIEW TABLE */}
+      {/* 4. QUICK ADD PRODUCT FORM SECTION */}
+      <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+        <div>
+          <h4 className="font-extrabold text-zinc-950 text-base flex items-center gap-1.5">
+            <Plus className="h-5 w-5 text-indigo-600" />
+            <span>Quick Add Product</span>
+          </h4>
+          <p className="text-xs text-zinc-500 mt-0.5">Instantly publish new catalog items directly to your categories</p>
+        </div>
+
+        {formSuccess && (
+          <div className="rounded-2xl bg-green-50 p-4 text-xs font-semibold text-green-600 flex items-center gap-2">
+            <Sparkles className="h-4.5 w-4.5" />
+            <span>{formSuccess}</span>
+          </div>
+        )}
+
+        {formError && (
+          <div className="rounded-2xl bg-red-50 p-4 text-xs font-semibold text-red-600 flex items-center gap-2">
+            <AlertCircle className="h-4.5 w-4.5" />
+            <span>{formError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleQuickAddSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-end">
+          {/* Product Name */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-zinc-500">Product Name</label>
+            <input 
+              type="text" 
+              required
+              placeholder="e.g. Vintage Denim Jacket"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-xl border border-zinc-200/80 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-medium"
+            />
+          </div>
+
+          {/* Category Dropdown */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-zinc-500">Category</label>
+            <select 
+              required
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="rounded-xl border border-zinc-200/80 p-2.5 text-xs bg-zinc-50 focus:outline-indigo-600 font-medium cursor-pointer"
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* SKU */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-zinc-500">SKU (Unique Code)</label>
+            <input 
+              type="text" 
+              required
+              placeholder="e.g. DENIM-JKT-01"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              className="rounded-xl border border-zinc-200/80 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-medium"
+            />
+          </div>
+
+          {/* Price */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-zinc-500">Price ($)</label>
+            <input 
+              type="number" 
+              required
+              step="0.01"
+              placeholder="e.g. 89.99"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="rounded-xl border border-zinc-200/80 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-medium"
+            />
+          </div>
+
+          {/* Stock */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-zinc-500">Stock Quantity</label>
+            <input 
+              type="number" 
+              required
+              placeholder="e.g. 50"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              className="rounded-xl border border-zinc-200/80 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-medium"
+            />
+          </div>
+
+          {/* Action Button */}
+          <button 
+            type="submit"
+            disabled={formLoading}
+            className="rounded-xl bg-indigo-600 text-white font-extrabold py-2.5 text-xs tracking-wider uppercase transition-all shadow-md hover:bg-indigo-700 disabled:bg-zinc-200 disabled:text-zinc-400 h-9.5 cursor-pointer"
+          >
+            {formLoading ? 'Publishing...' : 'Publish Product'}
+          </button>
+        </form>
+      </div>
+
+      {/* 5. PRODUCT LISTING CATALOG OVERVIEW TABLE */}
       <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
