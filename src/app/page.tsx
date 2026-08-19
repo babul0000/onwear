@@ -6,9 +6,28 @@ import { useCart } from '../context/CartContext';
 import { API_URL } from '../config';
 import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star } from 'lucide-react';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  discountPrice?: number | null;
+  image?: string;
+  stock: number;
+  category?: {
+    name: string;
+  };
+}
+
 export default function Home() {
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
