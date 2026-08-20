@@ -135,7 +135,7 @@ export default function AdminSidebar() {
                 All Products
               </Link>
               <Link
-                href="/admin/products?action=add"
+                href="/admin/products/add-product"
                 className="block px-3 py-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 transition-colors"
               >
                 Add Product

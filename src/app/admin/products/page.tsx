@@ -189,7 +189,7 @@ export default function AdminProductsPage() {
         </div>
         {!showForm && (
           <button
-            onClick={() => { resetForm(); setShowForm(true); }}
+            onClick={() => router.push('/admin/products/add-product')}
             className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
