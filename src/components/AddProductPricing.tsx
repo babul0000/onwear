@@ -354,9 +354,53 @@ export default function AddProductPricing({
               className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:outline-indigo-600 transition-all cursor-pointer outline-none"
             >
               <option value="">Select Sub-category</option>
-              <option value="panjabi">Panjabi</option>
-              <option value="sari">Sari</option>
-              <option value="three-piece">Three Piece</option>
+              {(() => {
+                const selectedCategory = categories.find(cat => cat.id === categoryId);
+                const categorySlug = selectedCategory?.slug ? selectedCategory.slug.toLowerCase() : '';
+                
+                const subcategoryMap: Record<string, { value: string; label: string }[]> = {
+                  'shirts': [
+                    { value: 'casual-shirts', label: 'Casual Shirts' },
+                    { value: 'formal-shirts', label: 'Formal Shirts' },
+                    { value: 'linen-shirts', label: 'Linen Shirts' }
+                  ],
+                  'pants': [
+                    { value: 'chinos', label: 'Chinos' },
+                    { value: 'joggers', label: 'Joggers' },
+                    { value: 'trousers', label: 'Trousers' },
+                    { value: 'cargos', label: 'Cargo Pants' }
+                  ],
+                  't-shirts': [
+                    { value: 'crewneck', label: 'Crewneck T-Shirts' },
+                    { value: 'v-neck', label: 'V-Neck T-Shirts' },
+                    { value: 'graphic-tees', label: 'Graphic Tees' }
+                  ],
+                  'denim': [
+                    { value: 'jeans', label: 'Jeans' },
+                    { value: 'jackets', label: 'Denim Jackets' }
+                  ],
+                  'caps': [
+                    { value: 'baseball-caps', label: 'Baseball Caps' },
+                    { value: 'dad-hats', label: 'Dad Hats' }
+                  ],
+                  'sandals': [
+                    { value: 'slides', label: 'Slides' },
+                    { value: 'leather-sandals', label: 'Leather Sandals' }
+                  ]
+                };
+
+                const options = subcategoryMap[categorySlug] || [
+                  { value: 'casual-wear', label: 'Casual Wear' },
+                  { value: 'formal-wear', label: 'Formal Wear' },
+                  { value: 'active-wear', label: 'Active Wear' }
+                ];
+
+                return options.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ));
+              })()}
             </select>
           </div>
 

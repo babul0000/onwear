@@ -126,6 +126,11 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     }
   }, [token]);
 
+  // Reset subcategory when category selection changes
+  useEffect(() => {
+    setSubCategory('');
+  }, [categoryId]);
+
   // Auto-generate slug and SEO titles
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
