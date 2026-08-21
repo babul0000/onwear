@@ -31,7 +31,9 @@ interface AddProductGeneralProps {
 export default function AddProductGeneral({
   name,
   brand,
+  setBrand,
   slug,
+  setSlug,
   description,
   setDescription,
   shortDescription,
