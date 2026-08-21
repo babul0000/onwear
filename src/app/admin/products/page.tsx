@@ -5,10 +5,13 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
 import { Edit2, Trash2, Plus, ArrowLeft, X } from 'lucide-react';
+import AddProduct from '../../../components/AddProduct';
 
 export default function AdminProductsPage() {
   const { token, user } = useAuth();
   const router = useRouter();
+  
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -169,6 +172,19 @@ export default function AdminProductsPage() {
     return null;
   }
 
+  if (showAddProduct) {
+    return (
+      <AddProduct
+        isInline={true}
+        onSuccess={() => {
+          setShowAddProduct(false);
+          fetchProducts();
+        }}
+        onCancel={() => setShowAddProduct(false)}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8">
       {/* Back link */}
@@ -189,7 +205,7 @@ export default function AdminProductsPage() {
         </div>
         {!showForm && (
           <button
-            onClick={() => router.push('/admin/products/add-product')}
+            onClick={() => setShowAddProduct(true)}
             className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
