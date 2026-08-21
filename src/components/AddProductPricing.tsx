@@ -36,8 +36,6 @@ interface AddProductPricingProps {
   setShippingOutside: (val: string) => void;
   freeShipping: boolean;
   setFreeShipping: (val: boolean) => void;
-  paymentMethods: string[];
-  togglePaymentMethod: (method: string) => void;
   categories: Category[];
   loadingCategories: boolean;
   categoryId: string;
@@ -80,8 +78,6 @@ export default function AddProductPricing({
   setShippingOutside,
   freeShipping,
   setFreeShipping,
-  paymentMethods,
-  togglePaymentMethod,
   categories,
   loadingCategories,
   categoryId,
@@ -318,67 +314,6 @@ export default function AddProductPricing({
         </div>
       </div>
 
-      {/* Payment Methods Card */}
-      <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col gap-6">
-        <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-indigo-500" />
-          <span>Payment Methods</span>
-        </h2>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => togglePaymentMethod('COD')}
-            className={`flex items-center gap-3 border rounded-2xl p-3.5 text-left text-xs font-bold transition-all cursor-pointer ${
-              paymentMethods.includes('COD') ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-200 bg-zinc-50 text-zinc-700'
-            }`}
-          >
-            <div className={`w-4.5 h-4.5 border rounded-md flex items-center justify-center text-xs text-white ${paymentMethods.includes('COD') ? 'bg-indigo-600 border-indigo-600' : 'border-zinc-300'}`}>
-              {paymentMethods.includes('COD') && '✓'}
-            </div>
-            <span>COD</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => togglePaymentMethod('BKASH')}
-            className={`flex items-center gap-3 border rounded-2xl p-3.5 text-left text-xs font-bold transition-all cursor-pointer ${
-              paymentMethods.includes('BKASH') ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-200 bg-zinc-50 text-zinc-700'
-            }`}
-          >
-            <div className={`w-4.5 h-4.5 border rounded-md flex items-center justify-center text-xs text-white ${paymentMethods.includes('BKASH') ? 'bg-indigo-600 border-indigo-600' : 'border-zinc-300'}`}>
-              {paymentMethods.includes('BKASH') && '✓'}
-            </div>
-            <span>bKash</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => togglePaymentMethod('NAGAD')}
-            className={`flex items-center gap-3 border rounded-2xl p-3.5 text-left text-xs font-bold transition-all cursor-pointer ${
-              paymentMethods.includes('NAGAD') ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-200 bg-zinc-50 text-zinc-700'
-            }`}
-          >
-            <div className={`w-4.5 h-4.5 border rounded-md flex items-center justify-center text-xs text-white ${paymentMethods.includes('NAGAD') ? 'bg-indigo-600 border-indigo-600' : 'border-zinc-300'}`}>
-              {paymentMethods.includes('NAGAD') && '✓'}
-            </div>
-            <span>Nagad</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => togglePaymentMethod('CARD')}
-            className={`flex items-center gap-3 border rounded-2xl p-3.5 text-left text-xs font-bold transition-all cursor-pointer ${
-              paymentMethods.includes('CARD') ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-200 bg-zinc-50 text-zinc-700'
-            }`}
-          >
-            <div className={`w-4.5 h-4.5 border rounded-md flex items-center justify-center text-xs text-white ${paymentMethods.includes('CARD') ? 'bg-indigo-600 border-indigo-600' : 'border-zinc-300'}`}>
-              {paymentMethods.includes('CARD') && '✓'}
-            </div>
-            <span>Card / Bank</span>
-          </button>
-        </div>
-      </div>
 
       {/* Organization Card */}
       <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col gap-6">

@@ -76,8 +76,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
   const [shippingInside, setShippingInside] = useState('60');
   const [shippingOutside, setShippingOutside] = useState('120');
 
-  // Payment methods
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(['COD', 'BKASH', 'NAGAD']);
+  // Shipping details
 
   // Tags
   const [tagInput, setTagInput] = useState('');
@@ -296,14 +295,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     }
   };
 
-  // Payment methods toggle
-  const togglePaymentMethod = (method: string) => {
-    if (paymentMethods.includes(method)) {
-      setPaymentMethods(paymentMethods.filter(m => m !== method));
-    } else {
-      setPaymentMethods([...paymentMethods, method]);
-    }
-  };
+
 
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -374,7 +366,6 @@ Dimensions: ${dimensions}
 Shipping Inside: $${shippingInside}
 Shipping Outside: $${shippingOutside}
 Free Shipping: ${freeShipping ? 'Yes' : 'No'}
-Payment Methods: ${paymentMethods.join(', ')}
     `.trim();
 
     const payload = {
@@ -546,8 +537,6 @@ Payment Methods: ${paymentMethods.join(', ')}
             setShippingOutside={setShippingOutside}
             freeShipping={freeShipping}
             setFreeShipping={setFreeShipping}
-            paymentMethods={paymentMethods}
-            togglePaymentMethod={togglePaymentMethod}
             categories={categories}
             loadingCategories={loadingCategories}
             categoryId={categoryId}
