@@ -344,7 +344,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           {/* Action Row Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 border-t border-zinc-100 pt-6">
             <button
-              onClick={() => addToCart(product.id, quantity)}
+              onClick={async () => {
+                const res = await addToCart(product.id, quantity);
+                if (res.success) {
+                  router.push('/checkout');
+                }
+              }}
               disabled={product.stock === 0}
               className="flex-1 rounded-xl bg-zinc-950 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 hover:bg-zinc-800 transition-colors shadow-md disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
