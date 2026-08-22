@@ -21,9 +21,9 @@ import {
 
 const DEFAULT_NAV_CATEGORIES = [
   {
-    id: 'shirts',
-    name: 'Shirts',
-    slug: 'shirts',
+    id: 'shirt',
+    name: 'Shirt',
+    slug: 'shirt',
     subcategories: [
       { name: 'Half Sleeve Shirts', slug: 'half-sleeve-shirts' },
       { name: 'Full Sleeve Shirts', slug: 'full-sleeve-shirts' },
@@ -34,31 +34,40 @@ const DEFAULT_NAV_CATEGORIES = [
     ]
   },
   {
-    id: 't-shirts',
-    name: 'T-Shirts',
-    slug: 't-shirts',
+    id: 't-shirt',
+    name: 'T-Shirt',
+    slug: 't-shirt',
     subcategories: [
       { name: 'Half Sleeve T-Shirts', slug: 'half-sleeve-t-shirts' },
       { name: 'Drop Shoulder T-Shirts', slug: 'drop-shoulder-t-shirts' }
     ]
   },
   {
-    id: 'pants',
-    name: 'Pants',
-    slug: 'pants',
+    id: 'pant',
+    name: 'Pant',
+    slug: 'pant',
     subcategories: [
-      { name: 'Semi Baggy Denim', slug: 'semi-baggy-denim' },
-      { name: 'Semi Baggy Pants', slug: 'semi-baggy-pants' },
-      { name: 'Korean Style Formal Pants', slug: 'korean-style-formal-pants' }
+      { name: 'Denim', slug: 'denim' },
+      { name: 'Chino', slug: 'chino' },
+      { name: 'Cargo', slug: 'cargo' }
     ]
   },
   {
-    id: 'polo-shirts',
-    name: 'Polo Shirts',
-    slug: 'polo-shirts',
+    id: 'sandal',
+    name: 'Sandal',
+    slug: 'sandal',
     subcategories: [
-      { name: 'Premium Polo Shirts', slug: 'premium-polo-shirts' },
-      { name: 'Old Money Polo', slug: 'old-money-polo' }
+      { name: 'Genuine Leather Slides', slug: 'genuine-leather-slides' },
+      { name: 'Everyday Slides', slug: 'everyday-slides' }
+    ]
+  },
+  {
+    id: 'cap',
+    name: 'Cap',
+    slug: 'cap',
+    subcategories: [
+      { name: 'Baseball Caps', slug: 'baseball-caps' },
+      { name: 'Dad Hats', slug: 'dad-hats' }
     ]
   },
   {
@@ -69,17 +78,6 @@ const DEFAULT_NAV_CATEGORIES = [
       { name: 'Full Sleeve Polo', slug: 'full-sleeve-polo' },
       { name: 'Full Sleeve T-Shirts', slug: 'full-sleeve-t-shirts' },
       { name: 'Winter Essentials', slug: 'winter-essentials' }
-    ]
-  },
-  {
-    id: 'new-arrivals',
-    name: 'New Arrivals',
-    slug: 'new-arrivals',
-    subcategories: [
-      { name: 'Latest Shirts', slug: 'latest-shirts' },
-      { name: 'New T-Shirt Collection', slug: 'new-t-shirt-collection' },
-      { name: 'New Pants Collection', slug: 'new-pants-collection' },
-      { name: 'Premium Polo Collection', slug: 'premium-polo-collection' }
     ]
   },
   {
@@ -124,11 +122,8 @@ export default function Navbar() {
             const match = fetchedCats.find((c: any) => c.slug.toLowerCase() === defCat.slug.toLowerCase());
             
             let subs = defCat.subcategories;
-            if (match) {
-              const dbSubs = fetchedCats.filter((c: any) => c.parentId === match.id);
-              if (dbSubs.length > 0) {
-                subs = dbSubs.map((s: any) => ({ name: s.name, slug: s.slug }));
-              }
+            if (match && match.subcategories && match.subcategories.length > 0) {
+              subs = match.subcategories.map((s: any) => ({ name: s.name, slug: s.slug }));
             }
 
             return {
@@ -309,7 +304,7 @@ export default function Navbar() {
       </header>
 
       {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
-      <div className="hidden md:block sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="hidden md:block sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
           <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
             <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
