@@ -7,6 +7,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 import { API_URL } from '../../../config';
 import { Star, ShoppingBag, Heart, Trash2, ArrowLeft } from 'lucide-react';
+import { formatPrice } from '../../../utils/format';
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -232,11 +233,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             <div className="text-3xl font-black text-zinc-950 mt-2">
               {discount ? (
                 <div className="flex items-baseline gap-2">
-                  <span>${product.discountPrice}</span>
-                  <span className="text-sm text-zinc-400 line-through font-bold">${product.price}</span>
+                  <span>{formatPrice(product.discountPrice)}</span>
+                  <span className="text-sm text-zinc-400 line-through font-bold">{formatPrice(product.price)}</span>
                 </div>
               ) : (
-                <span>${product.price}</span>
+                <span>{formatPrice(product.price)}</span>
               )}
             </div>
           </div>

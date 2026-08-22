@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
+import { formatPrice } from '../../utils/format';
 
 export default function CartPage() {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function CartPage() {
     return acc + price * item.quantity;
   }, 0);
 
-  const shippingCost = cartSubtotal > 150 || cartSubtotal === 0 ? 0 : 15;
+  const shippingCost = cartSubtotal > 5000 || cartSubtotal === 0 ? 0 : 80;
   const grandTotal = cartSubtotal + shippingCost;
 
   const handleQtyChange = async (itemId, currentQty, increment, maxStock) => {
@@ -88,11 +89,11 @@ export default function CartPage() {
                       <div className="mt-1 flex items-baseline gap-2">
                         {discount ? (
                           <>
-                            <span className="text-sm font-bold text-indigo-600">${item.product.discountPrice}</span>
-                            <span className="text-xs text-zinc-400 line-through">${item.product.price}</span>
+                            <span className="text-sm font-bold text-zinc-950">{formatPrice(item.product.discountPrice)}</span>
+                            <span className="text-xs text-zinc-400 line-through">{formatPrice(item.product.price)}</span>
                           </>
                         ) : (
-                          <span className="text-sm font-bold text-indigo-600">${item.product.price}</span>
+                          <span className="text-sm font-bold text-zinc-950">{formatPrice(item.product.price)}</span>
                         )}
                       </div>
                     </div>
@@ -117,7 +118,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right sm:min-w-20">
-                      <span className="text-base font-extrabold text-zinc-950">${subtotal.toFixed(2)}</span>
+                      <span className="text-base font-extrabold text-zinc-950">{formatPrice(subtotal)}</span>
                     </div>
 
                     <button
@@ -152,24 +153,24 @@ export default function CartPage() {
             <div className="flex flex-col gap-3 text-sm text-zinc-600">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-semibold text-zinc-900">${cartSubtotal.toFixed(2)}</span>
+                <span className="font-semibold text-zinc-900">{formatPrice(cartSubtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping Cost</span>
                 <span className="font-semibold text-zinc-900">
-                  {shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}
+                  {shippingCost === 0 ? 'Free' : formatPrice(shippingCost)}
                 </span>
               </div>
               {shippingCost > 0 && (
                 <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
-                  Tip: Get free shipping on orders over $150.00!
+                  Tip: Get free shipping on orders over Tk 5,000!
                 </p>
               )}
             </div>
 
             <div className="border-t border-zinc-100 pt-4 flex justify-between items-baseline">
               <span className="text-base font-bold text-zinc-900">Total</span>
-              <span className="text-2xl font-extrabold text-indigo-600">${grandTotal.toFixed(2)}</span>
+              <span className="text-2xl font-extrabold text-zinc-950">{formatPrice(grandTotal)}</span>
             </div>
 
             <Link

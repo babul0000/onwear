@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { Heart, ShoppingBag, Trash2 } from 'lucide-react';
+import { formatPrice } from '../../utils/format';
 
 export default function WishlistPage() {
   const { user } = useAuth();
@@ -87,11 +88,11 @@ export default function WishlistPage() {
                   <div className="mt-2 flex items-baseline gap-2">
                     {discount ? (
                       <>
-                        <span className="text-base font-bold text-zinc-900">${item.product.discountPrice}</span>
-                        <span className="text-xs text-zinc-400 line-through">${item.product.price}</span>
+                        <span className="text-base font-bold text-zinc-900">{formatPrice(item.product.discountPrice)}</span>
+                        <span className="text-xs text-zinc-400 line-through">{formatPrice(item.product.price)}</span>
                       </>
                     ) : (
-                      <span className="text-base font-bold text-zinc-900">${item.product.price}</span>
+                      <span className="text-base font-bold text-zinc-900">{formatPrice(item.product.price)}</span>
                     )}
                   </div>
 

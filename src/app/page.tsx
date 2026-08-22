@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Edit, Upload } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 interface Category {
   id: string;
@@ -380,11 +381,11 @@ export default function Home() {
                       <div className="flex items-baseline gap-1.5">
                         {discount ? (
                           <>
-                            <span className="text-base font-extrabold text-zinc-900">${prod.discountPrice}</span>
-                            <span className="text-xs text-zinc-400 line-through font-medium">${prod.price}</span>
+                            <span className="text-base font-extrabold text-zinc-900">{formatPrice(prod.discountPrice)}</span>
+                            <span className="text-xs text-zinc-400 line-through font-medium">{formatPrice(prod.price)}</span>
                           </>
                         ) : (
-                          <span className="text-base font-extrabold text-zinc-900">${prod.price}</span>
+                          <span className="text-base font-extrabold text-zinc-900">{formatPrice(prod.price)}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-0.5 text-amber-400">

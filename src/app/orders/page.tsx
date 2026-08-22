@@ -6,6 +6,7 @@ import { API_URL } from '../../config';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, ReceiptText } from 'lucide-react';
+import { formatPrice } from '../../utils/format';
 
 export default function OrdersHistoryPage() {
   const { token, user } = useAuth();
@@ -110,7 +111,7 @@ export default function OrdersHistoryPage() {
                           day: 'numeric'
                         })}
                       </td>
-                      <td className="px-6 py-4 font-semibold text-zinc-900">${order.totalAmount.toFixed(2)}</td>
+                      <td className="px-6 py-4 font-semibold text-zinc-900">{formatPrice(order.totalAmount)}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                           statusColors[order.status] || 'bg-zinc-50 text-zinc-700 border-zinc-200'

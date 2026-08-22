@@ -2,6 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatPrice } from '../../../utils/format';
 import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../config';
 import { Truck, ShoppingBag, ArrowLeft } from 'lucide-react';
@@ -132,11 +133,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                   <div>
                     <p className="font-semibold text-zinc-900 line-clamp-1">{item.productName}</p>
                     <p className="text-xs text-zinc-400">
-                      ${item.price.toFixed(2)} x {item.quantity}
+                      {formatPrice(item.price)} x {item.quantity}
                     </p>
                   </div>
                 </div>
-                <span className="font-bold text-zinc-950">${item.subtotal.toFixed(2)}</span>
+                <span className="font-bold text-zinc-950">{formatPrice(item.subtotal)}</span>
               </div>
             ))}
           </div>
@@ -145,7 +146,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         {/* Total Price */}
         <div className="border-t border-zinc-150 pt-4 flex justify-between items-baseline">
           <span className="text-base font-bold text-zinc-900">Total Paid</span>
-          <span className="text-2xl font-extrabold text-indigo-600">${order.totalAmount.toFixed(2)}</span>
+          <span className="text-2xl font-extrabold text-indigo-600">{formatPrice(order.totalAmount)}</span>
         </div>
       </div>
     </div>
