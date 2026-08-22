@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
-import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Edit } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Edit, Upload } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -33,6 +33,10 @@ export default function Home() {
   const { addToCart } = useCart();
   const { token, user } = useAuth();
   const [bannerUrl, setBannerUrl] = useState<string>('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inputUrl, setInputUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -60,10 +64,48 @@ export default function Home() {
     loadData();
   }, []);
 
-  const handleEditBanner = async () => {
-    const newUrl = prompt('Enter the new Image URL for the Hero Banner:', bannerUrl);
-    if (newUrl === null) return; // cancelled
-    if (!newUrl.trim()) {
+  const handleEditBanner = () => {
+    setInputUrl(bannerUrl);
+    setIsModalOpen(true);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+    if (!apiKey) {
+      alert('ImgBB API Key is not set. Please add NEXT_PUBLIC_IMGBB_API_KEY to your environment variables.');
+      return;
+    }
+
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.success && data.data && data.data.url) {
+        setInputUrl(data.data.url);
+      } else {
+        alert(data.error?.message || 'ImgBB upload failed.');
+      }
+    } catch (err) {
+      console.error('Error uploading image to ImgBB:', err);
+      alert('An error occurred during image upload. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveBanner = async () => {
+    if (!inputUrl.trim()) {
       alert('Image URL cannot be empty');
       return;
     }
@@ -75,11 +117,12 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ imageUrl: newUrl.trim() })
+        body: JSON.stringify({ imageUrl: inputUrl.trim() })
       });
       const data = await res.json();
       if (data.success && data.data && data.data.imageUrl) {
         setBannerUrl(data.data.imageUrl);
+        setIsModalOpen(false);
         alert('Banner updated successfully!');
       } else {
         alert(data.message || 'Failed to update banner');
@@ -344,6 +387,77 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Edit Banner Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-xl max-w-md w-full p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-200 text-zinc-800">
+            <div>
+              <h3 className="text-base font-bold text-zinc-950">Update Hero Banner</h3>
+              <p className="text-xs text-zinc-500 mt-1">Change the cover photo of the home page by providing a URL or uploading from your device.</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* Option A: Image URL */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Image URL</label>
+                <input
+                  type="text"
+                  value={inputUrl}
+                  onChange={(e) => setInputUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                />
+              </div>
+
+              {/* Option B: Local Upload */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Upload Local File (via ImgBB)</label>
+                <div className="relative border border-dashed border-zinc-200 hover:border-indigo-400 hover:bg-indigo-50/20 transition-all rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={isUploading}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  {isUploading ? (
+                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-650">
+                      <span className="h-4 w-4 border-2 border-indigo-650 border-t-transparent rounded-full animate-spin"></span>
+                      <span>Uploading to ImgBB...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-5 w-5 text-zinc-400 group-hover:text-indigo-650 transition-colors" />
+                      <span className="text-xs font-bold text-zinc-600">Click to choose image</span>
+                      <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">PNG, JPG, WEBP</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-100">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-full bg-zinc-50 border border-zinc-200 px-5 py-2.5 text-xs font-bold text-zinc-650 hover:bg-zinc-100 transition-all uppercase tracking-wider"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBanner}
+                disabled={isUploading}
+                className="rounded-full bg-indigo-600 text-white px-5 py-2.5 text-xs font-bold hover:bg-indigo-700 transition-all uppercase tracking-wider shadow-md disabled:bg-zinc-300 disabled:shadow-none"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
