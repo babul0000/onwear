@@ -328,11 +328,11 @@ export default function Home() {
               return (
                 <div
                   key={prod.id}
-                  className="group relative flex flex-col rounded-2xl bg-white border border-zinc-100 p-3 hover:shadow-lg transition-all duration-300"
+                  className="group relative flex flex-col transition-all duration-300"
                 >
                   {/* Badge */}
                   {discount && (
-                    <span className="absolute left-5 top-5 z-10 rounded-full bg-teal-500 px-2.5 py-1 text-[9px] font-bold text-white tracking-wider uppercase">
+                    <span className="absolute left-2.5 top-2.5 z-10 rounded-full bg-teal-500 px-2.5 py-1 text-[9px] font-bold text-white tracking-wider uppercase">
                       Sale
                     </span>
                   )}
@@ -341,11 +341,26 @@ export default function Home() {
                     <img
                       src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
                       alt={prod.name}
-                      className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-500"
+                      className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
                     />
+                    
+                    {/* Add to Cart Overlay */}
+                    <div className="absolute inset-x-3 bottom-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(prod.id, 1);
+                        }}
+                        disabled={prod.stock === 0}
+                        className="w-full flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                      >
+                        <ShoppingBag className="h-3.5 w-3.5" />
+                        <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+                      </button>
+                    </div>
                   </Link>
 
-                  <div className="mt-4 flex flex-col flex-1 px-1">
+                  <div className="mt-3 flex flex-col flex-1 px-0.5">
                     <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">{prod.category?.name}</span>
                     <Link href={`/products/${prod.id}`} className="font-bold text-zinc-900 group-hover:text-teal-600 transition-colors mt-1 block text-sm tracking-tight line-clamp-1">
                       {prod.name}
@@ -367,18 +382,6 @@ export default function Home() {
                         <Star className="h-3 w-3 fill-current" />
                         <span className="text-[10px] font-bold text-zinc-500">4.8</span>
                       </div>
-                    </div>
-
-                    {/* Add to Cart button */}
-                    <div className="mt-4 pt-4 border-t border-zinc-50">
-                      <button
-                        onClick={() => addToCart(prod.id, 1)}
-                        disabled={prod.stock === 0}
-                        className="w-full flex items-center justify-center gap-2 rounded-full bg-zinc-950 py-2.5 text-xs font-bold text-white hover:bg-zinc-800 transition-colors uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
-                      >
-                        <ShoppingBag className="h-3.5 w-3.5" />
-                        <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-                      </button>
                     </div>
                   </div>
                 </div>
