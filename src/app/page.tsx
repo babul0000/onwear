@@ -351,6 +351,10 @@ export default function Home() {
                       <button
                         onClick={async (e) => {
                           e.preventDefault();
+                          if (!token) {
+                            router.push('/login');
+                            return;
+                          }
                           const res = await addToCart(prod.id, 1);
                           if (res.success) {
                             router.push('/checkout');

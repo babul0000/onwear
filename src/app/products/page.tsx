@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../config';
 import { Search, SlidersHorizontal, ShoppingBag, Heart } from 'lucide-react';
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { token } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 12, total: 0, totalPages: 1 });
@@ -216,6 +218,10 @@ export default function ProductsPage() {
                          <button
                            onClick={async (e) => {
                              e.preventDefault();
+                             if (!token) {
+                               router.push('/login');
+                               return;
+                             }
                              const res = await addToCart(prod.id, 1);
                              if (res.success) {
                                router.push('/checkout');

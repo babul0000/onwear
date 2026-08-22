@@ -345,6 +345,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           <div className="flex flex-col sm:flex-row gap-4 border-t border-zinc-100 pt-6">
             <button
               onClick={async () => {
+                if (!token) {
+                  router.push('/login');
+                  return;
+                }
                 const res = await addToCart(product.id, quantity);
                 if (res.success) {
                   router.push('/checkout');
