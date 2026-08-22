@@ -349,7 +349,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               className="flex-1 rounded-xl bg-zinc-950 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 hover:bg-zinc-800 transition-colors shadow-md disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <ShoppingBag className="h-4 w-4" />
-              <span>Add to Cart</span>
+              <span>Order Now</span>
             </button>
 
             <button
