@@ -155,7 +155,7 @@ export default function Navbar() {
   return (
     <>
       {/* HEADER / NAVIGATION CONTAINER */}
-      <header className="w-full bg-white relative py-4 border-b border-zinc-100/50 z-50">
+      <header className="w-full bg-white relative py-4 border-b border-zinc-100/50 z-[60]">
         {/* MAIN HEADER ROW (Middle) */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
           
@@ -192,8 +192,8 @@ export default function Navbar() {
               {/* Account Dropdown */}
               {showAccountDropdown && (
                 <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowAccountDropdown(false)} />
-                  <div className="absolute right-0 mt-2.5 w-52 rounded-2xl border border-zinc-100 bg-white p-2.5 shadow-xl z-40 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-0 z-50" onClick={() => setShowAccountDropdown(false)} />
+                  <div className="absolute right-0 mt-2.5 w-52 rounded-2xl border border-zinc-100 bg-white p-2.5 shadow-xl z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                     {loading ? (
                       <div className="p-2 text-center text-xs text-zinc-400">Loading...</div>
                     ) : user ? (
