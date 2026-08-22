@@ -2,10 +2,11 @@
 
 import React, { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 import { API_URL } from '../../../config';
-import { Star, ShoppingBag, Heart, Trash2, Edit } from 'lucide-react';
+import { Star, ShoppingBag, Heart, Trash2, ArrowLeft } from 'lucide-react';
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -15,15 +16,20 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const { user, token } = useAuth();
   const { addToCart, addToWishlist, isInWishlist } = useCart();
 
-  const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
+  const [product, setProduct] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Selector states
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState('');
 
   // Review form states
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [reviewError, setReviewError] = useState('');
-  const [quantity, setQuantity] = useState(1);
 
   const fetchProductDetails = async () => {
     try {
@@ -32,7 +38,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       const prodData = await prodRes.json();
       const reviewsData = await reviewsRes.json();
 
-      if (prodData.success) setProduct(prodData.data);
+      if (prodData.success) {
+        setProduct(prodData.data);
+        setSelectedImage(prodData.data.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600');
+      }
       if (reviewsData.success) setReviews(reviewsData.data);
     } catch (err) {
       console.error('Error loading product details:', err);
@@ -45,7 +54,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     fetchProductDetails();
   }, [productId]);
 
-  const handleAddReview = async (e) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     setReviewError('');
     if (!token) {
@@ -76,7 +85,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
+  const handleDeleteReview = async (reviewId: string) => {
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/reviews/${reviewId}`, {
@@ -99,10 +108,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const handleClearSelection = () => {
+    setSelectedColor('');
+    setSelectedSize('');
+    setQuantity(1);
+  };
+
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 flex justify-center items-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-indigo-600"></div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-950"></div>
       </div>
     );
   }
@@ -111,7 +126,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Product not found</h2>
-        <button onClick={() => router.push('/products')} className="mt-4 rounded-full bg-indigo-600 px-6 py-2 text-white">
+        <button onClick={() => router.push('/products')} className="mt-4 rounded-full bg-zinc-950 px-6 py-2 text-white">
           Back to Shop
         </button>
       </div>
@@ -131,128 +146,250 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   // Check if current user already submitted a review
   const hasReviewed = user && reviews.some((r) => r.userId === user.id);
 
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-16">
-      {/* Product Top Detail */}
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-        {/* Product Image */}
-        <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center">
-          <img
-            src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
-        </div>
+  // Generate 4 mock image angles for the gallery
+  const galleryImages = [
+    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
+    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
+    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
+    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'
+  ];
 
-        {/* Product Info */}
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold tracking-wider text-indigo-600 uppercase">
-              {product.category?.name}
-            </span>
-            <h1 className="text-3xl font-extrabold text-zinc-950 sm:text-4xl">{product.name}</h1>
-            <p className="text-xs text-zinc-400">SKU: {product.sku}</p>
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 flex flex-col gap-20 text-zinc-800">
+      
+      {/* Product Details Section */}
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
+        
+        {/* Left Side: Images Gallery */}
+        <div className="lg:col-span-6 flex flex-col gap-4">
+          {/* Large Main Display Image */}
+          <div className="aspect-[3/4] w-full overflow-hidden rounded-2xl bg-zinc-50 border border-zinc-200/50 shadow-sm flex items-center justify-center">
+            <img
+              src={selectedImage}
+              alt={product.name}
+              className="h-full w-full object-cover"
+            />
           </div>
 
-          {/* Rating Summary */}
-          {averageRating && (
-            <div className="flex items-center gap-2">
+          {/* Small Thumbnails Row */}
+          <div className="grid grid-cols-4 gap-4">
+            {galleryImages.map((imgUrl, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedImage(imgUrl)}
+                className={`aspect-square rounded-xl overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 ${
+                  selectedImage === imgUrl ? 'border-zinc-950 shadow-sm' : 'border-zinc-200/60'
+                }`}
+              >
+                <img
+                  src={imgUrl}
+                  alt={`${product.name} Angle ${idx + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side: Product Details info */}
+        <div className="lg:col-span-6 flex flex-col gap-6 lg:pl-4">
+          
+          {/* Category Breadcrumb */}
+          <div>
+            <Link 
+              href="/products" 
+              className="text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-650 flex items-center gap-1.5 transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              <span>Back to Shop</span>
+            </Link>
+          </div>
+
+          {/* Product Title and Header info */}
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-extrabold text-zinc-950 tracking-tight leading-none uppercase">
+              {product.name}
+            </h1>
+
+            {/* Rating Stars Summary */}
+            <div className="flex items-center gap-2 mt-1">
               <div className="flex text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="h-5 w-5"
-                    fill={i < Math.round(Number(averageRating)) ? 'currentColor' : 'none'}
+                    className="h-3.5 w-3.5"
+                    fill={i < Math.round(Number(averageRating || 5)) ? 'currentColor' : 'none'}
+                    stroke="currentColor"
                   />
                 ))}
               </div>
-              <span className="text-sm font-semibold text-zinc-700">{averageRating} out of 5</span>
-              <span className="text-sm text-zinc-400">({reviews.length} reviews)</span>
+              <span className="text-xs font-bold text-zinc-400 tracking-wider">
+                ({reviews.length} reviews) | <a href="#reviews" className="underline text-zinc-500 hover:text-zinc-700 transition-colors uppercase">Add Review</a>
+              </span>
+            </div>
+
+            {/* Product Pricing */}
+            <div className="text-3xl font-black text-zinc-950 mt-2">
+              {discount ? (
+                <div className="flex items-baseline gap-2">
+                  <span>${product.discountPrice}</span>
+                  <span className="text-sm text-zinc-400 line-through font-bold">${product.price}</span>
+                </div>
+              ) : (
+                <span>${product.price}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Availability, SKU & Tags */}
+          <div className="flex flex-col gap-2 border-y border-zinc-100 py-5 text-xs text-zinc-600 font-medium">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest w-24">Availability:</span>
+              <span className={product.stock > 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
+                {product.stock > 0 ? 'In stock' : 'Out of stock'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest w-24">Product Code:</span>
+              <span className="font-mono text-zinc-900 font-bold">{product.sku}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest w-24">Category:</span>
+              <span className="text-zinc-900 font-bold uppercase tracking-wider text-[10px] bg-zinc-100 px-2 py-0.5 rounded">
+                {product.category?.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Description Paragraph and Bullets */}
+          <div className="flex flex-col gap-4 text-sm text-zinc-500 leading-relaxed font-medium">
+            <p>{product.description || 'Elevate your seasonal catalog with this organic cotton tailored product, styled to maximize durability and standard fitting comfort.'}</p>
+            <ul className="list-disc list-inside flex flex-col gap-1.5 pl-2 text-zinc-400">
+              <li><span className="text-zinc-500 font-bold">Material:</span> 100% Premium Organic Fabrics</li>
+              <li><span className="text-zinc-500 font-bold">Fit:</span> Slim Fit Regular sizing</li>
+              <li><span className="text-zinc-500 font-bold">Delivery:</span> Fast Home shipping within 3-4 days</li>
+            </ul>
+          </div>
+
+          {/* Select Options Selection Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-zinc-100 pt-6">
+            
+            {/* Color Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Color</label>
+              <select 
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer"
+              >
+                <option value="">Select Color</option>
+                <option value="black">Black</option>
+                <option value="white">White</option>
+                <option value="beige">Beige</option>
+                <option value="grey">Grey</option>
+              </select>
+            </div>
+
+            {/* Size Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Size</label>
+              <select 
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer"
+              >
+                <option value="">Select Size</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+              </select>
+            </div>
+
+            {/* Quantity Selector increment/decrement */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Qty</label>
+              <div className="flex items-center rounded-xl border border-zinc-200 p-1 bg-zinc-50 h-10 select-none">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-8 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-950 font-bold text-center outline-none transition-colors"
+                  type="button"
+                >
+                  -
+                </button>
+                <span className="flex-1 text-center text-xs font-bold text-zinc-800">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  className="w-8 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-950 font-bold text-center outline-none transition-colors"
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Clear selections */}
+          {(selectedColor || selectedSize || quantity > 1) && (
+            <div className="text-right">
+              <button 
+                onClick={handleClearSelection}
+                className="text-[10px] font-bold text-zinc-400 hover:text-zinc-700 transition-colors uppercase tracking-wider underline"
+              >
+                Clear Selection
+              </button>
             </div>
           )}
 
-          {/* Prices */}
-          <div className="flex items-baseline gap-4">
-            {discount ? (
-              <>
-                <span className="text-3xl font-bold text-indigo-600">${product.discountPrice}</span>
-                <span className="text-lg text-zinc-400 line-through">${product.price}</span>
-              </>
-            ) : (
-              <span className="text-3xl font-bold text-indigo-600">${product.price}</span>
-            )}
-          </div>
-
-          <p className="text-zinc-600 text-base leading-7">{product.description || 'No description available for this product.'}</p>
-
-          {/* Stock and Status */}
-          <div className="flex items-center gap-4">
-            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-              product.stock > 0
-                ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
-                : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
-            }`}>
-              {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
-            </span>
-          </div>
-
-          {/* Quantity Selector */}
-          {product.stock > 0 && (
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-semibold text-zinc-700">Quantity:</label>
-              <input
-                type="number"
-                min="1"
-                max={product.stock}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, Number(e.target.value))))}
-                className="w-16 rounded-xl border border-zinc-200 p-2 text-center text-sm font-semibold focus:outline-indigo-600 bg-zinc-50"
-              />
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-zinc-100">
+          {/* Action Row Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 border-t border-zinc-100 pt-6">
             <button
               onClick={() => addToCart(product.id, quantity)}
               disabled={product.stock === 0}
-              className="flex-1 rounded-full bg-indigo-600 py-3 text-base font-semibold text-white hover:bg-indigo-700 transition-colors shadow-md disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 rounded-xl bg-zinc-950 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 hover:bg-zinc-800 transition-colors shadow-md disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <ShoppingBag className="h-5 w-5" />
+              <ShoppingBag className="h-4 w-4" />
               <span>Add to Cart</span>
             </button>
-            <button
-              onClick={handleBuyNow}
-              disabled={product.stock === 0}
-              className="flex-1 rounded-full bg-zinc-950 py-3 text-base font-semibold text-white hover:bg-zinc-800 transition-colors disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
-            >
-              Buy Now
-            </button>
+
             <button
               onClick={() => addToWishlist(product.id)}
-              className={`rounded-full border border-zinc-200 p-3 hover:bg-zinc-50 transition-colors ${
-                isWished ? 'text-red-500 bg-red-50 border-red-200' : 'text-zinc-400'
+              className={`rounded-xl border border-zinc-200 py-3.5 px-6 hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider ${
+                isWished ? 'text-red-500 border-red-200 bg-red-50' : 'text-zinc-650'
               }`}
             >
-              <Heart className="h-5 w-5" fill={isWished ? 'currentColor' : 'none'} />
+              <Heart className="h-4 w-4" fill={isWished ? 'currentColor' : 'none'} />
+              <span>Add to Wishlist</span>
             </button>
           </div>
+
+          {/* Share links */}
+          <div className="flex items-center gap-4 mt-2 text-xs border-t border-zinc-100 pt-5">
+            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Share this:</span>
+            <div className="flex gap-2">
+              <a href="#" onClick={(e) => e.preventDefault()} className="bg-zinc-50 hover:bg-zinc-100 text-zinc-600 px-3.5 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider transition-colors">Facebook</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="bg-zinc-50 hover:bg-zinc-100 text-zinc-600 px-3.5 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider transition-colors">Twitter</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="bg-zinc-50 hover:bg-zinc-100 text-zinc-600 px-3.5 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider transition-colors">Pinterest</a>
+            </div>
+          </div>
+
         </div>
       </div>
 
       {/* Review Section */}
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 border-t border-zinc-200 pt-16">
-        {/* Write a Review */}
+      <div id="reviews" className="grid grid-cols-1 gap-12 lg:grid-cols-3 border-t border-zinc-100 pt-16">
+        
+        {/* Write a Review Form */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          <h2 className="text-2xl font-bold text-zinc-950">Customer Reviews</h2>
+          <h2 className="text-xl font-black text-zinc-950 uppercase tracking-wider">Customer Reviews</h2>
           {user ? (
             hasReviewed ? (
-              <div className="rounded-2xl bg-zinc-50 p-6 border border-zinc-150 text-sm text-zinc-500">
+              <div className="rounded-2xl bg-zinc-50 p-6 border border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider">
                 You have already reviewed this product.
               </div>
             ) : (
               <form onSubmit={handleAddReview} className="flex flex-col gap-4 rounded-2xl border border-zinc-200 p-6 bg-white shadow-sm">
-                <h3 className="font-bold text-zinc-900">Write a Review</h3>
+                <h3 className="font-bold text-zinc-900 text-sm uppercase tracking-wider">Write a Review</h3>
 
                 {reviewError && (
                   <div className="rounded-lg bg-red-50 p-3 text-xs text-red-600 font-medium">
@@ -260,12 +397,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   </div>
                 )}
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-zinc-700">Rating:</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Rating</label>
                   <select
                     value={rating}
                     onChange={(e) => setRating(Number(e.target.value))}
-                    className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-indigo-600 font-semibold text-amber-500"
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:outline-none focus:border-zinc-400 font-bold text-amber-500 cursor-pointer"
                   >
                     <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
                     <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
@@ -275,38 +412,38 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   </select>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-zinc-700">Review details:</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Review details</label>
                   <textarea
                     rows={4}
                     placeholder="Tell others what you think about this product..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600 resize-none"
+                    className="rounded-xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-450 resize-none font-medium"
                     required
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="rounded-full bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-md"
+                  className="rounded-full bg-zinc-950 py-2.5 text-xs font-bold text-white hover:bg-zinc-800 transition-colors shadow-md uppercase tracking-wider"
                 >
                   Submit Review
                 </button>
               </form>
             )
           ) : (
-            <div className="rounded-2xl bg-zinc-50 p-6 border border-zinc-150 text-sm text-zinc-500">
-              Please <a href="/login" className="font-bold text-indigo-600 underline">login</a> to write a review.
+            <div className="rounded-2xl bg-zinc-50 p-6 border border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Please <a href="/login" className="font-extrabold text-indigo-600 underline">login</a> to write a review.
             </div>
           )}
         </div>
 
         {/* Reviews List */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <h2 className="text-2xl font-bold text-zinc-950">Review List ({reviews.length})</h2>
+          <h2 className="text-xl font-black text-zinc-950 uppercase tracking-wider">Review List ({reviews.length})</h2>
           {reviews.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-12 text-center text-zinc-400">
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-12 text-center text-xs font-bold text-zinc-400 uppercase tracking-widest">
               No reviews for this product yet.
             </div>
           ) : (
@@ -315,8 +452,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <div key={rev.id} className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-zinc-900">{rev.user?.name}</h4>
-                      <span className="text-xs text-zinc-400">
+                      <h4 className="font-bold text-zinc-900 text-sm">{rev.user?.name}</h4>
+                      <span className="text-[10px] text-zinc-400 font-bold">
                         {new Date(rev.createdAt).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'long',
@@ -341,13 +478,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className="h-4 w-4"
+                        className="h-3.5 w-3.5"
                         fill={i < rev.rating ? 'currentColor' : 'none'}
+                        stroke="currentColor"
                       />
                     ))}
                   </div>
 
-                  <p className="text-zinc-600 text-sm leading-relaxed">{rev.comment}</p>
+                  <p className="text-zinc-650 text-sm leading-relaxed font-medium">{rev.comment}</p>
                 </div>
               ))}
             </div>
