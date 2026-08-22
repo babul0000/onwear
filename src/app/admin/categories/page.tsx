@@ -20,6 +20,7 @@ export default function AdminCategoriesPage() {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
   const [status, setStatus] = useState('ACTIVE');
+  const [parentId, setParentId] = useState('');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -55,7 +56,7 @@ export default function AdminCategoriesPage() {
     setError('');
     setSuccess('');
 
-    const body = { name, slug, description, image, status };
+    const body = { name, slug, description, image, status, parentId: parentId || null };
     const url = editingId ? `${API_URL}/categories/${editingId}` : `${API_URL}/categories`;
     const method = editingId ? 'PATCH' : 'POST';
 
@@ -90,6 +91,7 @@ export default function AdminCategoriesPage() {
     setDescription(cat.description || '');
     setImage(cat.image || '');
     setStatus(cat.status);
+    setParentId(cat.parentId || '');
   };
 
   const handleDelete = async (id) => {
@@ -123,6 +125,7 @@ export default function AdminCategoriesPage() {
     setDescription('');
     setImage('');
     setStatus('ACTIVE');
+    setParentId('');
   };
 
   if (!token || !user || user.role !== 'admin') {
@@ -214,6 +217,24 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-zinc-500">Parent Category</label>
+              <select
+                value={parentId}
+                onChange={(e) => setParentId(e.target.value)}
+                className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-indigo-600"
+              >
+                <option value="">None (Top Level)</option>
+                {categories
+                  .filter((cat: any) => cat.id !== editingId)
+                  .map((cat: any) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-zinc-500">Description</label>
               <textarea
                 rows={3}
@@ -253,13 +274,14 @@ export default function AdminCategoriesPage() {
                 <tr>
                   <th className="px-6 py-4">Image</th>
                   <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Parent</th>
                   <th className="px-6 py-4">Slug</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
-                {categories.map((cat) => (
+                {categories.map((cat: any) => (
                   <tr key={cat.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-4">
                       <img
@@ -269,6 +291,13 @@ export default function AdminCategoriesPage() {
                       />
                     </td>
                     <td className="px-6 py-4 font-bold text-zinc-900">{cat.name}</td>
+                    <td className="px-6 py-4 text-xs font-semibold text-zinc-600">
+                      {cat.parentId ? (
+                        categories.find((c: any) => c.id === cat.parentId)?.name || 'Unknown'
+                      ) : (
+                        <span className="text-zinc-400 italic">None</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 font-mono text-xs">{cat.slug}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${

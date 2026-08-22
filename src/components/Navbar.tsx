@@ -19,46 +19,31 @@ import {
   Home
 } from 'lucide-react';
 
-const MOCK_SUBCATEGORIES: Record<string, { name: string; slug: string }[]> = {
-  pants: [
-    { name: 'Chinos', slug: 'chinos' },
-    { name: 'Joggers', slug: 'joggers' },
-    { name: 'Trousers', slug: 'trousers' },
-    { name: 'Cargo Pants', slug: 'cargo-pants' }
-  ],
-  pant: [
-    { name: 'Chinos', slug: 'chinos' },
-    { name: 'Joggers', slug: 'joggers' },
-    { name: 'Trousers', slug: 'trousers' },
-    { name: 'Cargo Pants', slug: 'cargo-pants' }
-  ],
-  shirts: [
-    { name: 'Casual Shirts', slug: 'casual-shirts' },
-    { name: 'Formal Shirts', slug: 'formal-shirts' },
-    { name: 'Linen Shirts', slug: 'linen-shirts' },
-    { name: 'Oxford Shirts', slug: 'oxford-shirts' }
-  ],
-  't-shirts': [
-    { name: 'Oversized Tees', slug: 'oversized-tees' },
-    { name: 'Crewneck Tees', slug: 'crewneck-tees' },
-    { name: 'Polo Shirts', slug: 'polo-shirts' },
-    { name: 'V-Neck Tees', slug: 'v-neck-tees' }
-  ],
-  sandals: [
-    { name: 'Leather Slides', slug: 'leather-slides' },
-    { name: 'Flip Flops', slug: 'flip-flops' },
-    { name: 'Gladiator Sandals', slug: 'gladiator-sandals' }
-  ],
-  caps: [
-    { name: 'Snapbacks', slug: 'snapbacks' },
-    { name: 'Dad Hats', slug: 'dad-hats' },
-    { name: 'Beanies', slug: 'beanies' }
-  ],
-  denim: [
-    { name: 'Slim Fit Jeans', slug: 'slim-fit' },
-    { name: 'Denim Jackets', slug: 'denim-jackets' },
-    { name: 'Straight Fit Jeans', slug: 'straight-fit' }
-  ]
+const DropdownMenu = ({ items, categories }: { items: any[]; categories: any[] }) => {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="absolute top-0 left-full pt-0 pl-1 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 transform translate-x-2 group-hover/sub:translate-x-0 z-50">
+      <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
+        {items.map((sub: any) => {
+          const childCategories = categories.filter((c: any) => c.parentId === sub.id);
+
+          return (
+            <div key={sub.id} className="relative group/sub flex items-center w-full">
+              <Link
+                href={`/products?category=${sub.slug}`}
+                className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium flex-1 flex items-center justify-between"
+              >
+                <span>{sub.name}</span>
+                {childCategories.length > 0 && <span className="text-[10px] text-zinc-400">▶</span>}
+              </Link>
+              <DropdownMenu items={childCategories} categories={categories} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 export default function Navbar() {
@@ -84,7 +69,27 @@ export default function Navbar() {
         const res = await fetch(`${API_URL}/categories`);
         const data = await res.json();
         if (data.success) {
-          setCategories(data.data.slice(0, 7)); // limit to 7 main categories
+          const fetchedCats = data.data;
+
+          // Check if parentId is configured in database
+          const hasParentIds = fetchedCats.some((c: any) => c.parentId !== null && c.parentId !== undefined);
+
+          if (!hasParentIds) {
+            // Sequentially link: pant -> Shirts -> T-Shirts -> Sandals -> Caps
+            // We find them by case-insensitive name matching:
+            const pant = fetchedCats.find((c: any) => c.name.toLowerCase() === 'pant' || c.name.toLowerCase() === 'pants');
+            const shirts = fetchedCats.find((c: any) => c.name.toLowerCase() === 'shirts' || c.name.toLowerCase() === 'shirt');
+            const tshirts = fetchedCats.find((c: any) => c.name.toLowerCase() === 't-shirts' || c.name.toLowerCase() === 't-shirt');
+            const sandals = fetchedCats.find((c: any) => c.name.toLowerCase() === 'sandals' || c.name.toLowerCase() === 'sandal' || c.name.toLowerCase() === 'sandle');
+            const caps = fetchedCats.find((c: any) => c.name.toLowerCase() === 'caps' || c.name.toLowerCase() === 'cap');
+
+            if (pant && shirts) shirts.parentId = pant.id;
+            if (shirts && tshirts) tshirts.parentId = shirts.id;
+            if (tshirts && sandals) sandals.parentId = tshirts.id;
+            if (sandals && caps) caps.parentId = sandals.id;
+          }
+
+          setCategories(fetchedCats);
         }
       } catch (err) {
         console.error('Error fetching navbar categories:', err);
@@ -258,38 +263,45 @@ export default function Navbar() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
           <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
             <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
-            {categories.map((cat: any) => {
-              const subs = (cat.subcategories && cat.subcategories.length > 0)
-                ? cat.subcategories
-                : (MOCK_SUBCATEGORIES[cat.slug.toLowerCase()] || []);
+            {categories
+              .filter((cat: any) => !cat.parentId)
+              .map((cat: any) => {
+                const subs = categories.filter((c: any) => c.parentId === cat.id);
 
-              return (
-                <div key={cat.id} className="relative group h-full flex items-center">
-                  <Link
-                    href={`/products?category=${cat.slug}`}
-                    className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center"
-                  >
-                    {cat.name}
-                  </Link>
+                return (
+                  <div key={cat.id} className="relative group h-full flex items-center">
+                    <Link
+                      href={`/products?category=${cat.slug}`}
+                      className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
+                    >
+                      <span>{cat.name}</span>
+                      {subs.length > 0 && <span className="text-[9px] text-zinc-400">▼</span>}
+                    </Link>
 
-                  {subs.length > 0 && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
-                      <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
-                        {subs.map((sub: any) => (
-                          <Link
-                            key={sub.slug || sub.id}
-                            href={`/products?category=${sub.slug}`}
-                            className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium"
-                          >
-                            {sub.name}
-                          </Link>
-                        ))}
+                    {subs.length > 0 && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                        <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
+                          {subs.map((sub: any) => {
+                            const childCategories = categories.filter((c: any) => c.parentId === sub.id);
+                            return (
+                              <div key={sub.id} className="relative group/sub w-full flex items-center">
+                                <Link
+                                  href={`/products?category=${sub.slug}`}
+                                  className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium flex-1 flex items-center justify-between"
+                                >
+                                  <span>{sub.name}</span>
+                                  {childCategories.length > 0 && <span className="text-[10px] text-zinc-400">▶</span>}
+                                </Link>
+                                <DropdownMenu items={childCategories} categories={categories} />
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })}
           </nav>
         </div>
       </div>
