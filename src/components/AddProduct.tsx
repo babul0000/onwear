@@ -269,7 +269,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     setErrorMsg('');
     setIsUploadingImage(true);
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     if (!apiKey) {
       setErrorMsg('ImgBB API Key is not set. Please add NEXT_PUBLIC_IMGBB_API_KEY to your environment variables.');
       setIsUploadingImage(false);
