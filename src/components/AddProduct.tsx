@@ -290,11 +290,14 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
         setGallery([...gallery, data.data.url]);
         setSuccessMsg('Image uploaded successfully!');
       } else {
-        setErrorMsg(data.error?.message || 'ImgBB upload failed.');
+        const msg = data.error?.message || 'ImgBB upload failed.';
+        setErrorMsg(msg);
+        alert(`Image upload failed: ${msg}`);
       }
     } catch (err) {
       console.error('Error uploading image to ImgBB:', err);
       setErrorMsg('An error occurred during image upload. Please try again.');
+      alert('An error occurred during image upload. Please try again.');
     } finally {
       setIsUploadingImage(false);
     }
