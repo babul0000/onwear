@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
-import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Edit } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -30,19 +31,26 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { token, user } = useAuth();
+  const [bannerUrl, setBannerUrl] = useState<string>('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600');
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [catsRes, prodsRes] = await Promise.all([
+        const [catsRes, prodsRes, bannerRes] = await Promise.all([
           fetch(`${API_URL}/categories`),
-          fetch(`${API_URL}/products?limit=8`)
+          fetch(`${API_URL}/products?limit=8`),
+          fetch(`${API_URL}/promotions/hero`)
         ]);
         const catsData = await catsRes.json();
         const prodsData = await prodsRes.json();
+        const bannerData = await bannerRes.json();
 
         if (catsData.success) setCategories(catsData.data);
         if (prodsData.success) setProducts(prodsData.data);
+        if (bannerData.success && bannerData.data && bannerData.data.imageUrl) {
+          setBannerUrl(bannerData.data.imageUrl);
+        }
       } catch (err) {
         console.error('Error fetching home page data:', err);
       } finally {
@@ -52,13 +60,55 @@ export default function Home() {
     loadData();
   }, []);
 
+  const handleEditBanner = async () => {
+    const newUrl = prompt('Enter the new Image URL for the Hero Banner:', bannerUrl);
+    if (newUrl === null) return; // cancelled
+    if (!newUrl.trim()) {
+      alert('Image URL cannot be empty');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/promotions/hero`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ imageUrl: newUrl.trim() })
+      });
+      const data = await res.json();
+      if (data.success && data.data && data.data.imageUrl) {
+        setBannerUrl(data.data.imageUrl);
+        alert('Banner updated successfully!');
+      } else {
+        alert(data.message || 'Failed to update banner');
+      }
+    } catch (err) {
+      console.error('Error updating banner:', err);
+      alert('An error occurred while updating the banner');
+    }
+  };
+
   return (
     <div className="flex flex-col gap-20 pb-24 bg-white">
       {/* 1. HERO SECTION (Editorial Style, split screen layout with fashion models) */}
       <section className="relative w-full min-h-[85vh] bg-zinc-50 flex items-center overflow-hidden">
+        {user && user.role === 'admin' && (
+          <button
+            onClick={handleEditBanner}
+            className="absolute top-6 right-6 z-20 bg-white/90 hover:bg-white text-zinc-800 p-3 rounded-full shadow-lg border border-zinc-200/50 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group"
+            title="Edit Banner Image"
+          >
+            <Edit className="h-4 w-4 text-indigo-600" />
+            <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
+              Edit Banner
+            </span>
+          </button>
+        )}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600"
+            src={bannerUrl}
             alt="Men's Premium Clothing Collection"
             className="w-full h-full object-cover object-top opacity-95"
           />
