@@ -53,7 +53,7 @@ export default function AddProductVariants({
         const defaultPrice = basePrice || '0';
         const defaultStock = '10';
 
-        const edit = variantEdits[key] || {};
+        const edit = (variantEdits[key] || {}) as any;
 
         list.push({
           key,
