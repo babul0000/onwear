@@ -220,7 +220,7 @@ export default function ProductsPage() {
                            className="w-full flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
                          >
                            <ShoppingBag className="h-4 w-4" />
-                           <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+                           <span>{prod.stock > 0 ? 'Order Now' : 'Out of Stock'}</span>
                          </button>
                        </div>
                      </a>
