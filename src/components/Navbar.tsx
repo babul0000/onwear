@@ -19,32 +19,80 @@ import {
   Home
 } from 'lucide-react';
 
-const DropdownMenu = ({ items, categories }: { items: any[]; categories: any[] }) => {
-  if (!items || items.length === 0) return null;
-
-  return (
-    <div className="absolute top-0 left-full pt-0 pl-1 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 transform translate-x-2 group-hover/sub:translate-x-0 z-50">
-      <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
-        {items.map((sub: any) => {
-          const childCategories = categories.filter((c: any) => c.parentId === sub.id);
-
-          return (
-            <div key={sub.id} className="relative group/sub flex items-center w-full">
-              <Link
-                href={`/products?category=${sub.slug}`}
-                className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium flex-1 flex items-center justify-between"
-              >
-                <span>{sub.name}</span>
-                {childCategories.length > 0 && <span className="text-[10px] text-zinc-400">▶</span>}
-              </Link>
-              <DropdownMenu items={childCategories} categories={categories} />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
+const DEFAULT_NAV_CATEGORIES = [
+  {
+    id: 'shirts',
+    name: 'Shirts',
+    slug: 'shirts',
+    subcategories: [
+      { name: 'Half Sleeve Shirts', slug: 'half-sleeve-shirts' },
+      { name: 'Full Sleeve Shirts', slug: 'full-sleeve-shirts' },
+      { name: 'Classy Fit Shirts', slug: 'classy-fit-shirts' },
+      { name: 'Check Shirts', slug: 'check-shirts' },
+      { name: 'Boxy Fit Full Sleeve Shirts', slug: 'boxy-fit-full-sleeve-shirts' },
+      { name: 'Boxy Fit Half Sleeve Shirts', slug: 'boxy-fit-half-sleeve-shirts' }
+    ]
+  },
+  {
+    id: 't-shirts',
+    name: 'T-Shirts',
+    slug: 't-shirts',
+    subcategories: [
+      { name: 'Half Sleeve T-Shirts', slug: 'half-sleeve-t-shirts' },
+      { name: 'Drop Shoulder T-Shirts', slug: 'drop-shoulder-t-shirts' }
+    ]
+  },
+  {
+    id: 'pants',
+    name: 'Pants',
+    slug: 'pants',
+    subcategories: [
+      { name: 'Semi Baggy Denim', slug: 'semi-baggy-denim' },
+      { name: 'Semi Baggy Pants', slug: 'semi-baggy-pants' },
+      { name: 'Korean Style Formal Pants', slug: 'korean-style-formal-pants' }
+    ]
+  },
+  {
+    id: 'polo-shirts',
+    name: 'Polo Shirts',
+    slug: 'polo-shirts',
+    subcategories: [
+      { name: 'Premium Polo Shirts', slug: 'premium-polo-shirts' },
+      { name: 'Old Money Polo', slug: 'old-money-polo' }
+    ]
+  },
+  {
+    id: 'winter-collection',
+    name: 'Winter Collection',
+    slug: 'winter-collection',
+    subcategories: [
+      { name: 'Full Sleeve Polo', slug: 'full-sleeve-polo' },
+      { name: 'Full Sleeve T-Shirts', slug: 'full-sleeve-t-shirts' },
+      { name: 'Winter Essentials', slug: 'winter-essentials' }
+    ]
+  },
+  {
+    id: 'new-arrivals',
+    name: 'New Arrivals',
+    slug: 'new-arrivals',
+    subcategories: [
+      { name: 'Latest Shirts', slug: 'latest-shirts' },
+      { name: 'New T-Shirt Collection', slug: 'new-t-shirt-collection' },
+      { name: 'New Pants Collection', slug: 'new-pants-collection' },
+      { name: 'Premium Polo Collection', slug: 'premium-polo-collection' }
+    ]
+  },
+  {
+    id: 'trending',
+    name: 'Trending',
+    slug: 'trending',
+    subcategories: [
+      { name: 'Best Sellers', slug: 'best-sellers' },
+      { name: 'Customer Favorites', slug: 'customer-favorites' },
+      { name: 'Most Popular', slug: 'most-popular' }
+    ]
+  }
+];
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
@@ -56,7 +104,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(DEFAULT_NAV_CATEGORIES);
 
   // Sum of quantities in cart
   const cartCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -70,26 +118,28 @@ export default function Navbar() {
         const data = await res.json();
         if (data.success) {
           const fetchedCats = data.data;
+          
+          // Merge fetched categories from DB with our default navigation layout
+          const merged = DEFAULT_NAV_CATEGORIES.map(defCat => {
+            const match = fetchedCats.find((c: any) => c.slug.toLowerCase() === defCat.slug.toLowerCase());
+            
+            let subs = defCat.subcategories;
+            if (match) {
+              const dbSubs = fetchedCats.filter((c: any) => c.parentId === match.id);
+              if (dbSubs.length > 0) {
+                subs = dbSubs.map((s: any) => ({ name: s.name, slug: s.slug }));
+              }
+            }
 
-          // Check if parentId is configured in database
-          const hasParentIds = fetchedCats.some((c: any) => c.parentId !== null && c.parentId !== undefined);
-
-          if (!hasParentIds) {
-            // Sequentially link: pant -> Shirts -> T-Shirts -> Sandals -> Caps
-            // We find them by case-insensitive name matching:
-            const pant = fetchedCats.find((c: any) => c.name.toLowerCase() === 'pant' || c.name.toLowerCase() === 'pants');
-            const shirts = fetchedCats.find((c: any) => c.name.toLowerCase() === 'shirts' || c.name.toLowerCase() === 'shirt');
-            const tshirts = fetchedCats.find((c: any) => c.name.toLowerCase() === 't-shirts' || c.name.toLowerCase() === 't-shirt');
-            const sandals = fetchedCats.find((c: any) => c.name.toLowerCase() === 'sandals' || c.name.toLowerCase() === 'sandal' || c.name.toLowerCase() === 'sandle');
-            const caps = fetchedCats.find((c: any) => c.name.toLowerCase() === 'caps' || c.name.toLowerCase() === 'cap');
-
-            if (pant && shirts) shirts.parentId = pant.id;
-            if (shirts && tshirts) tshirts.parentId = shirts.id;
-            if (tshirts && sandals) sandals.parentId = tshirts.id;
-            if (sandals && caps) caps.parentId = sandals.id;
-          }
-
-          setCategories(fetchedCats);
+            return {
+              ...defCat,
+              id: match ? match.id : defCat.id,
+              name: match ? match.name : defCat.name,
+              subcategories: subs
+            };
+          });
+          
+          setCategories(merged);
         }
       } catch (err) {
         console.error('Error fetching navbar categories:', err);
@@ -263,45 +313,37 @@ export default function Navbar() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
           <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
             <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
-            {categories
-              .filter((cat: any) => !cat.parentId)
-              .map((cat: any) => {
-                const subs = categories.filter((c: any) => c.parentId === cat.id);
+            {categories.map((cat: any) => {
+              const subs = cat.subcategories || [];
 
-                return (
-                  <div key={cat.id} className="relative group h-full flex items-center">
-                    <Link
-                      href={`/products?category=${cat.slug}`}
-                      className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
-                    >
-                      <span>{cat.name}</span>
-                      {subs.length > 0 && <span className="text-[9px] text-zinc-400">▼</span>}
-                    </Link>
+              return (
+                <div key={cat.id} className="relative group h-full flex items-center">
+                  <Link
+                    href={`/products?category=${cat.slug}`}
+                    className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
+                  >
+                    <span>{cat.name}</span>
+                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold">▼</span>}
+                  </Link>
 
-                    {subs.length > 0 && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
-                        <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
-                          {subs.map((sub: any) => {
-                            const childCategories = categories.filter((c: any) => c.parentId === sub.id);
-                            return (
-                              <div key={sub.id} className="relative group/sub w-full flex items-center">
-                                <Link
-                                  href={`/products?category=${sub.slug}`}
-                                  className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium flex-1 flex items-center justify-between"
-                                >
-                                  <span>{sub.name}</span>
-                                  {childCategories.length > 0 && <span className="text-[10px] text-zinc-400">▶</span>}
-                                </Link>
-                                <DropdownMenu items={childCategories} categories={categories} />
-                              </div>
-                            );
-                          })}
-                        </div>
+                  {subs.length > 0 && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                      <div className="w-56 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
+                        {subs.map((sub: any, idx: number) => (
+                          <Link
+                            key={idx}
+                            href={`/products?category=${sub.slug}`}
+                            className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
         </div>
       </div>
