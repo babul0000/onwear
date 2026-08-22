@@ -19,6 +19,48 @@ import {
   Home
 } from 'lucide-react';
 
+const MOCK_SUBCATEGORIES: Record<string, { name: string; slug: string }[]> = {
+  pants: [
+    { name: 'Chinos', slug: 'chinos' },
+    { name: 'Joggers', slug: 'joggers' },
+    { name: 'Trousers', slug: 'trousers' },
+    { name: 'Cargo Pants', slug: 'cargo-pants' }
+  ],
+  pant: [
+    { name: 'Chinos', slug: 'chinos' },
+    { name: 'Joggers', slug: 'joggers' },
+    { name: 'Trousers', slug: 'trousers' },
+    { name: 'Cargo Pants', slug: 'cargo-pants' }
+  ],
+  shirts: [
+    { name: 'Casual Shirts', slug: 'casual-shirts' },
+    { name: 'Formal Shirts', slug: 'formal-shirts' },
+    { name: 'Linen Shirts', slug: 'linen-shirts' },
+    { name: 'Oxford Shirts', slug: 'oxford-shirts' }
+  ],
+  't-shirts': [
+    { name: 'Oversized Tees', slug: 'oversized-tees' },
+    { name: 'Crewneck Tees', slug: 'crewneck-tees' },
+    { name: 'Polo Shirts', slug: 'polo-shirts' },
+    { name: 'V-Neck Tees', slug: 'v-neck-tees' }
+  ],
+  sandals: [
+    { name: 'Leather Slides', slug: 'leather-slides' },
+    { name: 'Flip Flops', slug: 'flip-flops' },
+    { name: 'Gladiator Sandals', slug: 'gladiator-sandals' }
+  ],
+  caps: [
+    { name: 'Snapbacks', slug: 'snapbacks' },
+    { name: 'Dad Hats', slug: 'dad-hats' },
+    { name: 'Beanies', slug: 'beanies' }
+  ],
+  denim: [
+    { name: 'Slim Fit Jeans', slug: 'slim-fit' },
+    { name: 'Denim Jackets', slug: 'denim-jackets' },
+    { name: 'Straight Fit Jeans', slug: 'straight-fit' }
+  ]
+};
+
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const { cart, wishlist } = useCart();
@@ -214,17 +256,40 @@ export default function Navbar() {
       {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
       <div className="hidden md:block sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
-          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium">
-            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200">Shop</Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/products?category=${cat.slug}`}
-                className="hover:text-zinc-950 transition-colors duration-200"
-              >
-                {cat.name}
-              </Link>
-            ))}
+          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
+            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
+            {categories.map((cat: any) => {
+              const subs = (cat.subcategories && cat.subcategories.length > 0)
+                ? cat.subcategories
+                : (MOCK_SUBCATEGORIES[cat.slug.toLowerCase()] || []);
+
+              return (
+                <div key={cat.id} className="relative group h-full flex items-center">
+                  <Link
+                    href={`/products?category=${cat.slug}`}
+                    className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center"
+                  >
+                    {cat.name}
+                  </Link>
+
+                  {subs.length > 0 && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                      <div className="w-44 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
+                        {subs.map((sub: any) => (
+                          <Link
+                            key={sub.slug || sub.id}
+                            href={`/products?category=${sub.slug}`}
+                            className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
         </div>
       </div>
