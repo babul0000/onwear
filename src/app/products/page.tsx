@@ -183,64 +183,68 @@ export default function ProductsPage() {
               <span className="text-zinc-400 text-lg">No products found matching filters</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((prod) => {
-                const discount = prod.discountPrice !== null;
-                const isWished = isInWishlist(prod.id);
-                return (
-                  <div
-                    key={prod.id}
-                    className="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm hover:shadow-md transition-all"
-                  >
-                    {/* Wishlist Button */}
-                    <button
-                      onClick={() => isWished ? addToCart(prod.id, 1) /* placeholder fallback or remove */ : addToWishlist(prod.id)}
-                      className={`absolute right-6 top-6 z-10 p-2 rounded-full shadow-sm border border-zinc-100 bg-white hover:scale-105 transition-transform ${
-                        isWished ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
-                      }`}
-                    >
-                      <Heart className="h-4 w-4" fill={isWished ? 'currentColor' : 'none'} />
-                    </button>
+             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+               {products.map((prod) => {
+                 const discount = prod.discountPrice !== null;
+                 const isWished = isInWishlist(prod.id);
+                 return (
+                   <div
+                     key={prod.id}
+                     className="group relative flex flex-col transition-all duration-300"
+                   >
+                     {/* Wishlist Button */}
+                     <button
+                       onClick={() => isWished ? addToCart(prod.id, 1) /* placeholder fallback or remove */ : addToWishlist(prod.id)}
+                       className={`absolute right-2.5 top-2.5 z-10 p-2 rounded-full shadow-sm border border-zinc-100 bg-white hover:scale-105 transition-transform ${
+                         isWished ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
+                       }`}
+                     >
+                       <Heart className="h-4 w-4" fill={isWished ? 'currentColor' : 'none'} />
+                     </button>
 
-                    <a href={`/products/${prod.id}`} className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 block">
-                      <img
-                        src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
-                        alt={prod.name}
-                        className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
-                      />
-                    </a>
-                    <div className="mt-4 flex flex-col flex-1">
-                      <span className="text-xs font-medium text-zinc-400">{prod.category?.name}</span>
-                      <a href={`/products/${prod.id}`} className="font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors mt-1 block line-clamp-1">
-                        {prod.name}
-                      </a>
+                     <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
+                       <img
+                         src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
+                         alt={prod.name}
+                         className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                       />
+                       
+                       {/* Add to Cart Overlay */}
+                       <div className="absolute inset-x-3 bottom-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
+                         <button
+                           onClick={(e) => {
+                             e.preventDefault();
+                             addToCart(prod.id, 1);
+                           }}
+                           disabled={prod.stock === 0}
+                           className="w-full flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                         >
+                           <ShoppingBag className="h-4 w-4" />
+                           <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+                         </button>
+                       </div>
+                     </a>
+                     <div className="mt-3 flex flex-col flex-1 px-0.5">
+                       <span className="text-xs font-medium text-zinc-400">{prod.category?.name}</span>
+                       <a href={`/products/${prod.id}`} className="font-semibold text-zinc-900 group-hover:text-teal-600 transition-colors mt-1 block line-clamp-1">
+                         {prod.name}
+                       </a>
 
-                      <div className="mt-2 flex items-baseline gap-2">
-                        {discount ? (
-                          <>
-                            <span className="text-lg font-bold text-zinc-900">${prod.discountPrice}</span>
-                            <span className="text-sm text-zinc-400 line-through">${prod.price}</span>
-                          </>
-                        ) : (
-                          <span className="text-lg font-bold text-zinc-900">${prod.price}</span>
-                        )}
-                      </div>
-
-                      <div className="mt-4 pt-4 border-t border-zinc-100">
-                        <button
-                          onClick={() => addToCart(prod.id, 1)}
-                          disabled={prod.stock === 0}
-                          className="w-full flex items-center justify-center gap-2 rounded-full bg-zinc-900 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
-                        >
-                          <ShoppingBag className="h-4 w-4" />
-                          <span>{prod.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                       <div className="mt-2 flex items-baseline gap-2">
+                         {discount ? (
+                           <>
+                             <span className="text-lg font-bold text-zinc-900">${prod.discountPrice}</span>
+                             <span className="text-sm text-zinc-400 line-through">${prod.price}</span>
+                           </>
+                         ) : (
+                           <span className="text-lg font-bold text-zinc-900">${prod.price}</span>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 );
+               })}
+             </div>
           )}
 
           {/* Pagination Controls */}
