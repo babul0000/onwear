@@ -8,6 +8,7 @@ import { useCart } from '../../../context/CartContext';
 import { API_URL } from '../../../config';
 import { Star, ShoppingBag, Heart, Trash2, ArrowLeft } from 'lucide-react';
 import { formatPrice } from '../../../utils/format';
+import ProductImageZoom from '../../../components/ProductImageZoom';
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -26,29 +27,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
-
-  // Zoom states
-  const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({
-    transformOrigin: 'center',
-    transform: 'scale(1)'
-  });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomStyle({
-      transformOrigin: `${x}% ${y}%`,
-      transform: 'scale(2.5)' // 2.5x scale allows detailed view of stitches and product quality
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setZoomStyle({
-      transformOrigin: 'center',
-      transform: 'scale(1)'
-    });
-  };
 
   // Review form states
   const [rating, setRating] = useState(5);
@@ -187,18 +165,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         {/* Left Side: Images Gallery */}
         <div className="lg:col-span-6 flex flex-col gap-4">
           {/* Large Main Display Image */}
-          <div 
-            className="aspect-[3/4] w-full overflow-hidden rounded-2xl bg-zinc-50 border border-zinc-200/50 shadow-sm flex items-center justify-center cursor-zoom-in relative"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            <img
-              src={selectedImage}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-200 ease-out"
-              style={zoomStyle}
-            />
-          </div>
+          <ProductImageZoom
+            src={selectedImage}
+            alt={product.name}
+            className="rounded-2xl"
+          />
 
           {/* Small Thumbnails Row */}
           <div className="grid grid-cols-4 gap-4">
