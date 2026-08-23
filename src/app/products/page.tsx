@@ -376,14 +376,24 @@ export default function ProductsPage() {
                      </button>
 
                      {/* Aspect 3/4 Image Container */}
-                     <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
-                       <img
-                         src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
-                         alt={prod.name}
-                         className={`h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110 ${
-                           isSoldOut ? 'opacity-50 group-hover:scale-100' : ''
-                         }`}
-                       />
+                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
+                        {/* Primary Image */}
+                        <img
+                          src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
+                          alt={prod.name}
+                          className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-110 ${
+                            isSoldOut ? 'opacity-50 group-hover:scale-100' : 'group-hover:opacity-0'
+                          }`}
+                        />
+
+                        {/* Secondary Image (Fades in & zooms slightly on hover) */}
+                        {!isSoldOut && prod.image2 && (
+                          <img
+                            src={prod.image2}
+                            alt={`${prod.name} Hover`}
+                            className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-110"
+                          />
+                        )}
                        
                        {/* Sold Out Badge overlay */}
                        {isSoldOut && (

@@ -167,7 +167,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           {/* Large Main Display Image */}
           <ProductImageZoom
             src={selectedImage}
-            zoomSrc={selectedImage === product.image ? (product.image2 || undefined) : (product.image || undefined)}
             alt={product.name}
             className="rounded-2xl"
           />

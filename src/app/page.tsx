@@ -22,6 +22,7 @@ interface Product {
   price: number;
   discountPrice?: number | null;
   image?: string;
+  image2?: string;
   stock: number;
   category?: {
     name: string;
@@ -341,11 +342,21 @@ export default function Home() {
                   )}
 
                   <Link href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
+                    {/* Primary Image */}
                     <img
                       src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
                       alt={prod.name}
-                      className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                      className="h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-110 group-hover:opacity-0"
                     />
+
+                    {/* Secondary Image (Fades in & zooms slightly on hover) */}
+                    {prod.image2 && (
+                      <img
+                        src={prod.image2}
+                        alt={`${prod.name} Hover`}
+                        className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-110"
+                      />
+                    )}
                     
                     {/* Add to Cart Overlay */}
                     <div className="absolute inset-x-3 bottom-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
