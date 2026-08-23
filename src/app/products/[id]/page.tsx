@@ -148,12 +148,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   // Check if current user already submitted a review
   const hasReviewed = user && reviews.some((r) => r.userId === user.id);
 
-  // Generate 4 mock image angles for the gallery
+  // Generate 4 image angles for the gallery, including secondary image if available
   const galleryImages = [
     product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
+    product.image2 || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
     product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
-    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
-    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'
+    product.image2 || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'
   ];
 
   return (
@@ -167,6 +167,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           {/* Large Main Display Image */}
           <ProductImageZoom
             src={selectedImage}
+            zoomSrc={selectedImage === product.image ? (product.image2 || undefined) : (product.image || undefined)}
             alt={product.name}
             className="rounded-2xl"
           />
