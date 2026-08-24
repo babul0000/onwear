@@ -102,6 +102,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+  const [expandedMobileCat, setExpandedMobileCat] = useState<string | null>(null);
   const [categories, setCategories] = useState(DEFAULT_NAV_CATEGORIES);
 
   // Sum of quantities in cart
@@ -303,10 +304,10 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop & Mobile) */}
-      <div className="sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-10 md:h-12 flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar">
-          <nav className="flex items-center gap-5 md:gap-8 text-[11px] md:text-xs tracking-wider text-zinc-500 font-medium h-full whitespace-nowrap min-w-max px-2 md:px-0">
+      {/* DESKTOP CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
+      <div className="hidden md:block sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
+          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
             <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
             {categories.map((cat: any) => {
               const subs = cat.subcategories || [];
@@ -318,11 +319,11 @@ export default function Navbar() {
                     className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
                   >
                     <span>{cat.name}</span>
-                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold hidden md:inline">▼</span>}
+                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold">▼</span>}
                   </Link>
 
                   {subs.length > 0 && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50 hidden md:block">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
                       <div className="w-56 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
                         {subs.map((sub: any, idx: number) => (
                           <Link
@@ -339,6 +340,24 @@ export default function Navbar() {
                 </div>
               );
             })}
+          </nav>
+        </div>
+      </div>
+
+      {/* MOBILE CATEGORY NAVIGATION ROW (Sticky top - Mobile only) */}
+      <div className="md:hidden sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-7xl px-4 h-10 flex items-center overflow-x-auto no-scrollbar">
+          <nav className="flex items-center gap-5 text-[11px] tracking-wider text-zinc-500 font-medium h-full whitespace-nowrap min-w-max px-2">
+            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
+            {categories.map((cat: any) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center"
+              >
+                {cat.name}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>
@@ -388,16 +407,54 @@ export default function Navbar() {
 
               <div className="flex flex-col gap-2">
                 <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Product Categories</p>
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/products?category=${cat.slug}`}
-                    onClick={() => setShowMobileDrawer(false)}
-                    className="text-sm font-medium text-zinc-700 hover:text-indigo-600 transition-colors py-2 block border-b border-zinc-50"
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
+                {categories.map((cat) => {
+                  const subs = cat.subcategories || [];
+                  const isExpanded = expandedMobileCat === cat.id;
+
+                  return (
+                    <div key={cat.id} className="border-b border-zinc-50 py-1">
+                      <div className="flex items-center justify-between">
+                        <Link
+                          href={`/products?category=${cat.slug}`}
+                          onClick={() => setShowMobileDrawer(false)}
+                          className="text-sm font-semibold text-zinc-700 hover:text-indigo-650 transition-colors py-2 flex-1"
+                        >
+                          {cat.name}
+                        </Link>
+                        {subs.length > 0 && (
+                          <button
+                            onClick={() => setExpandedMobileCat(isExpanded ? null : cat.id)}
+                            className="p-2 text-zinc-400 hover:text-zinc-950 transition-colors text-lg font-bold"
+                          >
+                            {isExpanded ? '−' : '+'}
+                          </button>
+                        )}
+                      </div>
+
+                      {subs.length > 0 && isExpanded && (
+                        <div className="pl-4 pb-2 flex flex-col gap-2 border-l-2 border-zinc-150/80 mt-1 animate-in slide-in-from-top-2 duration-150">
+                          <Link
+                            href={`/products?category=${cat.slug}`}
+                            onClick={() => setShowMobileDrawer(false)}
+                            className="text-xs font-bold text-indigo-600 hover:underline py-1"
+                          >
+                            Shop All {cat.name}
+                          </Link>
+                          {subs.map((sub: any, idx: number) => (
+                            <Link
+                              key={idx}
+                              href={`/products?category=${sub.slug}`}
+                              onClick={() => setShowMobileDrawer(false)}
+                              className="text-xs text-zinc-500 hover:text-indigo-650 py-1"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
