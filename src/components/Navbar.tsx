@@ -155,38 +155,38 @@ export default function Navbar() {
   return (
     <>
       {/* HEADER / NAVIGATION CONTAINER */}
-      <header className="w-full bg-white relative py-4 border-b border-zinc-100/50 z-[60]">
+      <header className="w-full bg-white relative py-3 md:py-4 border-b border-zinc-100/50 z-[60]">
         {/* MAIN HEADER ROW (Middle) */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between relative">
           
           {/* LEFT: Search Icon Toggle (Enclosed in a clean circle outline) */}
           <div className="flex items-center">
             <button
               onClick={() => setShowSearchOverlay(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full border border-zinc-100 hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-zinc-100 hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
               title="Search Products"
             >
-              <Search className="h-4.5 w-4.5" />
+              <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
             </button>
           </div>
 
           {/* CENTER: Centered Logo ("ONWEAR" in clean uppercase bold font) */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <Link href="/" className="flex items-center text-3xl font-bold tracking-[0.2em] text-zinc-950 hover:opacity-90 transition-opacity uppercase">
+            <Link href="/" className="flex items-center text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.12em] sm:tracking-[0.2em] text-zinc-950 hover:opacity-90 transition-opacity uppercase">
               ONWEAR
             </Link>
           </div>
 
           {/* RIGHT: User Profile / Hamburger Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Account Toggle */}
             <div className="relative">
               <button
                 onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
                 title="Account Settings"
               >
-                <User className="h-5 w-5" />
+                <User className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               </button>
 
               {/* Account Dropdown */}
@@ -268,10 +268,10 @@ export default function Navbar() {
             {/* Mobile Hamburger menu */}
             <button
               onClick={() => setShowMobileDrawer(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 md:hidden text-zinc-700"
+              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 md:hidden text-zinc-700"
               aria-label="Open Side Menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
@@ -303,10 +303,10 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
-      <div className="hidden md:block sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
-          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
+      {/* CATEGORY NAVIGATION ROW (Sticky top - Desktop & Mobile) */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-10 md:h-12 flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar">
+          <nav className="flex items-center gap-5 md:gap-8 text-[11px] md:text-xs tracking-wider text-zinc-500 font-medium h-full whitespace-nowrap min-w-max px-2 md:px-0">
             <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
             {categories.map((cat: any) => {
               const subs = cat.subcategories || [];
@@ -318,11 +318,11 @@ export default function Navbar() {
                     className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
                   >
                     <span>{cat.name}</span>
-                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold">▼</span>}
+                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold hidden md:inline">▼</span>}
                   </Link>
 
                   {subs.length > 0 && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50 hidden md:block">
                       <div className="w-56 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
                         {subs.map((sub: any, idx: number) => (
                           <Link
@@ -486,7 +486,7 @@ export default function Navbar() {
       {/* 7. FLOATING STICKY CART ACTION BUTTON (Bottom Right - inspired by arjobd.com) */}
       <Link
         href="/cart"
-        className="fixed bottom-8 right-8 z-40 flex items-center justify-center rounded-full bg-[#bfa290] hover:bg-[#ae917f] text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 w-14 h-14"
+        className="fixed bottom-20 md:bottom-8 right-6 md:right-8 z-40 flex items-center justify-center rounded-full bg-[#bfa290] hover:bg-[#ae917f] text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 w-14 h-14"
         title="View Shopping Cart"
       >
         <ShoppingCart className="h-6 w-6" />
