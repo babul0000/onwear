@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../config';
 import {
   ShoppingCart,
@@ -95,7 +96,9 @@ const DEFAULT_NAV_CATEGORIES = [
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const { cart, wishlist } = useCart();
+  const { settings } = useSettings();
   const router = useRouter();
+
 
   // Component States
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
@@ -171,10 +174,20 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* CENTER: Centered Logo ("ONWEAR" in clean uppercase bold font) */}
+          {/* CENTER: Centered Logo */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <Link href="/" className="flex items-center text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.12em] sm:tracking-[0.2em] text-zinc-950 hover:opacity-90 transition-opacity uppercase">
-              ONWEAR
+            <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+              {settings.logoUrl ? (
+                <img
+                  src={settings.logoUrl}
+                  alt={settings.storeName}
+                  className="h-7 sm:h-9 md:h-11 w-auto object-contain max-w-[150px]"
+                />
+              ) : (
+                <span className="text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.12em] sm:tracking-[0.2em] text-zinc-950 uppercase">
+                  {settings.storeName}
+                </span>
+              )}
             </Link>
           </div>
 

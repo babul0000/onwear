@@ -260,14 +260,17 @@ export default function AdminSidebar() {
         </a>
 
         {/* Settings */}
-        <a
-          href="#"
-          onClick={(e) => handlePlaceholderClick(e, 'Settings')}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-2xl hover:bg-zinc-100/70 hover:text-zinc-950 transition-all cursor-pointer"
+        <Link
+          href="/admin/settings"
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all ${
+            pathname === '/admin/settings' 
+              ? 'bg-zinc-950 text-white shadow-md font-extrabold' 
+              : 'text-zinc-500 hover:bg-zinc-100/70 hover:text-zinc-950'
+          }`}
         >
-          <Settings className="h-4.5 w-4.5 text-zinc-400" />
+          <Settings className="h-4.5 w-4.5 text-indigo-600 shrink-0" />
           <span>Settings</span>
-        </a>
+        </Link>
 
       </nav>
 
