@@ -334,7 +334,7 @@ function ProductsPageContent() {
         {/* Product Grid Panel */}
         <main className="lg:col-span-3 flex flex-col gap-8">
           {loading ? (
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse flex flex-col gap-3 rounded-2xl bg-white border border-zinc-100 p-1">
                   <div className="aspect-[3/4] w-full rounded-xl bg-zinc-200"></div>
@@ -348,7 +348,7 @@ function ProductsPageContent() {
               <span className="text-zinc-400 text-sm font-bold uppercase tracking-wider">No products found matching filters</span>
             </div>
           ) : (
-             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
                {products.map((prod) => {
                  const discount = prod.discountPrice !== null;
                  const isWished = isInWishlist(prod.id);
