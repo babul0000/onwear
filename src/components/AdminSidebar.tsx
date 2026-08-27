@@ -230,13 +230,14 @@ export default function AdminSidebar() {
               >
                 Coupons
               </Link>
-              <a
-                href="#"
-                onClick={(e) => handlePlaceholderClick(e, 'Campaigns')}
-                className="block px-3 py-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 transition-colors"
+              <Link
+                href="/admin/campaigns"
+                className={`block px-3 py-1.5 rounded-xl transition-colors ${
+                  pathname === '/admin/campaigns' ? 'text-indigo-600 bg-indigo-50/50' : 'text-zinc-400 hover:text-zinc-700'
+                }`}
               >
                 Campaigns
-              </a>
+              </Link>
             </div>
           )}
         </div>
