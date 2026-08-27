@@ -316,7 +316,7 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-3">
                 <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
@@ -326,7 +326,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((prod) => {
               const discount = prod.discountPrice !== null;
               return (
