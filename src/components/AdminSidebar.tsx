@@ -214,20 +214,22 @@ export default function AdminSidebar() {
           </button>
           {openMenus.marketing && (
             <div className="pl-9 pr-2 space-y-0.5 animate-fadeIn">
-              <a
-                href="#"
-                onClick={(e) => handlePlaceholderClick(e, 'Promotions')}
-                className="block px-3 py-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 transition-colors"
+              <Link
+                href="/admin/promotions"
+                className={`block px-3 py-1.5 rounded-xl transition-colors ${
+                  pathname === '/admin/promotions' ? 'text-indigo-600 bg-indigo-50/50' : 'text-zinc-400 hover:text-zinc-700'
+                }`}
               >
                 Promotions
-              </a>
-              <a
-                href="#"
-                onClick={(e) => handlePlaceholderClick(e, 'Coupons')}
-                className="block px-3 py-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 transition-colors"
+              </Link>
+              <Link
+                href="/admin/coupons"
+                className={`block px-3 py-1.5 rounded-xl transition-colors ${
+                  pathname === '/admin/coupons' ? 'text-indigo-600 bg-indigo-50/50' : 'text-zinc-400 hover:text-zinc-700'
+                }`}
               >
                 Coupons
-              </a>
+              </Link>
               <a
                 href="#"
                 onClick={(e) => handlePlaceholderClick(e, 'Campaigns')}
