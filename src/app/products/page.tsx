@@ -53,12 +53,12 @@ function ProductsPageContent() {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
-  // Parse initial query params on mount
+  // Parse initial query params on mount/change
   useEffect(() => {
     const categoryQuery = searchParams.get('category');
     const searchQuery = searchParams.get('search');
-    if (categoryQuery) setSelectedCategory(categoryQuery);
-    if (searchQuery) setSearch(searchQuery);
+    setSelectedCategory(categoryQuery || '');
+    setSearch(searchQuery || '');
   }, [searchParams]);
 
   // Load Categories on mount
