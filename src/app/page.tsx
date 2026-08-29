@@ -43,7 +43,7 @@ export default function Home() {
       try {
         const [catsRes, prodsRes] = await Promise.all([
           fetch(`${API_URL}/categories`),
-          fetch(`${API_URL}/products?limit=8`)
+          fetch(`${API_URL}/products?limit=9`)
         ]);
         const catsData = await catsRes.json();
         const prodsData = await prodsRes.json();
@@ -187,8 +187,8 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-3">
                 <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
                 <div className="h-4 w-2/3 rounded bg-zinc-100"></div>
@@ -197,8 +197,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-            {products.slice(0, 8).map((product) => {
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-3">
+            {products.slice(0, 9).map((product) => {
               const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null;
               const hasTwoImages = !!product.image2;
               
