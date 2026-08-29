@@ -406,10 +406,10 @@ export default function ProfilePage() {
   // Render guest orders or login view
   if (!token || !user) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12 md:py-20 text-ink selection:bg-indigo/10 selection:text-indigo">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 w-full text-ink selection:bg-indigo/10 selection:text-indigo">
         {isGuestMode ? (
           /* ==================== GUEST LITE ORDERS VIEW ==================== */
-          <div className="flex flex-col gap-6 animate-fadeIn">
+          <div className="flex flex-col gap-6 animate-fadeIn max-w-4xl mx-auto">
             <div className="flex justify-between items-center border-b border-line pb-4">
               <div>
                 <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">Guest Tracking</span>
@@ -504,10 +504,10 @@ export default function ProfilePage() {
           </div>
         ) : (
           /* ==================== DENIED LOGIN FLOW ==================== */
-          <div className="border border-line bg-panel p-8 md:p-12 text-center rounded-[4px] flex flex-col items-center gap-6 animate-fadeIn">
+          <div className="border border-line bg-panel p-8 md:p-12 text-center rounded-[4px] flex flex-col items-center gap-6 animate-fadeIn max-w-2xl mx-auto">
             <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">Access Denied</span>
             <h2 className="text-3xl font-display text-ink font-bold leading-tight">অনুগ্রহ করে সাইন-ইন করুন</h2>
-            <p className="text-sm text-muted max-w-sm font-sans leading-relaxed">ONWEAR কাস্টমার পোর্টাল ভিজিট করার জন্য আপনার অ্যাকাউন্টে লগইন করুন অথবা আপনার গেস্ট চেকআউট ট্র্যাকিং আইডি দিয়ে অর্ডার চেক করুন।</p>
+            <p className="text-sm text-muted max-w-md font-sans leading-relaxed">ONWEAR কাস্টমার পোর্টাল ভিজিট করার জন্য আপনার অ্যাকাউন্টে লগইন করুন অথবা আপনার গেস্ট চেকআউট ট্র্যাকিং আইডি দিয়ে অর্ডার চেক করুন।</p>
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-sm mt-2">
               <Link href="/login" className="flex-1 rounded-[4px] bg-indigo py-3 text-center text-xs font-mono font-black uppercase text-white hover:bg-zinc-800 transition-colors">
                 Sign In / Login
@@ -545,14 +545,15 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 items-start">
-        {/* Navigation Sidebar (Desktop Sidebar Nav) */}
-        <div className="hidden lg:flex flex-col gap-1 border border-line bg-panel p-3 rounded-[4px]">
+      <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+        {/* Navigation Sidebar (Desktop Sidebar Nav - Fixed Width 224px) */}
+        <div className="hidden lg:flex flex-col gap-1 border border-line bg-panel p-3 rounded-[4px] w-full lg:w-56 shrink-0">
           {/* User Quick Info */}
           <div className="flex items-center gap-3 border-b border-line pb-4 mb-2 px-2 pt-1">
             <div className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-line bg-canvas text-ink font-mono font-bold text-sm">
               {user.name.charAt(0).toUpperCase()}
             </div>
+
             <div>
               <h4 className="font-bold text-ink text-sm font-sans line-clamp-1">{user.name}</h4>
               <span className="text-[9px] font-mono font-black uppercase text-muted tracking-wider">
@@ -613,7 +614,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Dashboard Content Container */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
+        <div className="flex-1 w-full flex flex-col gap-6">
           {dashboardError && (
             <div className="rounded-[4px] border border-thread/20 bg-thread/5 p-4 text-xs font-mono font-bold text-thread flex justify-between items-center animate-in slide-in-from-top duration-300">
               <span>⚠️ {dashboardError}</span>

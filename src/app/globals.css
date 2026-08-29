@@ -4,19 +4,19 @@
 
 
 :root {
-  --background: #F3EEE3; /* warm canvas background */
-  --foreground: #1D1A16; /* warm ink text */
+  --background: #fafafa; /* default project background */
+  --foreground: #09090b; /* default dark text */
 
-  /* ONWEAR Color Palette */
-  --ink: #1D1A16;
-  --canvas: #F3EEE3;
-  --panel: #FBF8F2;
-  --line: #E4DCC9;
-  --indigo: #2F4468;
-  --ochre: #C08A28;
-  --thread: #B23A34;
-  --green: #3F6B4F;
-  --muted: #8A8073;
+  /* ONWEAR Color Palette (Aligned with main clean theme) */
+  --ink: #09090b;       /* primary text, near-black warm */
+  --canvas: #fafafa;    /* page background, warm paper/zinc tone */
+  --panel: #ffffff;     /* card surface, clean white */
+  --line: #e4e4e7;      /* borders/dividers zinc-200 */
+  --indigo: #18181b;    /* primary accent (dye-black brand color) */
+  --ochre: #b45309;     /* secondary accent (warm gold/turmeric) */
+  --thread: #dc2626;    /* destructive actions */
+  --green: #16a34a;     /* success/delivered states */
+  --muted: #71717a;     /* secondary text */
 
   /* Fonts */
   --font-fraunces: 'Fraunces', serif;
@@ -44,10 +44,11 @@
 }
 
 body {
-  background: var(--canvas);
-  color: var(--ink);
+  background: #fafafa;
+  color: #09090b;
   font-family: var(--font-plex-sans), sans-serif;
 }
+
 
 /* Stitch Line Styles */
 .stitch-line {
