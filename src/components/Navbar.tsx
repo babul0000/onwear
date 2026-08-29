@@ -231,19 +231,7 @@ export default function Navbar() {
                           onClick={() => setShowAccountDropdown(false)}
                           className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
                         >
-                          Profile Settings
-                        </Link>
-                        <Link
-                          href="/wishlist"
-                          onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center justify-between rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
-                        >
-                          <span>Wishlist</span>
-                          {wishlistCount > 0 && (
-                            <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                              {wishlistCount}
-                            </span>
-                          )}
+                          Dashboard
                         </Link>
                         <button
                           onClick={() => {
