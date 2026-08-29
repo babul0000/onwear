@@ -65,6 +65,8 @@ export default function Home() {
     }
   ];
 
+  const activeSlides = slides.length === 3 ? slides : defaultSlides;
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -90,6 +92,16 @@ export default function Home() {
     }
     loadData();
   }, []);
+
+  // Auto-slide every 2 seconds
+  useEffect(() => {
+    if (activeSlides.length === 0) return;
+    const interval = setInterval(() => {
+      setActiveSlideIdx((prevIdx) => (prevIdx + 1) % activeSlides.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [activeSlides.length]);
+
 
   const handleEditHeroSlides = () => {
     const currentSlides = slides.length === 3 ? slides : defaultSlides;
@@ -153,7 +165,6 @@ export default function Home() {
     }
   };
 
-  const activeSlides = slides.length === 3 ? slides : defaultSlides;
 
 
   return (
@@ -222,12 +233,12 @@ export default function Home() {
               Explore our curated capsule collections of premium men's styling. Hover over custom categories to view lookbook.
             </p>
             
-            <div className="flex pt-2">
+            <div className="flex pt-2 mt-2">
               <Link
-                href={activeSlides[activeSlideIdx]?.linkUrl || '/products'}
-                className="rounded-full bg-zinc-950 px-8 py-4 text-xs font-bold tracking-wider text-white hover:bg-zinc-800 transition-all shadow-lg flex items-center gap-2 uppercase font-sans"
+                href="/products"
+                className="rounded-full bg-zinc-950 px-10 py-4.5 text-xs font-black tracking-wider text-white hover:bg-zinc-800 transition-all shadow-xl flex items-center gap-2.5 uppercase font-sans hover:scale-102"
               >
-                <span>Shop Collection</span>
+                <span>View All Product</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
