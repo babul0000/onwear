@@ -56,7 +56,6 @@ export default function Footer() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-zinc-50 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
         <p>&copy; {new Date().getFullYear()} {settings.storeName}. All rights reserved.</p>
-        <p>Built with Next.js + Express.js + PostgreSQL + Prisma.</p>
       </div>
     </footer>
   );
