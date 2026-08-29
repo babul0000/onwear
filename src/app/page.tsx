@@ -205,32 +205,13 @@ export default function Home() {
               NEW ARRIVALS 2026
             </span>
             
-            {/* Interactive Category Titles list */}
-            <div className="flex flex-col gap-4 my-2">
-              {activeSlides.map((slide, idx) => {
-                const isActive = idx === activeSlideIdx;
-                return (
-                  <div
-                    key={slide.id || idx}
-                    onMouseEnter={() => setActiveSlideIdx(idx)}
-                    className="group cursor-pointer select-none relative w-fit"
-                  >
-                    <h2 className={`text-4xl sm:text-5xl font-black uppercase tracking-tight transition-all duration-300 font-sans ${
-                      isActive ? 'text-zinc-950 translate-x-2' : 'text-zinc-400 hover:text-zinc-600'
-                    }`}>
-                      {slide.title}
-                    </h2>
-                    {/* Visual stitch-line indicator underneath */}
-                    <div className={`h-[2px] transition-all duration-500 mt-1 ${
-                      isActive ? 'w-24 bg-zinc-900' : 'w-0 bg-transparent'
-                    }`} />
-                  </div>
-                );
-              })}
-            </div>
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-zinc-950 uppercase leading-none font-sans">
+              THE ART OF <br />
+              <span className="text-teal-650">MODERN STYLE</span>
+            </h1>
 
             <p className="text-base text-zinc-500 max-w-md leading-relaxed font-medium font-sans">
-              Explore our curated capsule collections of premium men's styling. Hover over custom categories to view lookbook.
+              Explore our new curated capsule collection of premium men's shirts, tailored pants, heavyweight tees, and refined denim.
             </p>
             
             <div className="flex pt-2 mt-2">
