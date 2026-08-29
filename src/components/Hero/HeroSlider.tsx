@@ -40,19 +40,21 @@ export default function HeroSlider({
     const progressStep = (tickTime / slideDuration) * 100;
 
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setActiveSlideIdx((curr) => (curr + 1) % slides.length);
-          return 0;
-        }
-        return prev + progressStep;
-      });
+      setProgress((prev) => prev + progressStep);
     }, tickTime);
 
     return () => clearInterval(timer);
-  }, [slides.length, isPaused, activeSlideIdx, setActiveSlideIdx]);
+  }, [slides.length, isPaused]);
 
-  // Reset progress bar on slide index change
+  // Sync slide change and reset progress when timer completes
+  useEffect(() => {
+    if (progress >= 100) {
+      setActiveSlideIdx((curr) => (curr + 1) % slides.length);
+      setProgress(0);
+    }
+  }, [progress, slides.length, setActiveSlideIdx]);
+
+  // Reset progress bar on slide index change manually
   useEffect(() => {
     setProgress(0);
   }, [activeSlideIdx]);
