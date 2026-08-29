@@ -190,8 +190,34 @@ export default function CheckoutPage() {
         // Clear cart in context
         await clearCart();
         await fetchCart();
-        // Redirect to customer orders list
-        router.push('/orders');
+
+        if (paymentMethod === 'ONLINE') {
+          // Initiate online payment via SSLCommerz
+          try {
+            const payRes = await fetch(`${API_URL}/payments/sslcommerz/initiate/${data.data.id}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              }
+            });
+            const payData = await payRes.json();
+            if (payData.success && payData.data.gatewayUrl) {
+              // Redirect customer browser to SSLCommerz Gateway
+              window.location.href = payData.data.gatewayUrl;
+              return; // Browser redirecting
+            } else {
+              // Fallback if initiation failed, redirect to orders with a message
+              router.push(`/orders?payment=failed_initiation&orderId=${data.data.id}`);
+            }
+          } catch (payErr) {
+            console.error('Failed to initiate SSLCommerz payment:', payErr);
+            router.push(`/orders?payment=failed_initiation&orderId=${data.data.id}`);
+          }
+        } else {
+          // Redirect to customer orders list for Cash on Delivery
+          router.push('/orders');
+        }
       } else {
         setError(data.message || 'Failed to place the order. Try again.');
       }
@@ -202,6 +228,7 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8 text-zinc-850">
@@ -323,7 +350,9 @@ export default function CheckoutPage() {
 
           <h3 className="font-bold text-zinc-900 border-b border-zinc-100 pb-4 text-lg mt-6">Payment Method</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex items-center gap-3 rounded-xl border border-zinc-950 bg-zinc-50/10 p-4 cursor-pointer">
+            <label className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+              paymentMethod === 'COD' ? 'border-zinc-950 bg-zinc-50/10' : 'border-zinc-200 bg-zinc-50/50'
+            }`}>
               <input
                 type="radio"
                 name="paymentMethod"
@@ -333,31 +362,35 @@ export default function CheckoutPage() {
                 className="text-zinc-950 focus:ring-zinc-950 cursor-pointer"
               />
               <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-zinc-950" />
+                <Truck className={`h-5 w-5 ${paymentMethod === 'COD' ? 'text-zinc-950' : 'text-zinc-400'}`} />
                 <div>
-                  <p className="font-bold text-sm text-zinc-900">Cash on Delivery</p>
+                  <p className={`font-bold text-sm ${paymentMethod === 'COD' ? 'text-zinc-900' : 'text-zinc-500'}`}>Cash on Delivery</p>
                   <p className="text-xs text-zinc-400 font-medium">Pay cash when items are delivered</p>
                 </div>
               </div>
             </label>
 
-            <label className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 opacity-50 cursor-not-allowed">
+            <label className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+              paymentMethod === 'ONLINE' ? 'border-zinc-950 bg-zinc-50/10' : 'border-zinc-200 bg-zinc-50/50'
+            }`}>
               <input
                 type="radio"
                 name="paymentMethod"
                 value="ONLINE"
-                disabled
-                className="text-zinc-400"
+                checked={paymentMethod === 'ONLINE'}
+                onChange={() => setPaymentMethod('ONLINE')}
+                className="text-zinc-950 focus:ring-zinc-950 cursor-pointer"
               />
               <div className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-zinc-400" />
+                <CreditCard className={`h-5 w-5 ${paymentMethod === 'ONLINE' ? 'text-zinc-950' : 'text-zinc-400'}`} />
                 <div>
-                  <p className="font-bold text-sm text-zinc-400">Online Payment</p>
-                  <p className="text-xs text-zinc-400 font-medium">bKash, Nagad, Cards (Coming soon)</p>
+                  <p className={`font-bold text-sm ${paymentMethod === 'ONLINE' ? 'text-zinc-900' : 'text-zinc-500'}`}>Online Payment</p>
+                  <p className="text-xs text-zinc-400 font-medium">Pay securely via SSLCommerz (bKash, Nagad, Cards)</p>
                 </div>
               </div>
             </label>
           </div>
+
         </div>
 
         {/* Order Items Summary */}

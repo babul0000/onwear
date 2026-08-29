@@ -12,7 +12,30 @@ export default function OrdersHistoryPage() {
   const { token, user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [paymentStatusAlert, setPaymentStatusAlert] = useState<{
+    status: 'success' | 'failed' | 'cancelled' | 'failed_initiation';
+    orderId: string;
+  } | null>(null);
   const router = useRouter();
+
+  // Extract payment status parameters from redirect URLs
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const paymentParam = params.get('payment');
+      const orderIdParam = params.get('orderId');
+      if (paymentParam && orderIdParam) {
+        setPaymentStatusAlert({
+          status: paymentParam as any,
+          orderId: orderIdParam
+        });
+        // Clear query parameters without reloading
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+      }
+    }
+  }, []);
+
 
   useEffect(() => {
     if (!token) return;
@@ -53,6 +76,40 @@ export default function OrdersHistoryPage() {
         <h1 className="text-3xl font-bold text-zinc-950">My Orders</h1>
         <p className="text-sm text-zinc-500 mt-1">View and track your previous purchase history</p>
       </div>
+
+      {paymentStatusAlert && (
+        <div className={`rounded-xl border p-4 text-sm font-semibold flex flex-col gap-1.5 animate-in fade-in duration-300 ${
+          paymentStatusAlert.status === 'success'
+            ? 'border-green-200 bg-green-50 text-green-800'
+            : paymentStatusAlert.status === 'failed'
+            ? 'border-red-200 bg-red-50 text-red-800'
+            : paymentStatusAlert.status === 'cancelled'
+            ? 'border-amber-200 bg-amber-50 text-amber-800'
+            : 'border-rose-200 bg-rose-50 text-rose-800'
+        }`}>
+          <div className="flex justify-between items-center">
+            <span className="font-extrabold uppercase tracking-wide">
+              {paymentStatusAlert.status === 'success' && '🎉 Payment Successful'}
+              {paymentStatusAlert.status === 'failed' && '❌ Payment Failed'}
+              {paymentStatusAlert.status === 'cancelled' && '⚠️ Payment Cancelled'}
+              {paymentStatusAlert.status === 'failed_initiation' && '⚠️ Online Payment Failed'}
+            </span>
+            <button
+              onClick={() => setPaymentStatusAlert(null)}
+              className="text-xs font-bold hover:underline opacity-80 hover:opacity-100"
+            >
+              Dismiss
+            </button>
+          </div>
+          <p className="text-xs opacity-90 font-medium">
+            {paymentStatusAlert.status === 'success' && `Thank you! Your payment for Order ID: ${paymentStatusAlert.orderId} was successful and confirmed.`}
+            {paymentStatusAlert.status === 'failed' && `The online payment attempt for Order ID: ${paymentStatusAlert.orderId} was unsuccessful. Please check your card/wallet details and try again.`}
+            {paymentStatusAlert.status === 'cancelled' && `The payment session for Order ID: ${paymentStatusAlert.orderId} was cancelled.`}
+            {paymentStatusAlert.status === 'failed_initiation' && `Your order was placed successfully (Order ID: ${paymentStatusAlert.orderId}), but we couldn't initiate the online payment gateway. You can pay or manage your order details below.`}
+          </p>
+        </div>
+      )}
+
 
       {loading ? (
         <div className="mx-auto py-20">
