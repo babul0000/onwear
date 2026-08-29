@@ -36,28 +36,51 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { token, user } = useAuth();
-  const [bannerUrl, setBannerUrl] = useState<string>('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600');
   
+  // Hero interactive slide states
+  const [slides, setSlides] = useState<any[]>([]);
+  const [editSlides, setEditSlides] = useState<any[]>([]);
+  const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [inputUrl, setInputUrl] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingSlideIdx, setUploadingSlideIdx] = useState<number | null>(null);
+
+  const defaultSlides = [
+    {
+      id: 'default-1',
+      title: 'Casual Shirts',
+      imageUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600',
+      linkUrl: '/products?category=shirt'
+    },
+    {
+      id: 'default-2',
+      title: 'Refined Denim',
+      imageUrl: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1600',
+      linkUrl: '/products?category=denim'
+    },
+    {
+      id: 'default-3',
+      title: 'Winter Collection',
+      imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1600',
+      linkUrl: '/products?category=winter-collection'
+    }
+  ];
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [catsRes, prodsRes, bannerRes] = await Promise.all([
+        const [catsRes, prodsRes, slidesRes] = await Promise.all([
           fetch(`${API_URL}/categories`),
           fetch(`${API_URL}/products?limit=8`),
-          fetch(`${API_URL}/promotions/hero`)
+          fetch(`${API_URL}/promotions/hero-slides`)
         ]);
         const catsData = await catsRes.json();
         const prodsData = await prodsRes.json();
-        const bannerData = await bannerRes.json();
+        const slidesData = await slidesRes.json();
 
         if (catsData.success) setCategories(catsData.data);
         if (prodsData.success) setProducts(prodsData.data);
-        if (bannerData.success && bannerData.data && bannerData.data.imageUrl) {
-          setBannerUrl(bannerData.data.imageUrl);
+        if (slidesData.success && slidesData.data && slidesData.data.length === 3) {
+          setSlides(slidesData.data);
         }
       } catch (err) {
         console.error('Error fetching home page data:', err);
@@ -68,22 +91,18 @@ export default function Home() {
     loadData();
   }, []);
 
-  const handleEditBanner = () => {
-    setInputUrl(bannerUrl);
+  const handleEditHeroSlides = () => {
+    const currentSlides = slides.length === 3 ? slides : defaultSlides;
+    setEditSlides(JSON.parse(JSON.stringify(currentSlides)));
     setIsModalOpen(true);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSlideFileChange = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
-    if (!apiKey) {
-      alert('ImgBB API Key is not set. Please add NEXT_PUBLIC_IMGBB_API_KEY to your environment variables.');
-      return;
-    }
-
-    setIsUploading(true);
+    setUploadingSlideIdx(idx);
 
     const formData = new FormData();
     formData.append('image', file);
@@ -96,97 +115,120 @@ export default function Home() {
       const data = await res.json();
       
       if (data.success && data.data && data.data.url) {
-        setInputUrl(data.data.url);
+        const copy = [...editSlides];
+        copy[idx].imageUrl = data.data.url;
+        setEditSlides(copy);
       } else {
         alert(data.error?.message || 'ImgBB upload failed.');
       }
     } catch (err) {
       console.error('Error uploading image to ImgBB:', err);
-      alert('An error occurred during image upload. Please try again.');
+      alert('An error occurred during image upload.');
     } finally {
-      setIsUploading(false);
+      setUploadingSlideIdx(null);
     }
   };
 
-  const handleSaveBanner = async () => {
-    if (!inputUrl.trim()) {
-      alert('Image URL cannot be empty');
-      return;
-    }
-
+  const handleSaveHeroSlides = async () => {
     try {
-      const res = await fetch(`${API_URL}/promotions/hero`, {
+      const res = await fetch(`${API_URL}/promotions/hero-slides`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ imageUrl: inputUrl.trim() })
+        body: JSON.stringify({ slides: editSlides })
       });
       const data = await res.json();
-      if (data.success && data.data && data.data.imageUrl) {
-        setBannerUrl(data.data.imageUrl);
+      if (data.success && data.data && data.data.length === 3) {
+        setSlides(data.data);
         setIsModalOpen(false);
-        alert('Banner updated successfully!');
+        alert('Hero banner slides updated successfully!');
       } else {
-        alert(data.message || 'Failed to update banner');
+        alert(data.message || 'Failed to update slides');
       }
     } catch (err) {
-      console.error('Error updating banner:', err);
-      alert('An error occurred while updating the banner');
+      console.error('Error saving hero slides:', err);
+      alert('An error occurred while saving the slides');
     }
   };
 
+  const activeSlides = slides.length === 3 ? slides : defaultSlides;
+
+
   return (
     <div className="flex flex-col gap-20 pb-24 bg-white">
-      {/* 1. HERO SECTION (Editorial Style, split screen layout with fashion models) */}
+      {/* 1. HERO SECTION (Editorial Style Category Hover Switch Layout) */}
       <section className="relative w-full min-h-[85vh] bg-zinc-50 flex items-center overflow-hidden">
         {user && user.role === 'admin' && (
           <button
-            onClick={handleEditBanner}
-            className="absolute top-6 right-6 z-20 bg-white/90 hover:bg-white text-zinc-800 p-3 rounded-full shadow-lg border border-zinc-200/50 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group"
-            title="Edit Banner Image"
+            onClick={handleEditHeroSlides}
+            className="absolute top-6 right-6 z-20 bg-white/95 hover:bg-white text-zinc-800 p-3 rounded-full shadow-lg border border-zinc-200/50 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group font-sans"
+            title="Edit Hero Slides"
           >
-            <Edit className="h-4 w-4 text-indigo-600" />
+            <Edit className="h-4 w-4 text-zinc-900" />
             <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
-              Edit Banner
+              Edit Hero Slides
             </span>
           </button>
         )}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={bannerUrl}
-            alt="Men's Premium Clothing Collection"
-            className="w-full h-full object-cover object-top opacity-95"
-          />
+        
+        {/* Layered sliding images for smooth cross-fading transition */}
+        <div className="absolute inset-0 z-0 select-none">
+          {activeSlides.map((slide, idx) => (
+            <img
+              key={slide.id || idx}
+              src={slide.imageUrl}
+              alt={slide.title}
+              className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 ease-out ${
+                idx === activeSlideIdx ? 'opacity-95 scale-100' : 'opacity-0 scale-98'
+              }`}
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full z-10 py-20">
           <div className="max-w-xl flex flex-col gap-6 text-left">
-            <span className="text-xs font-bold tracking-[0.25em] text-teal-600 uppercase">
+            <span className="text-xs font-bold tracking-[0.25em] text-teal-600 uppercase font-mono">
               NEW ARRIVALS 2026
             </span>
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-zinc-950 uppercase leading-none">
-              THE ART OF <br />
-              <span className="text-teal-600">MODERN STYLE</span>
-            </h1>
-            <p className="text-base text-zinc-500 max-w-md leading-relaxed font-medium">
-              Explore our new curated capsule collection of premium men's shirts, tailored pants, heavyweight tees, and refined denim.
+            
+            {/* Interactive Category Titles list */}
+            <div className="flex flex-col gap-4 my-2">
+              {activeSlides.map((slide, idx) => {
+                const isActive = idx === activeSlideIdx;
+                return (
+                  <div
+                    key={slide.id || idx}
+                    onMouseEnter={() => setActiveSlideIdx(idx)}
+                    className="group cursor-pointer select-none relative w-fit"
+                  >
+                    <h2 className={`text-4xl sm:text-5xl font-black uppercase tracking-tight transition-all duration-300 font-sans ${
+                      isActive ? 'text-zinc-950 translate-x-2' : 'text-zinc-400 hover:text-zinc-600'
+                    }`}>
+                      {slide.title}
+                    </h2>
+                    {/* Visual stitch-line indicator underneath */}
+                    <div className={`h-[2px] transition-all duration-500 mt-1 ${
+                      isActive ? 'w-24 bg-zinc-900' : 'w-0 bg-transparent'
+                    }`} />
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-base text-zinc-500 max-w-md leading-relaxed font-medium font-sans">
+              Explore our curated capsule collections of premium men's styling. Hover over custom categories to view lookbook.
             </p>
-            <div className="flex flex-wrap gap-3 pt-2">
+            
+            <div className="flex pt-2">
               <Link
-                href="/products"
-                className="rounded-full bg-zinc-950 px-8 py-4 text-xs font-bold tracking-wider text-white hover:bg-zinc-800 transition-all shadow-lg flex items-center gap-2 uppercase"
+                href={activeSlides[activeSlideIdx]?.linkUrl || '/products'}
+                className="rounded-full bg-zinc-950 px-8 py-4 text-xs font-bold tracking-wider text-white hover:bg-zinc-800 transition-all shadow-lg flex items-center gap-2 uppercase font-sans"
               >
                 <span>Shop Collection</span>
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/products?category=denim"
-                className="rounded-full bg-white border border-zinc-200 px-8 py-4 text-xs font-bold tracking-wider text-zinc-700 hover:bg-zinc-50 transition-all uppercase"
-              >
-                Explore Denim
               </Link>
             </div>
           </div>
@@ -412,57 +454,107 @@ export default function Home() {
         )}
       </section>
 
-      {/* Edit Banner Modal */}
+      {/* Edit Hero Slides Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl border border-zinc-200 shadow-xl max-w-md w-full p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-200 text-zinc-800">
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-xl max-w-2xl w-full p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-200 text-zinc-800 max-h-[85vh] overflow-y-auto no-scrollbar">
             <div>
-              <h3 className="text-base font-bold text-zinc-950">Update Hero Banner</h3>
-              <p className="text-xs text-zinc-500 mt-1">Change the cover photo of the home page by providing a URL or uploading from your device.</p>
+              <h3 className="text-base font-bold text-zinc-950">Update Hover Hero Slides</h3>
+              <p className="text-xs text-zinc-500 mt-1">Configure labels, redirection links, and upload banner photos for the 3 homepage hover categories.</p>
             </div>
 
-            <div className="flex flex-col gap-4">
-              {/* Option A: Image URL */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Image URL</label>
-                <input
-                  type="text"
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-                />
-              </div>
+            <div className="flex flex-col gap-6 pt-2">
+              {editSlides.map((slide, idx) => (
+                <div key={slide.id || idx} className="border-b border-zinc-150 pb-5 last:border-0 last:pb-0 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-indigo bg-zinc-100 px-2 py-0.5 rounded-[4px] uppercase tracking-wider font-mono">
+                      Category Slide #{idx + 1}
+                    </span>
+                  </div>
 
-              {/* Option B: Local Upload */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Upload Local File (via ImgBB)</label>
-                <div className="relative border border-dashed border-zinc-200 hover:border-indigo-400 hover:bg-indigo-50/20 transition-all rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={isUploading}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                  {isUploading ? (
-                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-650">
-                      <span className="h-4 w-4 border-2 border-indigo-650 border-t-transparent rounded-full animate-spin"></span>
-                      <span>Uploading to ImgBB...</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Category Label */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[9px] font-black text-zinc-400 uppercase tracking-wider">Slide label / Title</label>
+                      <input
+                        type="text"
+                        required
+                        value={slide.title}
+                        onChange={(e) => {
+                          const copy = [...editSlides];
+                          copy[idx].title = e.target.value;
+                          setEditSlides(copy);
+                        }}
+                        className="w-full border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-850 focus:outline-none focus:border-zinc-900"
+                        placeholder="e.g. Refined Denim"
+                      />
                     </div>
-                  ) : (
-                    <>
-                      <Upload className="h-5 w-5 text-zinc-400 group-hover:text-indigo-650 transition-colors" />
-                      <span className="text-xs font-bold text-zinc-600">Click to choose image</span>
-                      <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">PNG, JPG, WEBP</span>
-                    </>
-                  )}
+
+                    {/* Target Link */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[9px] font-black text-zinc-400 uppercase tracking-wider">Target Redirect URL</label>
+                      <input
+                        type="text"
+                        required
+                        value={slide.linkUrl || ''}
+                        onChange={(e) => {
+                          const copy = [...editSlides];
+                          copy[idx].linkUrl = e.target.value;
+                          setEditSlides(copy);
+                        }}
+                        className="w-full border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-850 focus:outline-none focus:border-zinc-900"
+                        placeholder="e.g. /products?category=denim"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    {/* Image URL */}
+                    <div className="flex flex-col gap-1.5 md:col-span-8">
+                      <label className="text-[9px] font-black text-zinc-400 uppercase tracking-wider">Banner Image URL</label>
+                      <input
+                        type="text"
+                        required
+                        value={slide.imageUrl}
+                        onChange={(e) => {
+                          const copy = [...editSlides];
+                          copy[idx].imageUrl = e.target.value;
+                          setEditSlides(copy);
+                        }}
+                        className="w-full border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-850 focus:outline-none focus:border-zinc-900 font-mono"
+                      />
+                    </div>
+
+                    {/* Local File upload */}
+                    <div className="md:col-span-4">
+                      <div className="relative border border-dashed border-zinc-200 hover:border-zinc-500 hover:bg-zinc-50 transition-all rounded-xl p-2.5 flex items-center justify-center gap-1.5 cursor-pointer text-center h-[38px] w-full">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleSlideFileChange(e, idx)}
+                          disabled={uploadingSlideIdx === idx}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        {uploadingSlideIdx === idx ? (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-700">
+                            <span className="h-3 w-3 border-2 border-zinc-700 border-t-transparent rounded-full animate-spin"></span>
+                            <span>Uploading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="h-3.5 w-3.5 text-zinc-400" />
+                            <span className="text-[10px] font-bold text-zinc-650">Upload File</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-100">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100 mt-2">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -472,11 +564,11 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={handleSaveBanner}
-                disabled={isUploading}
-                className="rounded-full bg-indigo-600 text-white px-5 py-2.5 text-xs font-bold hover:bg-indigo-700 transition-all uppercase tracking-wider shadow-md disabled:bg-zinc-300 disabled:shadow-none"
+                onClick={handleSaveHeroSlides}
+                disabled={uploadingSlideIdx !== null}
+                className="rounded-full bg-zinc-950 text-white px-5 py-2.5 text-xs font-bold hover:bg-zinc-850 transition-all uppercase tracking-wider shadow-md disabled:bg-zinc-300 disabled:shadow-none"
               >
-                Save Changes
+                Save All Slides
               </button>
             </div>
           </div>
