@@ -169,16 +169,16 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-20 pb-24 bg-white">
-      {/* 1. HERO SECTION (Editorial Style Category Hover Switch Layout) */}
-      <section className="relative w-full min-h-[85vh] bg-zinc-50 flex items-center overflow-hidden">
+      {/* 1. HERO SECTION (Clean Slide Show layout with dynamic bottom hover CTA button) */}
+      <section className="group relative w-full min-h-[85vh] bg-zinc-50 flex items-end justify-center overflow-hidden">
         {user && user.role === 'admin' && (
           <button
             onClick={handleEditHeroSlides}
-            className="absolute top-6 right-6 z-20 bg-white/95 hover:bg-white text-zinc-800 p-3 rounded-full shadow-lg border border-zinc-200/50 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group font-sans"
+            className="absolute top-6 right-6 z-20 bg-white/95 hover:bg-white text-zinc-800 p-3 rounded-full shadow-lg border border-zinc-200/50 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group/btn font-sans"
             title="Edit Hero Slides"
           >
             <Edit className="h-4 w-4 text-zinc-900" />
-            <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
+            <span className="max-w-0 overflow-hidden group-hover/btn:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
               Edit Hero Slides
             </span>
           </button>
@@ -192,38 +192,21 @@ export default function Home() {
               src={slide.imageUrl}
               alt={slide.title}
               className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 ease-out ${
-                idx === activeSlideIdx ? 'opacity-95 scale-100' : 'opacity-0 scale-98'
+                idx === activeSlideIdx ? 'opacity-100 scale-100' : 'opacity-0 scale-98'
               }`}
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full z-10 py-20">
-          <div className="max-w-xl flex flex-col gap-6 text-left">
-            <span className="text-xs font-bold tracking-[0.25em] text-teal-600 uppercase font-mono">
-              NEW ARRIVALS 2026
-            </span>
-            
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-zinc-950 uppercase leading-none font-sans">
-              THE ART OF <br />
-              <span className="text-teal-650">MODERN STYLE</span>
-            </h1>
-
-            <p className="text-base text-zinc-500 max-w-md leading-relaxed font-medium font-sans">
-              Explore our new curated capsule collection of premium men's shirts, tailored pants, heavyweight tees, and refined denim.
-            </p>
-            
-            <div className="flex pt-2 mt-2">
-              <Link
-                href="/products"
-                className="rounded-full bg-zinc-950 px-10 py-4.5 text-xs font-black tracking-wider text-white hover:bg-zinc-800 transition-all shadow-xl flex items-center gap-2.5 uppercase font-sans hover:scale-102"
-              >
-                <span>View All Product</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+        {/* CTA Button centered at the bottom section with smooth slide-up hover animation */}
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full z-10 flex justify-center pb-12">
+          <Link
+            href="/products"
+            className="rounded-full bg-zinc-950/90 backdrop-blur-sm hover:bg-zinc-950 px-12 py-4.5 text-xs font-black tracking-widest uppercase text-white shadow-2xl flex items-center gap-2.5 transition-all duration-500 ease-out opacity-100 translate-y-0 md:opacity-0 md:translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 select-none hover:scale-105"
+          >
+            <span>View All Product</span>
+            <ArrowRight className="h-4 w-4 animate-pulse" />
+          </Link>
         </div>
       </section>
 
