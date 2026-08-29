@@ -406,7 +406,7 @@ export default function ProfilePage() {
   // Render guest orders or login view
   if (!token || !user) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 w-full text-ink selection:bg-indigo/10 selection:text-indigo">
+      <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 w-full text-ink selection:bg-indigo/10 selection:text-indigo">
         {isGuestMode ? (
           /* ==================== GUEST LITE ORDERS VIEW ==================== */
           <div className="flex flex-col gap-6 animate-fadeIn max-w-4xl mx-auto">
@@ -529,7 +529,7 @@ export default function ProfilePage() {
   const defaultAddress = addresses.find(a => a.isDefault);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8 text-ink selection:bg-indigo/10 selection:text-indigo">
+    <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8 text-ink selection:bg-indigo/10 selection:text-indigo">
       {/* Title */}
       <div className="border-b border-line pb-4 flex justify-between items-baseline">
         <div>
