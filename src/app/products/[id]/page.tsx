@@ -33,6 +33,75 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const [comment, setComment] = useState('');
   const [reviewError, setReviewError] = useState('');
 
+  // Extract genuine uploaded images without duplicates or fake static placeholders
+  const extractGalleryImages = (prod: any): string[] => {
+    if (!prod) return [];
+    const images: string[] = [];
+
+    // 1. Check prod.images array
+    if (Array.isArray(prod.images) && prod.images.length > 0) {
+      prod.images.forEach((img: any) => {
+        if (typeof img === 'string' && img.trim() && !images.includes(img.trim())) {
+          images.push(img.trim());
+        }
+      });
+    }
+
+    // 2. Check serialized Images: in description
+    if (images.length === 0 && prod.description) {
+      const match = prod.description.match(/Images:\s*([^\n\r]+)/i);
+      if (match && match[1]) {
+        match[1].split(',').forEach((url: string) => {
+          const trimmed = url.trim();
+          if (trimmed && !images.includes(trimmed)) {
+            images.push(trimmed);
+          }
+        });
+      }
+    }
+
+    // 3. Check prod.image and prod.image2
+    if (images.length === 0) {
+      if (prod.image && typeof prod.image === 'string' && prod.image.trim()) {
+        images.push(prod.image.trim());
+      }
+      if (prod.image2 && typeof prod.image2 === 'string' && prod.image2.trim() && !images.includes(prod.image2.trim())) {
+        images.push(prod.image2.trim());
+      }
+    }
+
+    return images;
+  };
+
+  // Helper to parse description metadata
+  const parseProductMetadata = (desc: string | null) => {
+    if (!desc) return { cleanDesc: '', brand: '', sizes: [], colors: [] };
+    const parts = desc.split('---');
+    const cleanDesc = parts[0]?.trim() || '';
+    
+    let brand = '';
+    let sizes: string[] = [];
+    let colors: string[] = [];
+
+    if (parts.length > 1) {
+      const meta = parts[1];
+      const brandMatch = meta.match(/Brand:\s*([^\n\r]+)/i);
+      if (brandMatch && brandMatch[1]) brand = brandMatch[1].trim();
+
+      const sizesMatch = meta.match(/Sizes:\s*([^\n\r]+)/i);
+      if (sizesMatch && sizesMatch[1]) {
+        sizes = sizesMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+      }
+
+      const colorsMatch = meta.match(/Colors:\s*([^\n\r]+)/i);
+      if (colorsMatch && colorsMatch[1]) {
+        colors = colorsMatch[1].split(',').map(c => c.trim()).filter(Boolean);
+      }
+    }
+
+    return { cleanDesc, brand, sizes, colors };
+  };
+
   const fetchProductDetails = async () => {
     try {
       const prodRes = await fetch(`${API_URL}/products/${productId}`);
@@ -42,7 +111,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       if (prodData.success) {
         setProduct(prodData.data);
-        setSelectedImage(prodData.data.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600');
+        const imgs = extractGalleryImages(prodData.data);
+        if (imgs.length > 0) {
+          setSelectedImage(imgs[0]);
+        } else if (prodData.data.image) {
+          setSelectedImage(prodData.data.image);
+        }
       }
       if (reviewsData.success) setReviews(reviewsData.data);
     } catch (err) {
@@ -148,13 +222,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   // Check if current user already submitted a review
   const hasReviewed = user && reviews.some((r) => r.userId === user.id);
 
-  // Generate 4 image angles for the gallery, including secondary image if available
-  const galleryImages = [
-    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
-    product.image2 || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
-    product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600',
-    product.image2 || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'
-  ];
+  // Extract only genuine uploaded images
+  const galleryImages = extractGalleryImages(product);
+  const displayImage = selectedImage || (galleryImages.length > 0 ? galleryImages[0] : (product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'));
+
+  const meta = parseProductMetadata(product.description);
+  const availableColors = meta.colors.length > 0 ? meta.colors : ['black', 'white', 'beige', 'grey'];
+  const availableSizes = meta.sizes.length > 0 ? meta.sizes : ['S', 'M', 'L', 'XL'];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 flex flex-col gap-20 text-zinc-800">
@@ -166,29 +240,41 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         <div className="lg:col-span-6 flex flex-col gap-4">
           {/* Large Main Display Image */}
           <ProductImageZoom
-            src={selectedImage}
+            src={displayImage}
             alt={product.name}
             className="rounded-2xl"
           />
 
-          {/* Small Thumbnails Row */}
-          <div className="grid grid-cols-4 gap-4">
-            {galleryImages.map((imgUrl, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedImage(imgUrl)}
-                className={`aspect-square rounded-xl overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 ${
-                  selectedImage === imgUrl ? 'border-zinc-950 shadow-sm' : 'border-zinc-200/60'
-                }`}
-              >
-                <img
-                  src={imgUrl}
-                  alt={`${product.name} Angle ${idx + 1}`}
-                  className="h-full w-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          {/* Small Thumbnails Row - Only shows genuine uploaded images if there's more than 1 image */}
+          {galleryImages.length > 1 && (
+            <div className={`grid gap-3.5 ${
+              galleryImages.length === 2 
+                ? 'grid-cols-2 max-w-[200px]' 
+                : galleryImages.length === 3 
+                  ? 'grid-cols-3 max-w-[300px]' 
+                  : galleryImages.length === 4 
+                    ? 'grid-cols-4 max-w-[400px]' 
+                    : 'grid-cols-4'
+            }`}>
+              {galleryImages.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(imgUrl)}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 cursor-pointer ${
+                    (selectedImage === imgUrl || (!selectedImage && idx === 0))
+                      ? 'border-zinc-950 shadow-md ring-2 ring-zinc-950/10' 
+                      : 'border-zinc-200/80 opacity-75 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`${product.name} Angle ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Side: Product Details info */}
@@ -259,11 +345,19 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 {product.category?.name}
               </span>
             </div>
+            {meta.brand && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest w-24">Brand:</span>
+                <span className="text-zinc-900 font-bold uppercase tracking-wider text-[10px]">
+                  {meta.brand}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Description Paragraph and Bullets */}
           <div className="flex flex-col gap-4 text-sm text-zinc-500 leading-relaxed font-medium">
-            <p>{product.description || 'Elevate your seasonal catalog with this organic cotton tailored product, styled to maximize durability and standard fitting comfort.'}</p>
+            <p>{meta.cleanDesc || product.description || 'Elevate your seasonal catalog with this organic cotton tailored product, styled to maximize durability and standard fitting comfort.'}</p>
             <ul className="list-disc list-inside flex flex-col gap-1.5 pl-2 text-zinc-400">
               <li><span className="text-zinc-500 font-bold">Material:</span> 100% Premium Organic Fabrics</li>
               <li><span className="text-zinc-500 font-bold">Fit:</span> Slim Fit Regular sizing</li>
@@ -280,13 +374,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               <select 
                 value={selectedColor}
                 onChange={(e) => setSelectedColor(e.target.value)}
-                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer"
+                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer capitalize"
               >
                 <option value="">Select Color</option>
-                <option value="black">Black</option>
-                <option value="white">White</option>
-                <option value="beige">Beige</option>
-                <option value="grey">Grey</option>
+                {availableColors.map((col, idx) => (
+                  <option key={idx} value={col.toLowerCase()} className="capitalize">
+                    {col}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -299,10 +394,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer"
               >
                 <option value="">Select Size</option>
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
+                {availableSizes.map((sz, idx) => (
+                  <option key={idx} value={sz}>
+                    {sz}
+                  </option>
+                ))}
               </select>
             </div>
 

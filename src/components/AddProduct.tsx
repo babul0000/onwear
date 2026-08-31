@@ -358,6 +358,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
 
     // Primary image is the first one in the gallery, or null
     const primaryImage = gallery.length > 0 ? gallery[0] : null;
+    const secondaryImage = gallery.length > 1 ? gallery[1] : null;
 
     // Serialize metadata details in product description
     const finalDescription = `
@@ -368,6 +369,7 @@ Brand: ${brand}
 Short Description: ${shortDescription}
 Sizes: ${sizes.join(', ')}
 Colors: ${colors.map(c => c.name).join(', ')}
+Images: ${gallery.join(', ')}
 Tags: ${tags.join(', ')}
 Weight: ${weight} kg
 Dimensions: ${dimensions}
@@ -385,6 +387,8 @@ Free Shipping: ${freeShipping ? 'Yes' : 'No'}
       stock: numericStock,
       sku: sku.trim(),
       image: primaryImage,
+      image2: secondaryImage,
+      images: gallery,
       status,
       categoryId
     };
