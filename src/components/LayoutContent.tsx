@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import CartDrawer from './CartDrawer';
 
 export default function LayoutContent({ children }) {
   const pathname = usePathname();
@@ -15,6 +16,8 @@ export default function LayoutContent({ children }) {
       {!isAuthPage && !isAdminPage && <Navbar />}
       <main className="flex-1 flex flex-col">{children}</main>
       {!isAuthPage && !isAdminPage && <Footer />}
+      <CartDrawer />
     </div>
   );
 }
+

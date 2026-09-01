@@ -17,8 +17,11 @@ import {
   Search,
   Menu,
   X,
-  Home
+  Home,
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 const DEFAULT_NAV_CATEGORIES = [
   {
@@ -95,14 +98,15 @@ const DEFAULT_NAV_CATEGORIES = [
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
-  const { cart, wishlist } = useCart();
+  const { cart, wishlist, openCartDrawer } = useCart();
   const { settings } = useSettings();
   const router = useRouter();
-
 
   // Component States
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [liveResults, setLiveResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const [expandedMobileCat, setExpandedMobileCat] = useState<string | null>(null);
@@ -112,6 +116,34 @@ export default function Navbar() {
   const cartCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const wishlistCount = wishlist?.items?.length || 0;
 
+  // Debounced live search
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setLiveResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/products?search=${encodeURIComponent(searchQuery.trim())}&limit=5`
+        );
+        const data = await res.json();
+        if (data.success) {
+          setLiveResults(data.data || []);
+        }
+      } catch (err) {
+        console.error('Error in live search:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
   // Fetch categories for bottom navigation row
   useEffect(() => {
     async function loadCategories() {
@@ -120,11 +152,13 @@ export default function Navbar() {
         const data = await res.json();
         if (data.success) {
           const fetchedCats = data.data;
-          
+
           // Merge fetched categories from DB with our default navigation layout
-          const merged = DEFAULT_NAV_CATEGORIES.map(defCat => {
-            const match = fetchedCats.find((c: any) => c.slug.toLowerCase() === defCat.slug.toLowerCase());
-            
+          const merged = DEFAULT_NAV_CATEGORIES.map((defCat) => {
+            const match = fetchedCats.find(
+              (c: any) => c.slug.toLowerCase() === defCat.slug.toLowerCase()
+            );
+
             let subs = defCat.subcategories;
             if (match && match.subcategories && match.subcategories.length > 0) {
               subs = match.subcategories.map((s: any) => ({ name: s.name, slug: s.slug }));
@@ -137,7 +171,7 @@ export default function Navbar() {
               subcategories: subs
             };
           });
-          
+
           setCategories(merged);
         }
       } catch (err) {
@@ -147,13 +181,21 @@ export default function Navbar() {
     loadCategories();
   }, []);
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setShowSearchOverlay(false);
       setSearchQuery('');
+      setLiveResults([]);
     }
+  };
+
+  const handleSelectResult = (productId: string) => {
+    setShowSearchOverlay(false);
+    setSearchQuery('');
+    setLiveResults([]);
+    router.push(`/products/${productId}`);
   };
 
   return (
@@ -162,8 +204,7 @@ export default function Navbar() {
       <header className="w-full bg-white relative py-3 md:py-4 border-b border-zinc-100/50 z-[60]">
         {/* MAIN HEADER ROW (Middle) */}
         <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between relative">
-          
-          {/* LEFT: Search Icon Toggle (Enclosed in a clean circle outline) */}
+          {/* LEFT: Search Icon Toggle */}
           <div className="flex items-center">
             <button
               onClick={() => setShowSearchOverlay(true)}
@@ -191,8 +232,36 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* RIGHT: User Profile / Hamburger Actions */}
+          {/* RIGHT: User Profile / Wishlist / Cart Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Wishlist Link */}
+            <Link
+              href="/wishlist"
+              className="relative hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+              title="Wishlist"
+            >
+              <Heart className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Shopping Bag Button (Opens Slide-over Drawer) */}
+            <button
+              onClick={openCartDrawer}
+              className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+              title="Shopping Bag"
+            >
+              <ShoppingCart className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+              {cartCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-600 text-[9px] font-black text-white shadow-sm">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
             {/* Account Toggle */}
             <div className="relative">
               <button
@@ -206,7 +275,10 @@ export default function Navbar() {
               {/* Account Dropdown */}
               {showAccountDropdown && (
                 <>
-                  <div className="fixed inset-0 z-50" onClick={() => setShowAccountDropdown(false)} />
+                  <div
+                    className="fixed inset-0 z-50"
+                    onClick={() => setShowAccountDropdown(false)}
+                  />
                   <div className="absolute right-0 mt-2.5 w-52 rounded-2xl border border-zinc-100 bg-white p-2.5 shadow-xl z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                     {loading ? (
                       <div className="p-2 text-center text-xs text-zinc-400">Loading...</div>
@@ -233,6 +305,13 @@ export default function Navbar() {
                         >
                           Dashboard
                         </Link>
+                        <Link
+                          href="/orders"
+                          onClick={() => setShowAccountDropdown(false)}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                        >
+                          My Orders
+                        </Link>
                         <button
                           onClick={() => {
                             logout();
@@ -256,7 +335,7 @@ export default function Navbar() {
                         <Link
                           href="/register"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 transition-colors font-semibold px-3 py-2 text-white text-center"
+                          className="flex items-center justify-center rounded-xl bg-zinc-950 hover:bg-zinc-800 transition-colors font-semibold px-3 py-2 text-white text-center"
                         >
                           Register
                         </Link>
@@ -278,28 +357,105 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* FULL-WIDTH SEARCH OVERLAY */}
+        {/* FULL-WIDTH SEARCH OVERLAY WITH INSTANT LIVE RESULTS */}
         {showSearchOverlay && (
-          <div className="absolute inset-0 bg-white z-50 flex items-center px-4 sm:px-6 lg:px-8 border-b border-zinc-200 animate-in fade-in duration-150">
-            <div className="mx-auto max-w-3xl w-full flex items-center gap-4">
-              <Search className="h-5 w-5 text-zinc-400 shrink-0" />
-              <form onSubmit={handleSearchSubmit} className="flex-1">
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Search for products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-lg border-0 bg-transparent py-3 focus:outline-none focus:ring-0 placeholder-zinc-400 text-zinc-900"
-                />
-              </form>
-              <button
-                onClick={() => setShowSearchOverlay(false)}
-                className="p-2 text-zinc-400 hover:text-zinc-800 transition-colors"
-                aria-label="Close Search"
-              >
-                <X className="h-6 w-6" />
-              </button>
+          <div className="absolute inset-x-0 top-0 bg-white z-50 border-b border-zinc-200 shadow-2xl animate-in fade-in duration-150">
+            <div className="mx-auto max-w-3xl w-full px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center gap-3">
+                {isSearching ? (
+                  <Loader2 className="h-5 w-5 text-teal-600 animate-spin shrink-0" />
+                ) : (
+                  <Search className="h-5 w-5 text-zinc-400 shrink-0" />
+                )}
+                <form onSubmit={handleSearchSubmit} className="flex-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Type to search (e.g. Linen Shirt, Denim Pant, Black T-Shirt)..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full text-base sm:text-lg border-0 bg-transparent py-2 focus:outline-none focus:ring-0 placeholder-zinc-400 text-zinc-950 font-medium"
+                  />
+                </form>
+                <button
+                  onClick={() => {
+                    setShowSearchOverlay(false);
+                    setSearchQuery('');
+                    setLiveResults([]);
+                  }}
+                  className="p-2 text-zinc-400 hover:text-zinc-800 transition-colors"
+                  aria-label="Close Search"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* LIVE RESULTS DROPDOWN */}
+              {searchQuery.trim().length >= 2 && (
+                <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-col gap-2">
+                  <div className="flex justify-between items-center px-1 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    <span>Search Results ({liveResults.length})</span>
+                    {liveResults.length > 0 && (
+                      <button
+                        onClick={handleSearchSubmit}
+                        className="text-teal-650 hover:underline flex items-center gap-1"
+                      >
+                        <span>View All</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {liveResults.length === 0 && !isSearching ? (
+                    <div className="py-6 text-center text-xs text-zinc-400">
+                      No products found for "{searchQuery}".
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1 max-h-80 overflow-y-auto pr-1">
+                      {liveResults.map((prod) => {
+                        const hasDiscount =
+                          prod.discountPrice !== null && prod.discountPrice !== undefined;
+                        const finalPrice = hasDiscount ? prod.discountPrice : prod.price;
+
+                        return (
+                          <div
+                            key={prod.id}
+                            onClick={() => handleSelectResult(prod.id)}
+                            className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all cursor-pointer group"
+                          >
+                            <img
+                              src={
+                                prod.image ||
+                                'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=100'
+                              }
+                              alt={prod.name}
+                              className="h-12 w-12 rounded-lg object-cover bg-zinc-100 shrink-0"
+                            />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider truncate">
+                                {prod.category?.name || 'OnWear'}
+                              </span>
+                              <span className="text-xs font-bold text-zinc-900 group-hover:text-teal-650 transition-colors truncate">
+                                {prod.name}
+                              </span>
+                              <div className="flex items-baseline gap-1.5 mt-0.5">
+                                <span className="text-xs font-black text-zinc-950 font-mono">
+                                  {formatPrice(finalPrice)}
+                                </span>
+                                {hasDiscount && (
+                                  <span className="text-[10px] text-zinc-400 line-through font-mono">
+                                    {formatPrice(prod.price)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -541,19 +697,19 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* 7. FLOATING STICKY CART ACTION BUTTON (Bottom Right - inspired by arjobd.com) */}
-      <Link
-        href="/cart"
-        className="fixed bottom-20 md:bottom-8 right-6 md:right-8 z-40 flex items-center justify-center rounded-full bg-[#bfa290] hover:bg-[#ae917f] text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 w-14 h-14"
-        title="View Shopping Cart"
+      {/* 7. FLOATING STICKY CART ACTION BUTTON (Bottom Right) */}
+      <button
+        onClick={openCartDrawer}
+        className="fixed bottom-20 md:bottom-8 right-6 md:right-8 z-40 flex items-center justify-center rounded-full bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl hover:scale-105 transition-all duration-300 w-14 h-14 border border-zinc-700"
+        title="Open Shopping Bag"
       >
         <ShoppingCart className="h-6 w-6" />
         {cartCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white ring-2 ring-white animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 text-xs font-black text-white ring-2 ring-white animate-pulse">
             {cartCount}
           </span>
         )}
-      </Link>
+      </button>
 
       {/* Spacer to prevent bottom nav from overlapping footer on mobile */}
       <div className="h-16 md:hidden w-full" />

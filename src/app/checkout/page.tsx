@@ -411,10 +411,22 @@ export default function CheckoutPage() {
                       />
                       <div>
                         <p className="font-semibold text-zinc-900 line-clamp-1">{item.product.name}</p>
-                        <p className="text-xs text-zinc-400 font-bold">Qty: {item.quantity}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-bold">
+                          <span>Qty: {item.quantity}</span>
+                          {item.size && (
+                            <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.2 rounded text-[10px] uppercase font-mono">
+                              {item.size}
+                            </span>
+                          )}
+                          {item.color && (
+                            <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.2 rounded text-[10px] uppercase font-mono">
+                              {item.color}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <span className="font-bold text-zinc-950">{formatPrice(currentPrice * item.quantity)}</span>
+                    <span className="font-bold text-zinc-950 font-mono">{formatPrice(currentPrice * item.quantity)}</span>
                   </div>
                 );
               })}

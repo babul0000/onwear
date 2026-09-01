@@ -16,7 +16,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   const router = useRouter();
   const { user, token } = useAuth();
-  const { addToCart, addToWishlist, isInWishlist } = useCart();
+  const { addToCart, addToWishlist, isInWishlist, openCartDrawer } = useCart();
 
   const [product, setProduct] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -177,10 +177,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const handleBuyNow = async () => {
-    const res = await addToCart(productId, quantity);
+  const handleAddToCart = async () => {
+    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
     if (res.success) {
-      router.push('/cart');
+      openCartDrawer();
+    }
+  };
+
+  const handleBuyNow = async () => {
+    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
+    if (res.success) {
+      router.push('/checkout');
     }
   };
 
@@ -438,33 +445,35 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           )}
 
           {/* Action Row Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 border-t border-zinc-100 pt-6">
+          <div className="flex flex-col sm:flex-row gap-3 border-t border-zinc-100 pt-6">
+            {/* 1-Click Direct Buy Now */}
             <button
-              onClick={async () => {
-                if (!token) {
-                  router.push('/login');
-                  return;
-                }
-                const res = await addToCart(product.id, quantity);
-                if (res.success) {
-                  router.push('/checkout');
-                }
-              }}
+              onClick={handleBuyNow}
               disabled={product.stock === 0}
-              className="flex-1 rounded-xl bg-zinc-950 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 hover:bg-zinc-800 transition-colors shadow-md disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 rounded-xl bg-teal-600 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 px-6 hover:bg-teal-700 transition-all shadow-md shadow-teal-650/20 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <ShoppingBag className="h-4 w-4" />
-              <span>Order Now</span>
+              <span>Buy Now</span>
             </button>
 
+            {/* Add to Bag */}
             <button
-              onClick={() => addToWishlist(product.id)}
-              className={`rounded-xl border border-zinc-200 py-3.5 px-6 hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider ${
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className="flex-1 rounded-xl bg-zinc-950 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 px-6 hover:bg-zinc-800 transition-all shadow-md disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              <span>Add to Bag</span>
+            </button>
+
+            {/* Wishlist button */}
+            <button
+              onClick={() => addToWishlist(product.id, product)}
+              className={`rounded-xl border border-zinc-200 py-3.5 px-4 hover:bg-zinc-50 transition-colors flex items-center justify-center gap-1.5 font-bold text-xs uppercase tracking-wider ${
                 isWished ? 'text-red-500 border-red-200 bg-red-50' : 'text-zinc-650'
               }`}
+              title="Add to Wishlist"
             >
               <Heart className="h-4 w-4" fill={isWished ? 'currentColor' : 'none'} />
-              <span>Add to Wishlist</span>
             </button>
           </div>
 

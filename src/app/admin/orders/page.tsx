@@ -4,17 +4,18 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
-import { ArrowLeft, ShoppingBag, Eye, X, Save } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Eye, X, Save, Printer } from 'lucide-react';
+import { formatPrice } from '../../../utils/format';
 
 export default function AdminOrdersPage() {
   const { token, user } = useAuth();
   const router = useRouter();
 
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selected order details states
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [status, setStatus] = useState('PENDING');
   const [paymentStatus, setPaymentStatus] = useState('UNPAID');
 
@@ -49,7 +50,7 @@ export default function AdminOrdersPage() {
     }
   }, [token]);
 
-  const handleSelectOrder = async (orderId) => {
+  const handleSelectOrder = async (orderId: string) => {
     setError('');
     setSuccess('');
     try {
@@ -67,7 +68,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleUpdateStatus = async (e) => {
+  const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
     setError('');
@@ -142,9 +143,19 @@ export default function AdminOrdersPage() {
               <X className="h-5 w-5" />
             </button>
 
-            <div>
-              <h3 className="font-bold text-zinc-900 border-b border-zinc-100 pb-4 text-lg">Order Details</h3>
-              <p className="text-xs text-zinc-400 font-mono mt-1">ID: {selectedOrder.id}</p>
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div>
+                <h3 className="font-bold text-zinc-900 text-lg">Order Details</h3>
+                <p className="text-xs text-zinc-400 font-mono mt-0.5">ID: {selectedOrder.id}</p>
+              </div>
+              <button
+                onClick={() => window.print()}
+                className="mr-8 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-700 hover:bg-zinc-100"
+                title="Print Order Receipt"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                <span>Print</span>
+              </button>
             </div>
 
             <div className="text-sm text-zinc-600 flex flex-col gap-3">
@@ -156,24 +167,41 @@ export default function AdminOrdersPage() {
               <div>
                 <p className="font-bold text-zinc-900">Shipping Location</p>
                 <p className="mt-1">{selectedOrder.shippingAddress}</p>
-                <p className="mt-1">Phone: {selectedOrder.phone}</p>
+                <p className="mt-1 font-mono text-xs">Phone: {selectedOrder.phone}</p>
+                {selectedOrder.note && (
+                  <p className="mt-1 text-xs text-amber-700 italic">Note: {selectedOrder.note}</p>
+                )}
               </div>
             </div>
 
             <div className="border-t border-zinc-100 pt-4">
               <p className="font-bold text-zinc-900 text-sm mb-3">Order Items</p>
-              <div className="flex flex-col gap-3 max-h-40 overflow-y-auto pr-1">
-                {selectedOrder.items?.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center text-xs">
-                    <span className="text-zinc-700 line-clamp-1 w-2/3">{item.productName}</span>
-                    <span className="text-zinc-400">Qty: {item.quantity}</span>
-                    <span className="font-bold text-zinc-900">${item.subtotal.toFixed(2)}</span>
+              <div className="flex flex-col gap-3 max-h-48 overflow-y-auto pr-1">
+                {selectedOrder.items?.map((item: any) => (
+                  <div key={item.id} className="flex justify-between items-start text-xs border-b border-zinc-50 pb-2">
+                    <div className="flex flex-col flex-1 pr-2">
+                      <span className="font-semibold text-zinc-800 line-clamp-1">{item.productName}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-zinc-400">
+                        <span>Qty: {item.quantity}</span>
+                        {item.size && (
+                          <span className="bg-zinc-100 text-zinc-700 font-bold px-1.5 py-0.2 rounded text-[10px] font-mono">
+                            Size: {item.size}
+                          </span>
+                        )}
+                        {item.color && (
+                          <span className="bg-zinc-100 text-zinc-700 font-bold px-1.5 py-0.2 rounded text-[10px] font-mono capitalize">
+                            Color: {item.color}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-bold text-zinc-900 font-mono">{formatPrice(item.subtotal)}</span>
                   </div>
                 ))}
               </div>
               <div className="flex justify-between items-baseline border-t border-dashed border-zinc-100 pt-3 mt-3">
                 <span className="text-xs font-bold text-zinc-800">Total Paid</span>
-                <span className="text-base font-extrabold text-indigo-600">${selectedOrder.totalAmount.toFixed(2)}</span>
+                <span className="text-base font-extrabold text-teal-650 font-mono">{formatPrice(selectedOrder.totalAmount)}</span>
               </div>
             </div>
 
@@ -185,7 +213,7 @@ export default function AdminOrdersPage() {
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-indigo-600 font-semibold"
+                  className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-zinc-950 font-semibold"
                 >
                   <option value="PENDING">PENDING</option>
                   <option value="CONFIRMED">CONFIRMED</option>
@@ -201,7 +229,7 @@ export default function AdminOrdersPage() {
                 <select
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value)}
-                  className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-indigo-600 font-semibold"
+                  className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-zinc-950 font-semibold"
                 >
                   <option value="UNPAID">UNPAID</option>
                   <option value="PAID">PAID</option>
@@ -212,7 +240,7 @@ export default function AdminOrdersPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-full bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-md flex items-center justify-center gap-1.5"
+                className="w-full rounded-full bg-zinc-950 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-colors shadow-md flex items-center justify-center gap-1.5"
               >
                 <Save className="h-4 w-4" />
                 <span>Save Changes</span>
@@ -272,7 +300,7 @@ export default function AdminOrdersPage() {
                             day: 'numeric'
                           })}
                         </td>
-                        <td className="px-6 py-4 font-semibold text-zinc-900">${order.totalAmount.toFixed(2)}</td>
+                        <td className="px-6 py-4 font-bold text-zinc-900 font-mono">{formatPrice(order.totalAmount)}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border ${
                             statusColors[order.status] || 'bg-zinc-50 text-zinc-700 border-zinc-200'
