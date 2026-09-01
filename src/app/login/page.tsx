@@ -11,12 +11,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [showResendModal, setShowResendModal] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const [errorCode, setErrorCode] = useState<string | undefined>();
+
+  const { login, resendActivation } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setErrorCode(undefined);
     setLoading(true);
 
     try {
@@ -39,6 +46,10 @@ export default function LoginPage() {
         }
       } else {
         setError(res.message || 'Login failed. Please check your credentials.');
+        setErrorCode(res.code);
+        if (res.code === 'ACCOUNT_PENDING_ACTIVATION') {
+          setResendEmail(email);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -48,8 +59,75 @@ export default function LoginPage() {
     }
   };
 
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resendEmail) return;
+
+    setResendLoading(true);
+    setResendMessage('');
+    try {
+      const res = await resendActivation(resendEmail);
+      setResendMessage(res.message || 'If an account exists, a new activation email has been sent.');
+    } catch (err) {
+      setResendMessage('Something went wrong. Please try again later.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
-    <div className="h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-zinc-50 font-sans overflow-y-auto md:overflow-hidden">
+    <div className="h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-zinc-50 font-sans overflow-y-auto md:overflow-hidden relative">
+      {/* Resend Activation Modal */}
+      {showResendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-zinc-100 flex flex-col gap-4">
+            <h3 className="text-xl font-black text-zinc-950 uppercase tracking-tight">
+              Resend Activation Email
+            </h3>
+            <p className="text-xs text-zinc-500 font-medium">
+              Enter the email address you used during guest checkout to receive a new "Set Your Password" activation link.
+            </p>
+
+            {resendMessage ? (
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-xs font-semibold text-emerald-800">
+                {resendMessage}
+              </div>
+            ) : (
+              <form onSubmit={handleResend} className="flex flex-col gap-3">
+                <input
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-3 px-4 text-xs text-zinc-900 placeholder-zinc-400 outline-none focus:border-zinc-950 font-medium"
+                />
+                <button
+                  type="submit"
+                  disabled={resendLoading}
+                  className="w-full rounded-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-3 text-xs uppercase tracking-wider transition-colors disabled:bg-zinc-300"
+                >
+                  {resendLoading ? 'Sending...' : 'Send Activation Link'}
+                </button>
+              </form>
+            )}
+
+            <div className="pt-2 border-t border-zinc-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResendModal(false);
+                  setResendMessage('');
+                }}
+                className="text-xs font-bold text-zinc-500 hover:text-zinc-900"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LEFT COLUMN: Form Container (Occupies 5 columns on desktop) */}
       <div className="relative md:col-span-5 bg-white flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-16 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         
@@ -79,8 +157,20 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="rounded-2xl bg-red-50 p-4 text-xs font-semibold text-red-600 mb-6">
-            {error}
+          <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-xs font-semibold text-red-600 mb-6 flex flex-col gap-2">
+            <span>{error}</span>
+            {errorCode === 'ACCOUNT_PENDING_ACTIVATION' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setResendEmail(email);
+                  setShowResendModal(true);
+                }}
+                className="self-start underline text-xs font-bold text-teal-700 hover:text-teal-800"
+              >
+                Click here to resend activation email →
+              </button>
+            )}
           </div>
         )}
 
