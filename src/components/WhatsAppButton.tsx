@@ -9,7 +9,7 @@ export default function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(true);
 
   // Clean raw phone to international digits format
-  const rawNumber = (settings as any)?.whatsappNumber || settings.phone || '8801603742663';
+  const rawNumber = (settings as any)?.whatsappNumber || settings.phone || '8801883012641';
   const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
   const formattedNumber = cleanNumber.startsWith('88') ? cleanNumber : `88${cleanNumber}`;
 
