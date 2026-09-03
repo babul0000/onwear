@@ -93,6 +93,30 @@ export default function ProfilePage() {
   const [initiatingPaymentId, setInitiatingPaymentId] = useState<string | null>(null);
   const [dashboardError, setDashboardError] = useState('');
 
+  const handleCancelOrder = async (orderId: string, reason: string = 'Cancelled by customer') => {
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status: 'CANCELLED', cancelReason: reason } : o))
+        );
+      } else {
+        setDashboardError(data.message || 'Failed to cancel order');
+      }
+    } catch (err) {
+      console.error(err);
+      setDashboardError('Error cancelling order. Try again.');
+    }
+  };
+
   // Pre-fill profile
   useEffect(() => {
     if (user) {
@@ -867,8 +891,9 @@ export default function ProfilePage() {
                                 {canCancel && (
                                   <button
                                     onClick={() => {
-                                      if (confirm('Cancel this order?')) {
-                                        // Trigger cancel logic or let customer know
+                                      const reason = prompt('Please enter reason for cancellation:', 'Ordered wrong size');
+                                      if (reason !== null) {
+                                        handleCancelOrder(order.id, reason || 'Cancelled by customer');
                                       }
                                     }}
                                     className="w-full border border-thread/20 bg-white text-thread hover:bg-thread/5 py-2 text-center text-[10px] font-mono font-black uppercase rounded-[4px] transition-all"

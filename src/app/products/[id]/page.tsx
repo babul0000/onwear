@@ -6,9 +6,10 @@ import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 import { API_URL } from '../../../config';
-import { Star, ShoppingBag, Heart, Trash2, ArrowLeft } from 'lucide-react';
+import { Star, ShoppingBag, Heart, Trash2, ArrowLeft, Ruler } from 'lucide-react';
 import { formatPrice } from '../../../utils/format';
 import ProductImageZoom from '../../../components/ProductImageZoom';
+import SizeGuideModal from '../../../components/SizeGuideModal';
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -21,6 +22,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const [product, setProduct] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   // Selector states
   const [selectedColor, setSelectedColor] = useState('');
@@ -393,7 +395,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Size Selector */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Size</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Size</label>
+                <button
+                  type="button"
+                  onClick={() => setIsSizeGuideOpen(true)}
+                  className="text-[10px] font-bold text-teal-650 hover:text-teal-700 flex items-center gap-1 uppercase tracking-wider underline cursor-pointer transition-colors"
+                >
+                  <Ruler className="h-3 w-3" />
+                  <span>Size Guide</span>
+                </button>
+              </div>
               <select 
                 value={selectedSize}
                 onChange={(e) => setSelectedSize(e.target.value)}
@@ -605,6 +617,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           )}
         </div>
       </div>
+
+      {/* Interactive Size Guide Modal */}
+      <SizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+        categoryName={product.category?.name || ''}
+      />
     </div>
   );
 }

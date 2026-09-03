@@ -14,6 +14,10 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const { token, user } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('Ordered wrong size');
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -36,6 +40,33 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     }
     loadOrder();
   }, [token, orderId]);
+
+  const handleCancelOrder = async () => {
+    setCancelling(true);
+    setCancelError('');
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason: cancelReason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrder(data.data);
+        setShowCancelModal(false);
+      } else {
+        setCancelError(data.message || 'Failed to cancel order.');
+      }
+    } catch (err) {
+      console.error('Cancel order error:', err);
+      setCancelError('Error cancelling order. Try again.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   if (!token || !user) {
     return (
@@ -77,14 +108,33 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           <span>Back to Order History</span>
         </button>
 
-        <button
-          onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-800 hover:bg-zinc-50 shadow-sm transition-all"
-        >
-          <Printer className="h-4 w-4 text-zinc-600" />
-          <span>Print Invoice</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {order.status === 'PENDING' && (
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 transition-all uppercase tracking-wider"
+            >
+              <span>Cancel Order</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-800 hover:bg-zinc-50 shadow-sm transition-all"
+          >
+            <Printer className="h-4 w-4 text-zinc-600" />
+            <span>Print Invoice</span>
+          </button>
+        </div>
       </div>
+
+      {/* Cancellation Notice Banner */}
+      {order.status === 'CANCELLED' && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-800 flex flex-col gap-1">
+          <span className="font-bold uppercase tracking-wider">Order Cancelled</span>
+          <p>Reason: {order.cancelReason || 'Order was cancelled by customer.'}</p>
+        </div>
+      )}
 
       {/* Printable Invoice Card */}
       <div className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm flex flex-col gap-6 print:border-none print:shadow-none print:p-0">
@@ -97,7 +147,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <p className="text-xs text-zinc-400 font-mono mt-1">Order #{order.id}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-zinc-800 font-mono">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider font-mono ${
+              order.status === 'CANCELLED' ? 'bg-red-50 text-red-700' : 'bg-zinc-100 text-zinc-800'
+            }`}>
               Status: {order.status}
             </span>
             <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider font-mono ${
@@ -108,7 +160,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Shipping details */}
+        {/* Shipping details & Payment Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-medium border-b border-zinc-100 pb-5">
           <div className="flex flex-col gap-1">
             <h3 className="font-black text-zinc-900 uppercase tracking-wider text-[11px]">Shipping To:</h3>
@@ -118,7 +170,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             {order.email && <p className="text-zinc-500 font-mono">Email: {order.email}</p>}
           </div>
           <div className="flex flex-col gap-1 sm:items-end">
-            <h3 className="font-black text-zinc-900 uppercase tracking-wider text-[11px]">Order Info:</h3>
+            <h3 className="font-black text-zinc-900 uppercase tracking-wider text-[11px]">Order & Payment Info:</h3>
             <p className="text-zinc-500">
               Date:{' '}
               <span className="text-zinc-900 font-bold">
@@ -129,6 +181,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 })}
               </span>
             </p>
+            <p className="text-zinc-600">
+              Method: <strong className="text-zinc-950 uppercase">{order.paymentMethod || 'COD'}</strong>
+            </p>
+            {order.trxId && (
+              <p className="text-[#E2136E] font-bold font-mono">
+                TrxID: {order.trxId} {order.paymentPhone ? `(${order.paymentPhone})` : ''}
+              </p>
+            )}
             {order.couponCode && (
               <p className="text-emerald-700 font-bold">Coupon: {order.couponCode.toUpperCase()}</p>
             )}
@@ -189,6 +249,65 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => !cancelling && setShowCancelModal(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div className="relative z-10 w-full max-w-md bg-white p-6 shadow-2xl border border-zinc-200 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <div>
+              <h3 className="text-lg font-black text-zinc-950 uppercase tracking-tight">Cancel This Order?</h3>
+              <p className="text-xs text-zinc-500 mt-1">
+                Are you sure you want to cancel Order #{order.id}? Reserved inventory will be returned to stock.
+              </p>
+            </div>
+
+            {cancelError && (
+              <div className="bg-red-50 border border-red-200 p-3 text-xs text-red-700 font-medium">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Reason for Cancellation</label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-900 font-semibold focus:outline-none focus:border-zinc-950"
+              >
+                <option value="Ordered wrong size">Ordered wrong size / need to change size</option>
+                <option value="Need to change delivery address">Need to change delivery address or phone</option>
+                <option value="Placed duplicate order">Placed duplicate order by mistake</option>
+                <option value="Delivery time too long">Delivery time too long</option>
+                <option value="Changed mind">Changed mind</option>
+                <option value="Other">Other reason</option>
+              </select>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                disabled={cancelling}
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 border border-zinc-200 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 hover:bg-zinc-50"
+              >
+                Keep Order
+              </button>
+              <button
+                type="button"
+                disabled={cancelling}
+                onClick={handleCancelOrder}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm disabled:opacity-50"
+              >
+                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

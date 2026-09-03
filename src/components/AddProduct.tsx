@@ -256,7 +256,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     setGallery(gallery.filter((_, idx) => idx !== idxToRemove));
   };
 
-  // ImgBB Upload Handler
+  // Direct Backend & ImgBB Upload Handler
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -269,35 +269,43 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     setErrorMsg('');
     setIsUploadingImage(true);
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
-    if (!apiKey) {
-      setErrorMsg('ImgBB API Key is not set. Please add NEXT_PUBLIC_IMGBB_API_KEY to your environment variables.');
-      setIsUploadingImage(false);
-      return;
-    }
-
     const formData = new FormData();
     formData.append('image', file);
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const headers: Record<string, string> = {};
+      const token = localStorage.getItem('onwear_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
+        headers,
         body: formData,
       });
       const data = await res.json();
       
-      if (data.success) {
+      if (data.success && data.data?.url) {
         setGallery([...gallery, data.data.url]);
         setSuccessMsg('Image uploaded successfully!');
       } else {
-        const msg = data.error?.message || 'ImgBB upload failed.';
-        setErrorMsg(msg);
-        alert(`Image upload failed: ${msg}`);
+        // Fallback to ImgBB if local upload had an issue
+        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
+        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+          method: 'POST',
+          body: formData,
+        });
+        const imgbbData = await imgbbRes.json();
+        if (imgbbData.success) {
+          setGallery([...gallery, imgbbData.data.url]);
+          setSuccessMsg('Image uploaded successfully!');
+        } else {
+          const msg = data.message || imgbbData.error?.message || 'Image upload failed.';
+          setErrorMsg(msg);
+        }
       }
     } catch (err) {
-      console.error('Error uploading image to ImgBB:', err);
+      console.error('Error uploading image:', err);
       setErrorMsg('An error occurred during image upload. Please try again.');
-      alert('An error occurred during image upload. Please try again.');
     } finally {
       setIsUploadingImage(false);
     }
