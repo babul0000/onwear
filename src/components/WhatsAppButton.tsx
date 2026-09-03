@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { Send, X, MessageSquare, Check, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Send, X, MessageSquare, ShieldCheck, ExternalLink } from 'lucide-react';
 
 export default function WhatsAppButton() {
   const { settings } = useSettings();
@@ -14,15 +14,24 @@ export default function WhatsAppButton() {
   const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
   const formattedNumber = cleanNumber.startsWith('88') ? cleanNumber : `88${cleanNumber}`;
 
+  const defaultMessage = 'Hello ONWEAR! I have an inquiry regarding your apparel & orders.';
+  const directWaUrl = `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${encodeURIComponent(defaultMessage)}`;
+
   const handleSend = (textToSend?: string) => {
-    const message = textToSend || customMsg.trim() || 'Hello ONWEAR! I have an inquiry regarding your apparel & orders.';
+    const message = textToSend || customMsg.trim() || defaultMessage;
     const encoded = encodeURIComponent(message);
-    
-    // Use api.whatsapp.com for best mobile app + WhatsApp Web compatibility
     const url = `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${encoded}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    
+    // Open in new tab or direct window redirect
+    try {
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = url;
+      }
+    } catch {
+      window.location.href = url;
+    }
     setCustomMsg('');
-    setIsOpen(false);
   };
 
   const quickPrompts = [
@@ -37,7 +46,7 @@ export default function WhatsAppButton() {
       
       {/* 1. INTERACTIVE CHAT POPUP WINDOW */}
       {isOpen && (
-        <div className="mb-3 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="mb-3 w-[330px] sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
           
           {/* Header */}
           <div className="bg-[#075E54] text-white p-4 flex items-center justify-between">
@@ -52,7 +61,7 @@ export default function WhatsAppButton() {
                 <h4 className="font-bold text-sm tracking-wide text-white">ONWEAR Support</h4>
                 <div className="flex items-center gap-1.5 text-[11px] text-emerald-100">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse" />
-                  <span>Online • Typically replies in 5m</span>
+                  <span>Online • Instant WhatsApp</span>
                 </div>
               </div>
             </div>
@@ -67,7 +76,7 @@ export default function WhatsAppButton() {
           </div>
 
           {/* Chat Background & Message Bubbles */}
-          <div className="bg-[#ECE5DD] p-4 flex flex-col gap-3 max-h-[360px] overflow-y-auto">
+          <div className="bg-[#ECE5DD] p-4 flex flex-col gap-3 max-h-[350px] overflow-y-auto">
             
             {/* Timestamp */}
             <div className="text-center">
@@ -77,11 +86,11 @@ export default function WhatsAppButton() {
             </div>
 
             {/* Support Welcome Bubble */}
-            <div className="flex items-start gap-2 max-w-[88%]">
+            <div className="flex items-start gap-2 max-w-[92%]">
               <div className="bg-white rounded-2xl rounded-tl-none p-3.5 shadow-sm text-xs text-zinc-800 leading-relaxed border border-zinc-200/50">
                 <p className="font-bold text-zinc-950 mb-1">Hello there! 👋</p>
                 <p className="text-zinc-650">
-                  Welcome to <strong>ONWEAR</strong>. How can we assist you today with fits, collections, or your order?
+                  Welcome to <strong>ONWEAR</strong>. Click a prompt below or type your message to chat directly on WhatsApp:
                 </p>
                 <span className="text-[9px] text-zinc-400 font-mono block text-right mt-1.5">Support Team</span>
               </div>
@@ -93,17 +102,36 @@ export default function WhatsAppButton() {
                 Frequently Asked:
               </span>
               <div className="flex flex-col gap-1.5">
-                {quickPrompts.map((prompt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSend(prompt)}
-                    className="text-left text-xs font-semibold bg-white/95 hover:bg-white text-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 shadow-xs hover:border-[#25D366] hover:text-[#075E54] transition-all flex items-center justify-between group cursor-pointer"
-                  >
-                    <span>{prompt}</span>
-                    <Send className="h-3 w-3 text-zinc-300 group-hover:text-[#25D366] shrink-0" />
-                  </button>
-                ))}
+                {quickPrompts.map((prompt, idx) => {
+                  const encoded = encodeURIComponent(prompt);
+                  const promptUrl = `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${encoded}`;
+                  return (
+                    <a
+                      key={idx}
+                      href={promptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-left text-xs font-semibold bg-white/95 hover:bg-white text-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 shadow-xs hover:border-[#25D366] hover:text-[#075E54] transition-all flex items-center justify-between group"
+                    >
+                      <span>{prompt}</span>
+                      <Send className="h-3 w-3 text-zinc-300 group-hover:text-[#25D366] shrink-0" />
+                    </a>
+                  );
+                })}
               </div>
+            </div>
+
+            {/* 1-Click Direct Chat Button */}
+            <div className="pt-2">
+              <a
+                href={directWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-colors text-center"
+              >
+                <span>Open Direct WhatsApp</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </div>
 
           </div>
@@ -136,7 +164,7 @@ export default function WhatsAppButton() {
             <div className="flex items-center justify-between px-1 text-[10px] text-zinc-400">
               <span className="flex items-center gap-1 font-mono">
                 <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                <span>Verified Direct WhatsApp</span>
+                <span>Direct WhatsApp</span>
               </span>
               <span className="font-mono text-zinc-500 font-bold">01883-012641</span>
             </div>
