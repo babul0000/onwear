@@ -10,7 +10,7 @@ export default function WhatsAppButton() {
   const [customMsg, setCustomMsg] = useState('');
 
   // Clean raw phone to international digits format
-  const rawNumber = (settings as any)?.whatsappNumber || settings.phone || '8801883012641';
+  const rawNumber = (settings as any)?.whatsappNumber || settings.phone || '8801603742963';
   const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
   const formattedNumber = cleanNumber.startsWith('88') ? cleanNumber : `88${cleanNumber}`;
 
@@ -166,7 +166,7 @@ export default function WhatsAppButton() {
                 <ShieldCheck className="h-3 w-3 text-emerald-600" />
                 <span>Direct WhatsApp</span>
               </span>
-              <span className="font-mono text-zinc-500 font-bold">01883-012641</span>
+              <span className="font-mono text-zinc-500 font-bold">01603-742963</span>
             </div>
           </div>
 

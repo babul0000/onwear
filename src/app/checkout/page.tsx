@@ -29,8 +29,8 @@ export default function CheckoutPage() {
   const [copiedNumber, setCopiedNumber] = useState(false);
 
   // Store payment numbers
-  const [bkashNumber, setBkashNumber] = useState('01603742663');
-  const [nagadNumber, setNagadNumber] = useState('01603742663');
+  const [bkashNumber, setBkashNumber] = useState('01603742963');
+  const [nagadNumber, setNagadNumber] = useState('01603742963');
 
   // Dynamic Shipping Rates States
   const [shippingCost, setShippingCost] = useState(80);
