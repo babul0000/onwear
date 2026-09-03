@@ -577,9 +577,9 @@ export default function CheckoutPage() {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-[#E2136E]">bKash</span>
-                    <span className="text-[9px] bg-[#E2136E]/10 text-[#E2136E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Direct</span>
+                    <span className="text-[9px] bg-[#E2136E]/10 text-[#E2136E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Merchant</span>
                   </div>
-                  <span className="text-[10px] text-zinc-400">Send Money / TrxID Verification</span>
+                  <span className="text-[10px] text-zinc-400">Make Payment / TrxID Verification</span>
                 </div>
               </label>
 
@@ -602,7 +602,7 @@ export default function CheckoutPage() {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-[#F7921E]">Nagad</span>
-                    <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Direct</span>
+                    <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Personal</span>
                   </div>
                   <span className="text-[10px] text-zinc-400">Send Money / TrxID Verification</span>
                 </div>
@@ -637,7 +637,7 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between border-b border-[#E2136E]/20 pb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#E2136E]" />
-                    <span className="text-xs font-black uppercase text-[#E2136E] font-mono tracking-wider">bKash Send Money Guide</span>
+                    <span className="text-xs font-black uppercase text-[#E2136E] font-mono tracking-wider">bKash Merchant Payment Guide</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-zinc-600">Total:</span>
@@ -648,13 +648,13 @@ export default function CheckoutPage() {
                 {/* Number & Copy Box */}
                 <div className="flex items-center justify-between bg-white border border-pink-200/80 p-3.5 shadow-sm">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR bKash Number (Personal)</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR bKash Number (Merchant Account)</span>
                     <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{bkashNumber}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleCopyNumber(bkashNumber)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E2136E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c90f61] transition-colors shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E2136E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c90f61] transition-colors shadow-sm cursor-pointer"
                   >
                     {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
@@ -663,10 +663,10 @@ export default function CheckoutPage() {
 
                 {/* Step instructions */}
                 <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
-                  <p><strong className="text-zinc-900">ধাপ ১:</strong> বিকাশ অ্যাপ অথবা <strong>*247#</strong> ডায়াল করে <strong>Send Money</strong> সিলেক্ট করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ২:</strong> প্রাপক নম্বর হিসেবে <strong className="font-mono text-zinc-950">{bkashNumber}</strong> দিন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে সেন্ড মানি সম্পন্ন করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি সম্পন্ন করার পর SMS থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক নম্বর</strong> নিচে দিন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ১:</strong> বিকাশ অ্যাপ ওপেন করুন অথবা <strong>*247#</strong> ডায়াল করে <strong>Make Payment (পেমেন্ট)</strong> অপশন সিলেক্ট করুন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ২:</strong> মার্চেন্ট নম্বর হিসেবে <strong className="font-mono text-zinc-950">{bkashNumber}</strong> দিন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে রেফারেন্স নম্বর দিন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> পেমেন্ট সম্পন্ন করার পর ফিরতি মেসেজ থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক বিকাশ নম্বর</strong> নিচে দিন।</p>
                 </div>
 
                 {/* Inputs for Sender Number and TrxID */}
@@ -703,7 +703,7 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between border-b border-[#F7921E]/20 pb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#F7921E]" />
-                    <span className="text-xs font-black uppercase text-[#F7921E] font-mono tracking-wider">Nagad Send Money Guide</span>
+                    <span className="text-xs font-black uppercase text-[#F7921E] font-mono tracking-wider">Nagad Personal Send Money Guide</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-zinc-600">Total:</span>
@@ -714,13 +714,13 @@ export default function CheckoutPage() {
                 {/* Number & Copy Box */}
                 <div className="flex items-center justify-between bg-white border border-amber-200/80 p-3.5 shadow-sm">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR Nagad Number (Personal)</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR Nagad Number (Personal Account)</span>
                     <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{nagadNumber}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleCopyNumber(nagadNumber)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F7921E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#d87c14] transition-colors shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F7921E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#d87c14] transition-colors shadow-sm cursor-pointer"
                   >
                     {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
@@ -729,10 +729,10 @@ export default function CheckoutPage() {
 
                 {/* Step instructions */}
                 <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
-                  <p><strong className="text-zinc-900">ধাপ ১:</strong> নগদ অ্যাপ অথবা <strong>*167#</strong> ডায়াল করে <strong>Send Money</strong> সিলেক্ট করুন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ১:</strong> নগদ অ্যাপ ওপেন করুন অথবা <strong>*167#</strong> ডায়াল করে <strong>Send Money (সেন্ড মানি)</strong> সিলেক্ট করুন।</p>
                   <p><strong className="text-zinc-900">ধাপ ২:</strong> প্রাপক নম্বর হিসেবে <strong className="font-mono text-zinc-950">{nagadNumber}</strong> দিন।</p>
                   <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে সেন্ড মানি সম্পন্ন করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি সম্পন্ন করার পর SMS থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক নম্বর</strong> নিচে দিন।</p>
+                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি সম্পন্ন করার পর SMS থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক নগদ নম্বর</strong> নিচে দিন।</p>
                 </div>
 
                 {/* Inputs for Sender Number and TrxID */}
