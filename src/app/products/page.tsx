@@ -38,6 +38,7 @@ function ProductsPageContent() {
   const [categories, setCategories] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>({ page: 1, limit: 12, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Filter and Search states
   const [search, setSearch] = useState('');
@@ -187,12 +188,36 @@ function ProductsPageContent() {
         )}
       </div>
 
+      {/* Mobile Filter Toggle Button */}
+      <div className="flex items-center justify-between lg:hidden bg-zinc-50 border border-zinc-200 p-3">
+        <button
+          type="button"
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+          className="flex items-center gap-2 px-4 py-2 bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-zinc-800 transition-colors"
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          <span>{showMobileFilters ? 'Hide Filters & Sorting' : 'Filter & Sort Products'}</span>
+        </button>
+        <span className="text-xs font-bold text-zinc-500 font-mono">
+          {!loading && `${meta.total} Item${meta.total !== 1 ? 's' : ''}`}
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 items-start">
         {/* Filters Sidebar */}
-        <aside className="flex flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm h-fit">
-          <div className="flex items-center gap-2 border-b border-zinc-100 pb-4">
-            <SlidersHorizontal className="h-4.5 w-4.5 text-zinc-950" />
-            <h2 className="font-extrabold text-zinc-950 text-sm uppercase tracking-wider">Filters & Sorting</h2>
+        <aside className={`${showMobileFilters ? 'flex' : 'hidden lg:flex'} flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm h-fit`}>
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4.5 w-4.5 text-zinc-950" />
+              <h2 className="font-extrabold text-zinc-950 text-sm uppercase tracking-wider">Filters & Sorting</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters(false)}
+              className="lg:hidden text-zinc-400 hover:text-zinc-950 text-xs font-bold uppercase"
+            >
+              Close
+            </button>
           </div>
 
           {/* Search Box */}

@@ -17,7 +17,7 @@ export default function WhatsAppButton() {
   const waUrl = `https://wa.me/${formattedNumber}?text=${defaultMessage}`;
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex items-end gap-3 select-none">
+    <div className="fixed bottom-20 md:bottom-8 left-4 md:left-8 z-40 flex items-end gap-3 select-none">
       {/* Tooltip speech bubble */}
       {showTooltip && (
         <div className="hidden sm:flex items-center gap-2 bg-zinc-950 text-white text-xs font-semibold px-3.5 py-2 shadow-xl border border-zinc-800 animate-in fade-in slide-in-from-bottom-2 duration-300">
