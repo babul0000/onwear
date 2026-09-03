@@ -114,7 +114,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-3">
-                <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
+                <div className="aspect-[3/4] w-full bg-zinc-100"></div>
                 <div className="h-3 w-2/3 rounded bg-zinc-100 mx-auto"></div>
               </div>
             ))}
@@ -127,7 +127,7 @@ export default function Home() {
                 href={`/products?category=${cat.slug}`}
                 className="group flex flex-col items-center gap-3"
               >
-                <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-sm transition-all duration-300">
+                <div className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-sm transition-all duration-300">
                   <img
                     src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=300'}
                     alt={cat.name}
@@ -190,7 +190,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-3">
-                <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
+                <div className="aspect-[3/4] w-full bg-zinc-100"></div>
                 <div className="h-4 w-2/3 rounded bg-zinc-100"></div>
                 <div className="h-3 w-1/3 rounded bg-zinc-100"></div>
               </div>
@@ -207,7 +207,7 @@ export default function Home() {
                   {/* Image wrapper */}
                   <div 
                     onClick={() => router.push(`/products/${product.id}`)}
-                    className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-sm cursor-pointer"
+                    className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-sm cursor-pointer"
                   >
                     <img
                       src={product.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400'}
@@ -227,15 +227,15 @@ export default function Home() {
 
                     {/* Stock status badge */}
                     {product.stock <= 0 ? (
-                      <span className="absolute top-3 left-3 bg-red-100 text-red-700 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      <span className="absolute top-3 left-3 bg-red-100 text-red-700 text-[9px] font-black uppercase tracking-wider px-2.5 py-1">
                         Out of stock
                       </span>
                     ) : product.stock <= 5 ? (
-                      <span className="absolute top-3 left-3 bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      <span className="absolute top-3 left-3 bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider px-2.5 py-1">
                         Low stock
                       </span>
                     ) : hasDiscount ? (
-                      <span className="absolute top-3 left-3 bg-teal-50 text-teal-650 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      <span className="absolute top-3 left-3 bg-teal-50 text-teal-650 text-[9px] font-black uppercase tracking-wider px-2.5 py-1">
                         Sale
                       </span>
                     ) : null}
@@ -247,7 +247,7 @@ export default function Home() {
                           e.stopPropagation();
                           addToCart(product.id, 1);
                         }}
-                        className="absolute bottom-4 right-4 bg-zinc-950 text-white p-3 rounded-full shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-zinc-800"
+                        className="absolute bottom-4 right-4 bg-zinc-950 text-white p-3 shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-zinc-800"
                         title="Add to Cart"
                       >
                         <ShoppingBag className="h-4 w-4" />

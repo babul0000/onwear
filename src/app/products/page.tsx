@@ -336,15 +336,15 @@ function ProductsPageContent() {
           {loading ? (
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse flex flex-col gap-3 rounded-2xl bg-white border border-zinc-100 p-1">
-                  <div className="aspect-[3/4] w-full rounded-xl bg-zinc-200"></div>
+                <div key={i} className="animate-pulse flex flex-col gap-3 bg-white border border-zinc-100 p-1">
+                  <div className="aspect-[3/4] w-full bg-zinc-200"></div>
                   <div className="h-4 w-3/4 rounded bg-zinc-200"></div>
                   <div className="h-4 w-1/4 rounded bg-zinc-200"></div>
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-zinc-200 rounded-2xl bg-white p-8">
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-zinc-200 bg-white p-8">
               <span className="text-zinc-400 text-sm font-bold uppercase tracking-wider">No products found matching filters</span>
             </div>
           ) : (
@@ -368,7 +368,7 @@ function ProductsPageContent() {
                      {/* Wishlist Button */}
                      <button
                        onClick={() => isWished ? addToCart(prod.id, 1) : addToWishlist(prod.id)}
-                       className={`absolute right-2.5 top-2.5 z-10 p-2 rounded-full shadow-sm border border-zinc-105 bg-white hover:scale-105 transition-transform ${
+                       className={`absolute right-2.5 top-2.5 z-10 p-2 shadow-sm border border-zinc-100 bg-white hover:scale-105 transition-transform ${
                          isWished ? 'text-red-500' : 'text-zinc-450 hover:text-red-500'
                        }`}
                      >
@@ -376,7 +376,7 @@ function ProductsPageContent() {
                      </button>
 
                      {/* Aspect 3/4 Image Container */}
-                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-50 relative block">
+                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
                         {/* Primary Image */}
                         <img
                           src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
@@ -397,7 +397,7 @@ function ProductsPageContent() {
                        
                        {/* Sold Out Badge overlay */}
                        {isSoldOut && (
-                         <span className="absolute left-2.5 top-2.5 z-10 rounded bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase shadow">
+                         <span className="absolute left-2.5 top-2.5 z-10 bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase shadow">
                            Sold Out
                          </span>
                        )}
@@ -414,7 +414,7 @@ function ProductsPageContent() {
                              addToCart(prod.id, 1);
                            }}
                            disabled={isSoldOut}
-                           className="w-full flex items-center justify-center gap-2 rounded-full bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                           className="w-full flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
                          >
                            <ShoppingBag className="h-4 w-4" />
                            <span>{!isSoldOut ? 'Order Now' : 'Out of Stock'}</span>

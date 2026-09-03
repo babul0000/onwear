@@ -249,7 +249,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           <ProductImageZoom
             src={displayImage}
             alt={product.name}
-            className="rounded-2xl"
           />
 
           {/* Small Thumbnails Row - Only shows genuine uploaded images if there's more than 1 image */}
@@ -267,7 +266,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(imgUrl)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 cursor-pointer ${
+                  className={`aspect-square overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 cursor-pointer ${
                     (selectedImage === imgUrl || (!selectedImage && idx === 0))
                       ? 'border-zinc-950 shadow-md ring-2 ring-zinc-950/10' 
                       : 'border-zinc-200/80 opacity-75 hover:opacity-100'

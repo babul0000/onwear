@@ -49,18 +49,18 @@ export default function WishlistPage() {
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm hover:shadow-md transition-all"
+                className="group relative flex flex-col border border-zinc-100 bg-white p-4 shadow-sm hover:shadow-md transition-all"
               >
                 {/* Remove button */}
                 <button
                   onClick={() => removeFromWishlist(targetId)}
-                  className="absolute right-6 top-6 z-10 p-2 rounded-full shadow-sm border border-zinc-100 bg-white hover:text-rose-600 hover:scale-105 transition-all text-zinc-400"
+                  className="absolute right-6 top-6 z-10 p-2 shadow-sm border border-zinc-100 bg-white hover:text-rose-600 hover:scale-105 transition-all text-zinc-400"
                   title="Remove from Wishlist"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
 
-                <Link href={`/products/${targetId}`} className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 block">
+                <Link href={`/products/${targetId}`} className="aspect-[4/3] w-full overflow-hidden bg-zinc-50 border border-zinc-100 block">
                   <img
                     src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
                     alt={prod.name || 'Product'}
@@ -88,7 +88,7 @@ export default function WishlistPage() {
                     <button
                       onClick={() => handleAddToCart(targetId)}
                       disabled={prod.stock === 0}
-                      className="w-full flex items-center justify-center gap-2 rounded-full bg-zinc-950 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-colors disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed shadow-sm"
+                      className="w-full flex items-center justify-center gap-2 bg-zinc-950 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-colors disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed shadow-sm"
                     >
                       <ShoppingBag className="h-4 w-4" />
                       <span>{prod.stock === 0 ? 'Out of Stock' : 'Move to Bag'}</span>

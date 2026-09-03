@@ -34,8 +34,8 @@ export default function CategoriesPage() {
       {loading ? (
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse flex flex-col gap-3 p-4 border border-zinc-200 bg-white rounded-2xl">
-              <div className="aspect-[4/3] w-full rounded-xl bg-zinc-200"></div>
+            <div key={i} className="animate-pulse flex flex-col gap-3 p-4 border border-zinc-200 bg-white">
+              <div className="aspect-[4/3] w-full bg-zinc-200"></div>
               <div className="h-4 w-1/2 rounded bg-zinc-200"></div>
             </div>
           ))}
@@ -46,7 +46,7 @@ export default function CategoriesPage() {
             <Link
               key={cat.id}
               href={`/products?category=${cat.slug}`}
-              className="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all"
+              className="group relative flex flex-col border border-zinc-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all"
             >
               <div className="aspect-[4/3] w-full bg-zinc-50 overflow-hidden relative">
                 <img
