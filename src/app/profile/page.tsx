@@ -35,14 +35,14 @@ import {
 
 // Status tracking constants
 const STAGES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
-const STAGE_LABELS_BN = ['পেন্ডিং', 'কনফার্ম', 'প্যাকড', 'শিপড', 'ডেলিভার্ড'];
-const ORDER_STATUS_BN: Record<string, string> = {
-  PENDING: 'পেন্ডিং',
-  CONFIRMED: 'কনফার্ম',
-  PROCESSING: 'প্যাকড',
-  SHIPPED: 'শিপড',
-  DELIVERED: 'ডেলিভার্ড',
-  CANCELLED: 'বাতিল'
+const STAGE_LABELS = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  PROCESSING: 'Processing',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled'
 };
 
 export default function ProfilePage() {
@@ -169,7 +169,7 @@ export default function ProfilePage() {
   // Total Spent & Tier calculations
   const totalSpent = orders.reduce((sum, o) => sum + (o.paymentStatus === 'PAID' ? o.totalAmount : 0), 0);
   const loyaltyTier = totalSpent >= 5000 ? 'GOLD TIER' : 'SILVER TIER';
-  const tierProgressText = totalSpent >= 5000 ? 'Highest Level Achieved' : `৳${Math.max(0, 5000 - totalSpent)} to Gold`;
+  const tierProgressText = totalSpent >= 5000 ? 'Highest Level Achieved' : `${formatPrice(Math.max(0, 5000 - totalSpent))} to Gold`;
 
   // Handle Address Submit (Create or Update)
   const handleAddressSubmit = async (e: React.FormEvent) => {
@@ -382,7 +382,7 @@ export default function ProfilePage() {
                 <span className={`text-[8px] font-mono mt-3 uppercase tracking-wider font-semibold ${
                   isCompleted ? 'text-indigo font-bold' : 'text-muted'
                 }`}>
-                  {STAGE_LABELS_BN[idx]}
+                  {STAGE_LABELS[idx]}
                 </span>
               </div>
             );
@@ -437,7 +437,7 @@ export default function ProfilePage() {
             <div className="flex justify-between items-center border-b border-line pb-4">
               <div>
                 <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">Guest Tracking</span>
-                <h2 className="text-3xl font-display text-ink font-bold mt-1">অর্ডার ট্র্যাকিং</h2>
+                <h2 className="text-3xl font-display text-ink font-bold mt-1">Order Tracking</h2>
               </div>
               <button
                 onClick={() => { setIsGuestMode(false); setGuestOrders([]); setGuestError(''); }}
@@ -501,7 +501,7 @@ export default function ProfilePage() {
                         <p className="font-mono text-xs font-bold text-ink">{order.id}</p>
                       </div>
                       <span className="border border-line px-3 py-1 bg-canvas rounded-[4px] text-xs font-mono font-bold uppercase tracking-wider">
-                        {ORDER_STATUS_BN[order.status] || order.status}
+                        {ORDER_STATUS_LABELS[order.status] || order.status}
                       </span>
                     </div>
 
@@ -530,8 +530,8 @@ export default function ProfilePage() {
           /* ==================== DENIED LOGIN FLOW ==================== */
           <div className="border border-line bg-panel p-8 md:p-12 text-center rounded-[4px] flex flex-col items-center gap-6 animate-fadeIn max-w-2xl mx-auto">
             <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">Access Denied</span>
-            <h2 className="text-3xl font-display text-ink font-bold leading-tight">অনুগ্রহ করে সাইন-ইন করুন</h2>
-            <p className="text-sm text-muted max-w-md font-sans leading-relaxed">ONWEAR কাস্টমার পোর্টাল ভিজিট করার জন্য আপনার অ্যাকাউন্টে লগইন করুন অথবা আপনার গেস্ট চেকআউট ট্র্যাকিং আইডি দিয়ে অর্ডার চেক করুন।</p>
+            <h2 className="text-3xl font-display text-ink font-bold leading-tight">Please Sign In</h2>
+            <p className="text-sm text-muted max-w-md font-sans leading-relaxed">Please log in to your account to visit the ONWEAR customer portal or track your order with your guest checkout tracking ID.</p>
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-sm mt-2">
               <Link href="/login" className="flex-1 rounded-[4px] bg-indigo py-3 text-center text-xs font-mono font-black uppercase text-white hover:bg-zinc-800 transition-colors">
                 Sign In / Login
@@ -558,14 +558,14 @@ export default function ProfilePage() {
       <div className="border-b border-line pb-4 flex justify-between items-baseline">
         <div>
           <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">ONWEAR Portal</span>
-          <h1 className="text-3xl font-display text-ink font-bold mt-1">গ্রাহক ড্যাশবোর্ড</h1>
+          <h1 className="text-3xl font-display text-ink font-bold mt-1">Customer Dashboard</h1>
         </div>
         <button
           onClick={() => logout()}
           className="flex items-center gap-2 border border-line px-3 py-1.5 rounded-[4px] text-xs font-mono font-bold text-thread hover:bg-red-50/50 bg-panel transition-all"
         >
           <LogOut className="h-3.5 w-3.5" />
-          <span>লগআউট</span>
+          <span>Logout</span>
         </button>
       </div>
 
@@ -655,7 +655,7 @@ export default function ProfilePage() {
               <div className="border border-line bg-panel p-6 rounded-[4px] flex flex-col gap-1 relative overflow-hidden">
                 <span className="text-[10px] font-mono font-black uppercase text-ochre tracking-widest">Welcome Back</span>
                 <h2 className="text-3xl font-display text-ink font-bold mt-1">
-                  {user.name}, ভালো আছেন তো?
+                  Welcome back, {user.name}!
                 </h2>
                 <p className="text-xs text-muted font-sans font-medium mt-1">Manage clothing orders, saved products, and verify delivery updates.</p>
               </div>
@@ -704,7 +704,7 @@ export default function ProfilePage() {
                           </div>
                           <div className="flex justify-between items-center text-[10px] font-bold mt-1">
                             <span className={`border px-2 py-0.5 uppercase tracking-wider rounded-[4px] ${getStatusColor(order.status)}`}>
-                              {ORDER_STATUS_BN[order.status] || order.status}
+                              {ORDER_STATUS_LABELS[order.status] || order.status}
                             </span>
                             <span className={`border px-2 py-0.5 uppercase tracking-wider rounded-[4px] ${getPaymentStatusColor(order.paymentStatus)}`}>
                               {order.paymentStatus}
@@ -764,7 +764,7 @@ export default function ProfilePage() {
           {/* ==================== TAB: MY ORDERS ==================== */}
           {activeTab === 'orders' && (
             <div className="flex flex-col gap-4 animate-fadeIn">
-              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">ক্রয় বিবরণী (Orders List)</h3>
+              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">Order History</h3>
 
               {loadingOrders ? (
                 <div className="py-20 text-center flex justify-center">
@@ -773,8 +773,8 @@ export default function ProfilePage() {
               ) : orders.length === 0 ? (
                 <div className="border border-line bg-panel p-12 text-center rounded-[4px] flex flex-col items-center gap-3">
                   <ReceiptText className="h-8 w-8 text-line" />
-                  <h4 className="font-display font-bold text-sm text-ink">কোনো অর্ডার পাওয়া যায়নি</h4>
-                  <p className="text-xs text-muted max-w-xs font-sans">আপনি এখনও কোনো অর্ডার করেননি। আমাদের নতুন কালেকশন দেখতে এখনই ব্রাউজ করুন।</p>
+                  <h4 className="font-display font-bold text-sm text-ink">No Orders Found</h4>
+                  <p className="text-xs text-muted max-w-xs font-sans">You haven't placed any orders yet. Browse our latest collection to get started.</p>
                   <Link href="/products" className="mt-2 border border-line bg-white hover:bg-canvas px-6 py-2 rounded-[4px] text-xs font-mono font-black uppercase text-ink">
                     Browse Collection
                   </Link>
@@ -809,7 +809,7 @@ export default function ProfilePage() {
                           <div className="flex items-center justify-between md:justify-end gap-3 border-t border-line/30 pt-3 md:border-0 md:pt-0">
                             <div className="flex items-center gap-2">
                               <span className={`border px-2.5 py-0.5 text-[9px] font-mono font-black uppercase tracking-wide rounded-[4px] ${getStatusColor(order.status)}`}>
-                                {ORDER_STATUS_BN[order.status] || order.status}
+                                {ORDER_STATUS_LABELS[order.status] || order.status}
                               </span>
                               <span className={`border px-2.5 py-0.5 text-[9px] font-mono font-black uppercase tracking-wide rounded-[4px] ${getPaymentStatusColor(order.paymentStatus)}`}>
                                 {order.paymentStatus}
@@ -916,13 +916,13 @@ export default function ProfilePage() {
           {/* ==================== TAB: WISHLIST ==================== */}
           {activeTab === 'wishlist' && (
             <div className="flex flex-col gap-4 animate-fadeIn">
-              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">পছন্দের তালিকা (Wishlist)</h3>
+              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">My Wishlist</h3>
 
               {wishlistItems.length === 0 ? (
                 <div className="border border-line bg-panel p-12 text-center rounded-[4px] flex flex-col items-center gap-3">
                   <Heart className="h-8 w-8 text-line" />
-                  <h4 className="font-display font-bold text-sm text-ink">উইশলিস্ট খালি</h4>
-                  <p className="text-xs text-muted max-w-xs font-sans">আপনার পছন্দের তালিকায় কোনো আইটেম সেভ করা নেই।</p>
+                  <h4 className="font-display font-bold text-sm text-ink">Your Wishlist is Empty</h4>
+                  <p className="text-xs text-muted max-w-xs font-sans">You don't have any items saved in your wishlist yet.</p>
                   <Link href="/products" className="mt-2 border border-line bg-white hover:bg-canvas px-6 py-2 rounded-[4px] text-xs font-mono font-black uppercase text-ink">
                     Browse Collection
                   </Link>
@@ -999,7 +999,7 @@ export default function ProfilePage() {
           {activeTab === 'addresses' && (
             <div className="flex flex-col gap-4 animate-fadeIn">
               <div className="flex justify-between items-baseline border-b border-line pb-3">
-                <h3 className="font-display font-bold text-ink text-xl">সংরক্ষিত ঠিকানা (Addresses)</h3>
+                <h3 className="font-display font-bold text-ink text-xl">Saved Addresses</h3>
                 {!showAddressForm && (
                   <button
                     onClick={() => {
@@ -1201,7 +1201,7 @@ export default function ProfilePage() {
           {/* ==================== TAB: PROFILE ==================== */}
           {activeTab === 'profile' && (
             <div className="flex flex-col gap-4 animate-fadeIn">
-              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">প্রোফাইল সেটিংস (Profile Settings)</h3>
+              <h3 className="font-display font-bold text-ink text-xl border-b border-line pb-3">Profile Settings</h3>
 
               {profileMessage && (
                 <div className="rounded-[4px] bg-green/10 border border-green/20 p-4 text-xs font-mono font-bold text-green animate-in slide-in-from-top duration-300">
