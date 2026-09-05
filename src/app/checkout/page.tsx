@@ -330,11 +330,10 @@ export default function CheckoutPage() {
           email: email.trim(),
           phone: phone.trim(),
           shippingAddress,
+          zone,
           items: checkoutItemsPayload,
           note: note || undefined,
           couponCode: appliedCoupon || undefined,
-          shippingCost,
-          discountApplied,
           paymentMethod,
           paymentPhone: paymentPhone.trim() || undefined,
           trxId: trxId.trim().toUpperCase() || undefined

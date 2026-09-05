@@ -312,6 +312,13 @@ export default function Navbar() {
                         >
                           My Orders
                         </Link>
+                        <Link
+                          href="/orders/track"
+                          onClick={() => setShowAccountDropdown(false)}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-teal-700 bg-teal-50/60 hover:bg-teal-100/60 font-semibold transition-colors"
+                        >
+                          📦 Track Parcel
+                        </Link>
                         <button
                           onClick={() => {
                             logout();
@@ -324,7 +331,7 @@ export default function Navbar() {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-1 text-sm">
+                      <div className="flex flex-col gap-1.5 text-sm">
                         <Link
                           href="/login"
                           onClick={() => setShowAccountDropdown(false)}
@@ -338,6 +345,13 @@ export default function Navbar() {
                           className="flex items-center justify-center rounded-xl bg-zinc-950 hover:bg-zinc-800 transition-colors font-semibold px-3 py-2 text-white text-center"
                         >
                           Register
+                        </Link>
+                        <Link
+                          href="/orders/track"
+                          onClick={() => setShowAccountDropdown(false)}
+                          className="flex items-center justify-center rounded-xl border border-teal-200 bg-teal-50/80 hover:bg-teal-100 transition-colors font-bold px-3 py-2 text-teal-900 text-center text-xs mt-1"
+                        >
+                          📦 Track Order
                         </Link>
                       </div>
                     )}

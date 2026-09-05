@@ -16,10 +16,15 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Center: Contact Info */}
+        {/* Center: Contact Info & Quick Links */}
         <div className="flex flex-col gap-4">
-          <h4 className="text-xs font-bold tracking-widest text-zinc-900 uppercase">Contact Us</h4>
+          <h4 className="text-xs font-bold tracking-widest text-zinc-900 uppercase">Customer Care</h4>
           <ul className="flex flex-col gap-2 text-xs text-zinc-400 font-medium">
+            <li>
+              <Link href="/orders/track" className="hover:text-zinc-950 transition-colors font-bold text-zinc-800">
+                📦 Track Your Order
+              </Link>
+            </li>
             <li>Address: {settings.address}</li>
             <li>Phone: {settings.phone}</li>
             <li>Email: {settings.email}</li>
