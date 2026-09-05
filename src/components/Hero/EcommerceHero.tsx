@@ -212,7 +212,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
 
   return (
     <>
-      <div className="relative w-full h-[85vh] overflow-hidden flex items-end justify-center select-none">
+      <div className="relative w-full h-[60vh] sm:h-[75vh] md:h-[85vh] overflow-hidden flex items-end justify-center select-none">
         {/* Animated Slide container (Scroll scale-down transition applies here on slide 3) */}
         <motion.div
           ref={heroRef}

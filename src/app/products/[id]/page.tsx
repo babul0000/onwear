@@ -253,22 +253,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             alt={product.name}
           />
 
-          {/* Small Thumbnails Row - Only shows genuine uploaded images if there's more than 1 image */}
+          {/* Small Thumbnails Row - Horizontally scrollable on mobile, neat grid on desktop */}
           {galleryImages.length > 1 && (
-            <div className={`grid gap-3.5 ${
-              galleryImages.length === 2 
-                ? 'grid-cols-2 max-w-[200px]' 
-                : galleryImages.length === 3 
-                  ? 'grid-cols-3 max-w-[300px]' 
-                  : galleryImages.length === 4 
-                    ? 'grid-cols-4 max-w-[400px]' 
-                    : 'grid-cols-4'
-            }`}>
+            <div className="flex overflow-x-auto no-scrollbar gap-2.5 sm:grid sm:grid-cols-4 max-w-full sm:max-w-[420px] pt-1">
               {galleryImages.map((imgUrl, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(imgUrl)}
-                  className={`aspect-square overflow-hidden border-2 bg-zinc-50 transition-all hover:border-zinc-400 cursor-pointer ${
+                  className={`aspect-square w-16 sm:w-auto shrink-0 overflow-hidden rounded-xl border-2 bg-zinc-50 transition-all hover:border-zinc-400 cursor-pointer ${
                     (selectedImage === imgUrl || (!selectedImage && idx === 0))
                       ? 'border-zinc-950 shadow-md ring-2 ring-zinc-950/10' 
                       : 'border-zinc-200/80 opacity-75 hover:opacity-100'
@@ -301,7 +293,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
           {/* Product Title and Header info */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-extrabold text-zinc-950 tracking-tight leading-none uppercase">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight leading-tight uppercase">
               {product.name}
             </h1>
 
@@ -323,10 +315,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Product Pricing */}
-            <div className="text-3xl font-black text-zinc-950 mt-2">
+            <div className="text-2xl sm:text-3xl font-black text-zinc-950 mt-1">
               {discount ? (
                 <div className="flex items-baseline gap-2">
-                  <span>{formatPrice(product.discountPrice)}</span>
+                  <span className="text-zinc-950">{formatPrice(product.discountPrice)}</span>
                   <span className="text-sm text-zinc-400 line-through font-bold">{formatPrice(product.price)}</span>
                 </div>
               ) : (
@@ -336,11 +328,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Availability, SKU & Tags */}
-          <div className="flex flex-col gap-2 border-y border-zinc-100 py-5 text-xs text-zinc-600 font-medium">
+          <div className="flex flex-col gap-2 border-y border-zinc-100 py-4 text-xs text-zinc-600 font-medium">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest w-24">Availability:</span>
               <span className={product.stock > 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
-                {product.stock > 0 ? 'In stock' : 'Out of stock'}
+                {product.stock > 0 ? `In stock (${product.stock} available)` : 'Out of stock'}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -364,39 +356,52 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Description Paragraph and Bullets */}
-          <div className="flex flex-col gap-4 text-sm text-zinc-500 leading-relaxed font-medium">
+          <div className="flex flex-col gap-3 text-sm text-zinc-500 leading-relaxed font-medium">
             <p>{meta.cleanDesc || product.description || 'Elevate your seasonal catalog with this organic cotton tailored product, styled to maximize durability and standard fitting comfort.'}</p>
-            <ul className="list-disc list-inside flex flex-col gap-1.5 pl-2 text-zinc-400">
-              <li><span className="text-zinc-500 font-bold">Material:</span> 100% Premium Organic Fabrics</li>
-              <li><span className="text-zinc-500 font-bold">Fit:</span> Slim Fit Regular sizing</li>
-              <li><span className="text-zinc-500 font-bold">Delivery:</span> Fast Home shipping within 3-4 days</li>
+            <ul className="list-disc list-inside flex flex-col gap-1 pl-1 text-xs text-zinc-500">
+              <li><span className="font-bold text-zinc-700">Material:</span> 100% Premium Organic Fabrics</li>
+              <li><span className="font-bold text-zinc-700">Fit:</span> Slim Fit Regular sizing</li>
+              <li><span className="font-bold text-zinc-700">Delivery:</span> Fast Home shipping across Bangladesh</li>
             </ul>
           </div>
 
-          {/* Select Options Selection Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-zinc-100 pt-6">
+          {/* Select Options Selection Grid (Touch Pill Buttons) */}
+          <div className="flex flex-col gap-4 border-t border-zinc-100 pt-5">
             
-            {/* Color Selector */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Color</label>
-              <select 
-                value={selectedColor}
-                onChange={(e) => setSelectedColor(e.target.value)}
-                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer capitalize"
-              >
-                <option value="">Select Color</option>
-                {availableColors.map((col, idx) => (
-                  <option key={idx} value={col.toLowerCase()} className="capitalize">
-                    {col}
-                  </option>
-                ))}
-              </select>
+            {/* Color Selector Pills */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">
+                  Color {selectedColor && <span className="text-zinc-900 capitalize font-bold">({selectedColor})</span>}
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableColors.map((col, idx) => {
+                  const isSelected = selectedColor.toLowerCase() === col.toLowerCase();
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedColor(isSelected ? '' : col)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer border ${
+                        isSelected
+                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs ring-2 ring-zinc-950/20'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200'
+                      }`}
+                    >
+                      {col}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Size Selector */}
-            <div className="flex flex-col gap-1.5">
+            {/* Size Selector Pills */}
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Size</label>
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">
+                  Size {selectedSize && <span className="text-zinc-900 font-bold">({selectedSize})</span>}
+                </label>
                 <button
                   type="button"
                   onClick={() => setIsSizeGuideOpen(true)}
@@ -406,35 +411,42 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   <span>Size Guide</span>
                 </button>
               </div>
-              <select 
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-800 font-bold focus:outline-none focus:border-zinc-400 cursor-pointer"
-              >
-                <option value="">Select Size</option>
-                {availableSizes.map((sz, idx) => (
-                  <option key={idx} value={sz}>
-                    {sz}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap gap-2">
+                {availableSizes.map((sz, idx) => {
+                  const isSelected = selectedSize === sz;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedSize(isSelected ? '' : sz)}
+                      className={`min-w-[44px] h-10 px-3 rounded-xl text-xs font-black transition-all cursor-pointer border flex items-center justify-center ${
+                        isSelected
+                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs ring-2 ring-zinc-950/20'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border-zinc-200'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Quantity Selector increment/decrement */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Qty</label>
-              <div className="flex items-center rounded-xl border border-zinc-200 p-1 bg-zinc-50 h-10 select-none">
+            {/* Quantity Selector */}
+            <div className="flex items-center justify-between gap-4 pt-1">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Quantity</label>
+              <div className="flex items-center rounded-xl border border-zinc-200 p-1 bg-zinc-50 h-10 select-none w-32">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-950 font-bold text-center outline-none transition-colors"
+                  className="w-8 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
                   type="button"
                 >
                   -
                 </button>
-                <span className="flex-1 text-center text-xs font-bold text-zinc-800">{quantity}</span>
+                <span className="flex-1 text-center text-xs font-black text-zinc-900">{quantity}</span>
                 <button
                   onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="w-8 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-950 font-bold text-center outline-none transition-colors"
+                  className="w-8 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
                   type="button"
                 >
                   +
@@ -448,7 +460,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             <div className="text-right">
               <button 
                 onClick={handleClearSelection}
-                className="text-[10px] font-bold text-zinc-400 hover:text-zinc-700 transition-colors uppercase tracking-wider underline"
+                className="text-[10px] font-bold text-zinc-400 hover:text-zinc-700 transition-colors uppercase tracking-wider underline cursor-pointer"
               >
                 Clear Selection
               </button>
@@ -624,6 +636,35 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         onClose={() => setIsSizeGuideOpen(false)}
         categoryName={product.category?.name || ''}
       />
+
+      {/* STICKY BOTTOM ACTION BAR (Mobile Only - High Conversion) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-zinc-200 p-3 flex items-center justify-between gap-3 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
+        <div className="flex flex-col min-w-0 pr-1">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Price</span>
+          <span className="text-base font-black text-zinc-950 font-mono leading-tight truncate">
+            {formatPrice(currentPrice * quantity)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-1 max-w-[260px]">
+          <button
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+            className="flex-1 py-2.5 px-3 rounded-xl bg-zinc-950 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            <span>Bag</span>
+          </button>
+
+          <button
+            onClick={handleBuyNow}
+            disabled={product.stock === 0}
+            className="flex-1 py-2.5 px-3 rounded-xl bg-teal-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm shadow-teal-600/20 disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer"
+          >
+            <span>Buy Now</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

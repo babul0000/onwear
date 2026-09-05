@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
@@ -13,13 +13,17 @@ import {
   User,
   LogOut,
   LayoutDashboard,
-  Store,
   Search,
   Menu,
   X,
   Home,
+  ShoppingBag,
+  Package,
   ArrowRight,
-  Loader2
+  Loader2,
+  ChevronDown,
+  Phone,
+  MessageSquare
 } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 
@@ -97,10 +101,11 @@ const DEFAULT_NAV_CATEGORIES = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, loading } = useAuth();
   const { cart, wishlist, openCartDrawer } = useCart();
   const { settings } = useSettings();
-  const router = useRouter();
 
   // Component States
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
@@ -128,7 +133,7 @@ export default function Navbar() {
     const timeout = setTimeout(async () => {
       try {
         const res = await fetch(
-          `${API_URL}/products?search=${encodeURIComponent(searchQuery.trim())}&limit=5`
+          `${API_URL}/products?search=${encodeURIComponent(searchQuery.trim())}&limit=6`
         );
         const data = await res.json();
         if (data.success) {
@@ -144,7 +149,7 @@ export default function Navbar() {
     return () => clearTimeout(timeout);
   }, [searchQuery]);
 
-  // Fetch categories for bottom navigation row dynamically from database
+  // Fetch categories dynamically from database
   useEffect(() => {
     async function loadCategories() {
       try {
@@ -190,91 +195,88 @@ export default function Navbar() {
     <>
       {/* 0. DYNAMIC TOP ANNOUNCEMENT BAR */}
       {settings.announcementEnabled && settings.announcementText && (
-        <div className="w-full bg-zinc-950 text-white text-[11px] font-semibold py-2 px-4 text-center tracking-wide flex items-center justify-center gap-2 border-b border-zinc-800 z-[70] relative">
+        <div className="w-full bg-zinc-950 text-white text-[11px] font-semibold py-1.5 sm:py-2 px-3 sm:px-4 text-center tracking-wide flex items-center justify-center gap-2 border-b border-zinc-800 z-[70] relative">
           {settings.announcementLink ? (
             <Link
               href={settings.announcementLink}
-              className="hover:text-teal-400 transition-colors flex items-center gap-1.5 font-medium"
+              className="hover:text-teal-400 transition-colors flex items-center gap-1.5 font-medium truncate max-w-[95vw]"
             >
-              <span>{settings.announcementText}</span>
-              <ArrowRight className="h-3 w-3 inline" />
+              <span className="truncate">{settings.announcementText}</span>
+              <ArrowRight className="h-3 w-3 shrink-0 inline" />
             </Link>
           ) : (
-            <span>{settings.announcementText}</span>
+            <span className="truncate max-w-[95vw]">{settings.announcementText}</span>
           )}
         </div>
       )}
 
-      {/* HEADER / NAVIGATION CONTAINER */}
-      <header className="w-full bg-white relative py-3 md:py-4 border-b border-zinc-100/50 z-[60]">
-        {/* MAIN HEADER ROW (Middle) */}
-        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between relative">
-          {/* LEFT: Search Icon Toggle */}
-          <div className="flex items-center">
+      {/* 1. MAIN HEADER ROW */}
+      <header className="w-full bg-white relative py-2.5 sm:py-3.5 border-b border-zinc-100 z-[60]">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between relative">
+          
+          {/* LEFT: Mobile Menu Drawer Toggle + Search Button */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setShowMobileDrawer(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 active:scale-95 transition-all text-zinc-800 md:hidden cursor-pointer"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Search Button */}
             <button
               onClick={() => setShowSearchOverlay(true)}
-              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-zinc-100 hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
-              title="Search Products"
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-zinc-200/80 hover:bg-zinc-50 active:scale-95 transition-all text-zinc-700 cursor-pointer"
+              title="Search Catalog"
+              aria-label="Search"
             >
-              <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+              <Search className="h-4.5 w-4.5" />
             </button>
           </div>
 
-          {/* CENTER: Centered Logo */}
+          {/* CENTER: Store Logo */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
               {settings.logoUrl ? (
                 <img
                   src={settings.logoUrl}
                   alt={settings.storeName}
-                  className="h-7 sm:h-9 md:h-11 w-auto object-contain max-w-[150px]"
+                  className="h-7 sm:h-9 md:h-11 w-auto object-contain max-w-[140px] sm:max-w-[180px]"
                 />
               ) : (
-                <span className="text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.12em] sm:tracking-[0.2em] text-zinc-950 uppercase">
-                  {settings.storeName}
+                <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-[0.14em] text-zinc-950 uppercase">
+                  {settings.storeName || 'ONWEAR'}
                 </span>
               )}
             </Link>
           </div>
 
-          {/* RIGHT: User Profile / Wishlist / Cart Actions */}
+          {/* RIGHT: Desktop Icons (Wishlist, Account) & Always-Visible Cart Bag */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Wishlist Link */}
+            {/* Wishlist Link (Desktop) */}
             <Link
               href="/wishlist"
-              className="relative hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+              className="relative hidden md:flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700"
               title="Wishlist"
             >
-              <Heart className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+              <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-xs">
                   {wishlistCount}
                 </span>
               )}
             </Link>
 
-            {/* Shopping Bag Button (Opens Slide-over Drawer) */}
-            <button
-              onClick={openCartDrawer}
-              className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
-              title="Shopping Bag"
-            >
-              <ShoppingCart className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
-              {cartCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-600 text-[9px] font-black text-white shadow-sm">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Account Toggle */}
-            <div className="relative">
+            {/* Account Toggle (Desktop) */}
+            <div className="relative hidden md:block">
               <button
                 onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 text-zinc-700"
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700 cursor-pointer"
                 title="Account Settings"
               >
-                <User className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                <User className="h-5 w-5" />
               </button>
 
               {/* Account Dropdown */}
@@ -284,9 +286,9 @@ export default function Navbar() {
                     className="fixed inset-0 z-50"
                     onClick={() => setShowAccountDropdown(false)}
                   />
-                  <div className="absolute right-0 mt-2.5 w-52 rounded-2xl border border-zinc-100 bg-white p-2.5 shadow-xl z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl border border-zinc-100 bg-white p-2.5 shadow-xl z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                     {loading ? (
-                      <div className="p-2 text-center text-xs text-zinc-400">Loading...</div>
+                      <div className="p-3 text-center text-xs text-zinc-400">Loading...</div>
                     ) : user ? (
                       <div className="flex flex-col gap-1 text-sm">
                         <div className="px-3 py-2 border-b border-zinc-50 mb-1">
@@ -297,7 +299,7 @@ export default function Navbar() {
                           <Link
                             href="/admin"
                             onClick={() => setShowAccountDropdown(false)}
-                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-semibold text-xs"
+                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors font-bold text-xs"
                           >
                             <LayoutDashboard className="h-4 w-4" />
                             <span>Admin Dashboard</span>
@@ -306,30 +308,31 @@ export default function Navbar() {
                         <Link
                           href="/profile"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors text-xs font-semibold"
                         >
-                          Dashboard
+                          Profile & Addresses
                         </Link>
                         <Link
                           href="/orders"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors text-xs font-semibold"
                         >
                           My Orders
                         </Link>
                         <Link
                           href="/orders/track"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-teal-700 bg-teal-50/60 hover:bg-teal-100/60 font-semibold transition-colors"
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-teal-800 bg-teal-50 hover:bg-teal-100 font-bold text-xs transition-colors"
                         >
-                          📦 Track Parcel
+                          <Package className="h-4 w-4" />
+                          <span>Track Parcel</span>
                         </Link>
                         <button
                           onClick={() => {
                             logout();
                             setShowAccountDropdown(false);
                           }}
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-red-600 hover:bg-red-50 transition-colors text-left font-medium w-full"
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-red-600 hover:bg-red-50 transition-colors text-left font-semibold text-xs w-full cursor-pointer mt-1"
                         >
                           <LogOut className="h-4 w-4" />
                           <span>Logout</span>
@@ -340,16 +343,16 @@ export default function Navbar() {
                         <Link
                           href="/login"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center justify-center rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors font-semibold px-3 py-2 text-zinc-800"
+                          className="flex items-center justify-center rounded-xl bg-zinc-100 hover:bg-zinc-200 transition-colors font-bold px-3 py-2 text-zinc-900 text-xs"
                         >
                           Sign In
                         </Link>
                         <Link
                           href="/register"
                           onClick={() => setShowAccountDropdown(false)}
-                          className="flex items-center justify-center rounded-xl bg-zinc-950 hover:bg-zinc-800 transition-colors font-semibold px-3 py-2 text-white text-center"
+                          className="flex items-center justify-center rounded-xl bg-zinc-950 hover:bg-zinc-800 transition-colors font-bold px-3 py-2 text-white text-xs text-center"
                         >
-                          Register
+                          Create Account
                         </Link>
                         <Link
                           href="/orders/track"
@@ -365,137 +368,168 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Hamburger menu */}
+            {/* Shopping Bag Button (Opens Cart Slide-Over Drawer) */}
             <button
-              onClick={() => setShowMobileDrawer(true)}
-              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-zinc-50 transition-colors duration-200 md:hidden text-zinc-700"
-              aria-label="Open Side Menu"
+              onClick={openCartDrawer}
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white active:scale-95 transition-all shadow-sm cursor-pointer"
+              title="Shopping Cart"
+              aria-label="Open Shopping Bag"
             >
-              <Menu className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+              <ShoppingCart className="h-4.5 w-4.5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[10px] font-black text-white ring-2 ring-white shadow-xs">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* FULL-WIDTH SEARCH OVERLAY WITH INSTANT LIVE RESULTS */}
+        {/* FULLSCREEN SEARCH OVERLAY WITH INSTANT LIVE RESULTS */}
         {showSearchOverlay && (
-          <div className="absolute inset-x-0 top-0 bg-white z-50 border-b border-zinc-200 shadow-2xl animate-in fade-in duration-150">
-            <div className="mx-auto max-w-3xl w-full px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center gap-3">
-                {isSearching ? (
-                  <Loader2 className="h-5 w-5 text-teal-600 animate-spin shrink-0" />
-                ) : (
-                  <Search className="h-5 w-5 text-zinc-400 shrink-0" />
-                )}
-                <form onSubmit={handleSearchSubmit} className="flex-1">
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Type to search (e.g. Linen Shirt, Denim Pant, Black T-Shirt)..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-base sm:text-lg border-0 bg-transparent py-2 focus:outline-none focus:ring-0 placeholder-zinc-400 text-zinc-950 font-medium"
-                  />
-                </form>
-                <button
-                  onClick={() => {
-                    setShowSearchOverlay(false);
-                    setSearchQuery('');
-                    setLiveResults([]);
-                  }}
-                  className="p-2 text-zinc-400 hover:text-zinc-800 transition-colors"
-                  aria-label="Close Search"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* LIVE RESULTS DROPDOWN */}
-              {searchQuery.trim().length >= 2 && (
-                <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-col gap-2">
-                  <div className="flex justify-between items-center px-1 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    <span>Search Results ({liveResults.length})</span>
-                    {liveResults.length > 0 && (
-                      <button
-                        onClick={handleSearchSubmit}
-                        className="text-teal-650 hover:underline flex items-center gap-1"
-                      >
-                        <span>View All</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-
-                  {liveResults.length === 0 && !isSearching ? (
-                    <div className="py-6 text-center text-xs text-zinc-400">
-                      No products found for "{searchQuery}".
-                    </div>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 animate-in fade-in duration-200 flex flex-col justify-start">
+            <div className="bg-white border-b border-zinc-200 shadow-2xl p-4 sm:p-6 w-full max-h-[85vh] flex flex-col">
+              <div className="mx-auto max-w-3xl w-full flex flex-col gap-4">
+                
+                {/* Search Bar Input */}
+                <div className="flex items-center gap-3 bg-zinc-100 rounded-2xl px-4 py-3 border border-zinc-200">
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 text-teal-600 animate-spin shrink-0" />
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1 max-h-80 overflow-y-auto pr-1">
-                      {liveResults.map((prod) => {
-                        const hasDiscount =
-                          prod.discountPrice !== null && prod.discountPrice !== undefined;
-                        const finalPrice = hasDiscount ? prod.discountPrice : prod.price;
+                    <Search className="h-5 w-5 text-zinc-400 shrink-0" />
+                  )}
+                  <form onSubmit={handleSearchSubmit} className="flex-1">
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search shirts, polo, pants, panjabi..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full text-base border-0 bg-transparent focus:outline-none placeholder-zinc-400 text-zinc-950 font-medium"
+                    />
+                  </form>
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setLiveResults([]);
+                      }}
+                      className="p-1 text-zinc-400 hover:text-zinc-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowSearchOverlay(false);
+                      setSearchQuery('');
+                      setLiveResults([]);
+                    }}
+                    className="p-1 rounded-full hover:bg-zinc-200 text-zinc-500 hover:text-zinc-900 transition-colors ml-1"
+                    aria-label="Close Search"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
 
-                        return (
-                          <div
-                            key={prod.id}
-                            onClick={() => handleSelectResult(prod.id)}
-                            className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all cursor-pointer group"
-                          >
-                            <img
-                              src={
-                                prod.image ||
-                                'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=100'
-                              }
-                              alt={prod.name}
-                              className="h-12 w-12 rounded-lg object-cover bg-zinc-100 shrink-0"
-                            />
-                            <div className="flex flex-col flex-1 min-w-0">
-                              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider truncate">
-                                {prod.category?.name || 'OnWear'}
-                              </span>
-                              <span className="text-xs font-bold text-zinc-900 group-hover:text-teal-650 transition-colors truncate">
-                                {prod.name}
-                              </span>
-                              <div className="flex items-baseline gap-1.5 mt-0.5">
-                                <span className="text-xs font-black text-zinc-950 font-mono">
-                                  {formatPrice(finalPrice)}
+                {/* LIVE RESULTS DROPDOWN */}
+                {searchQuery.trim().length >= 2 && (
+                  <div className="flex flex-col gap-2 overflow-y-auto max-h-[60vh] pr-1">
+                    <div className="flex justify-between items-center px-1 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                      <span>Products ({liveResults.length})</span>
+                      {liveResults.length > 0 && (
+                        <button
+                          onClick={handleSearchSubmit}
+                          className="text-teal-600 hover:underline flex items-center gap-1 font-bold text-xs"
+                        >
+                          <span>View All Results</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {liveResults.length === 0 && !isSearching ? (
+                      <div className="py-8 text-center text-xs text-zinc-500">
+                        No products found matching "{searchQuery}".
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                        {liveResults.map((prod) => {
+                          const hasDiscount = prod.discountPrice !== null && prod.discountPrice !== undefined;
+                          const finalPrice = hasDiscount ? prod.discountPrice : prod.price;
+
+                          return (
+                            <div
+                              key={prod.id}
+                              onClick={() => handleSelectResult(prod.id)}
+                              className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-zinc-50 border border-zinc-100 hover:border-zinc-300 transition-all cursor-pointer group"
+                            >
+                              <img
+                                src={prod.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=100'}
+                                alt={prod.name}
+                                className="h-14 w-14 rounded-xl object-cover bg-zinc-100 shrink-0"
+                              />
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider truncate">
+                                  {prod.category?.name || 'ONWEAR'}
                                 </span>
-                                {hasDiscount && (
-                                  <span className="text-[10px] text-zinc-400 line-through font-mono">
-                                    {formatPrice(prod.price)}
+                                <span className="text-xs font-bold text-zinc-900 group-hover:text-teal-600 transition-colors truncate">
+                                  {prod.name}
+                                </span>
+                                <div className="flex items-baseline gap-1.5 mt-0.5">
+                                  <span className="text-xs font-black text-zinc-950 font-mono">
+                                    {formatPrice(finalPrice)}
                                   </span>
-                                )}
+                                  {hasDiscount && (
+                                    <span className="text-[10px] text-zinc-400 line-through font-mono">
+                                      {formatPrice(prod.price)}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
             </div>
+            {/* Click outside to close */}
+            <div className="flex-1" onClick={() => setShowSearchOverlay(false)} />
           </div>
         )}
       </header>
 
-      {/* DESKTOP CATEGORY NAVIGATION ROW (Sticky top - Desktop only) */}
-      <div className="hidden md:block sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-center">
-          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-500 font-medium h-full">
-            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
+      {/* 2. DESKTOP CATEGORY NAVIGATION ROW (Sticky Desktop Only) */}
+      <div className="hidden md:block sticky top-0 z-40 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-11 flex items-center justify-center">
+          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-600 font-semibold h-full">
+            <Link
+              href="/products"
+              className={`hover:text-zinc-950 transition-colors h-full flex items-center ${
+                pathname === '/products' ? 'text-zinc-950 font-black border-b-2 border-zinc-950' : ''
+              }`}
+            >
+              All Products
+            </Link>
             {categories.map((cat: any) => {
               const subs = cat.subcategories || [];
+              const isActive = pathname.includes(cat.slug);
 
               return (
                 <div key={cat.id} className="relative group h-full flex items-center">
                   <Link
                     href={`/products?category=${cat.slug}`}
-                    className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center gap-0.5"
+                    className={`hover:text-zinc-950 transition-colors h-full flex items-center gap-1 ${
+                      isActive ? 'text-zinc-950 font-black' : ''
+                    }`}
                   >
                     <span>{cat.name}</span>
-                    {subs.length > 0 && <span className="text-[9px] text-zinc-400 font-bold">▼</span>}
+                    {subs.length > 0 && <ChevronDown className="h-3 w-3 text-zinc-400 group-hover:rotate-180 transition-transform duration-200" />}
                   </Link>
 
                   {subs.length > 0 && (
@@ -520,108 +554,139 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE CATEGORY NAVIGATION ROW (Sticky top - Mobile only) */}
-      <div className="md:hidden sticky top-0 z-50 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="mx-auto max-w-7xl px-4 h-10 flex items-center overflow-x-auto no-scrollbar">
-          <nav className="flex items-center gap-5 text-[11px] tracking-wider text-zinc-500 font-medium h-full whitespace-nowrap min-w-max px-2">
-            <Link href="/products" className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center">Shop</Link>
-            {categories.map((cat: any) => (
-              <Link
-                key={cat.id}
-                href={`/products?category=${cat.slug}`}
-                className="hover:text-zinc-950 transition-colors duration-200 h-full flex items-center"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </nav>
+      {/* 3. MOBILE CATEGORY SCROLL PILLS STRIP (Sticky Mobile Only) */}
+      <div className="md:hidden sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-xs">
+        <div className="px-3 h-11 flex items-center overflow-x-auto no-scrollbar gap-2">
+          <Link
+            href="/products"
+            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+              pathname === '/products'
+                ? 'bg-zinc-950 text-white shadow-xs'
+                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+            }`}
+          >
+            All Products
+          </Link>
+          {categories.map((cat: any) => (
+            <Link
+              key={cat.id}
+              href={`/products?category=${cat.slug}`}
+              className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 hover:bg-zinc-200 text-xs font-semibold whitespace-nowrap transition-all shrink-0"
+            >
+              {cat.name}
+            </Link>
+          ))}
         </div>
       </div>
 
-      {/* MOBILE SIDEBAR DRAWER (Offcanvas Menu) */}
+      {/* 4. MOBILE SIDEBAR DRAWER (Sliding Left Offcanvas) */}
       {showMobileDrawer && (
-        <>
-          {/* Overlay */}
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 animate-in fade-in"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in"
             onClick={() => setShowMobileDrawer(false)}
           />
-          {/* Drawer Panel */}
-          <div className="fixed top-0 bottom-0 right-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl p-6 flex flex-col gap-6 animate-in slide-in-from-right duration-300 ease-out">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
-              <Link href="/" onClick={() => setShowMobileDrawer(false)} className="text-xl font-bold tracking-wider text-zinc-950 uppercase">
-                ONWEAR
+
+          {/* Drawer Content */}
+          <div className="relative w-[85vw] max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-300 ease-out">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+              <Link
+                href="/"
+                onClick={() => setShowMobileDrawer(false)}
+                className="text-lg font-black tracking-widest text-zinc-950 uppercase"
+              >
+                {settings.storeName || 'ONWEAR'}
               </Link>
               <button
                 onClick={() => setShowMobileDrawer(false)}
-                className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-all"
-                aria-label="Close Menu"
+                className="p-2 rounded-full hover:bg-zinc-200 text-zinc-600 transition-colors"
+                aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Navigation inside Drawer */}
-            <div className="flex flex-col gap-6 flex-1 overflow-y-auto pr-1">
-              <div className="flex flex-col gap-2">
-                <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Main Links</p>
+            {/* Drawer Body Scroll */}
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+              
+              {/* Quick Navigation Links */}
+              <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase mb-1">
+                  Menu
+                </p>
                 <Link
                   href="/"
                   onClick={() => setShowMobileDrawer(false)}
-                  className="text-sm font-semibold text-zinc-800 hover:text-indigo-600 transition-colors py-2 block"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 text-sm font-bold text-zinc-800"
                 >
-                  Home Page
+                  <Home className="h-4.5 w-4.5 text-zinc-500" />
+                  <span>Home</span>
                 </Link>
                 <Link
                   href="/products"
                   onClick={() => setShowMobileDrawer(false)}
-                  className="text-sm font-semibold text-zinc-800 hover:text-indigo-600 transition-colors py-2 block"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 text-sm font-bold text-zinc-800"
                 >
-                  Shop Catalog
+                  <ShoppingBag className="h-4.5 w-4.5 text-zinc-500" />
+                  <span>All Products</span>
+                </Link>
+                <Link
+                  href="/orders/track"
+                  onClick={() => setShowMobileDrawer(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-teal-50 text-teal-900 font-bold text-sm"
+                >
+                  <Package className="h-4.5 w-4.5 text-teal-600" />
+                  <span>Track Parcel</span>
                 </Link>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Product Categories</p>
-                {categories.map((cat) => {
+              {/* Categories Accordion */}
+              <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase mb-1">
+                  Categories
+                </p>
+                {categories.map((cat: any) => {
                   const subs = cat.subcategories || [];
                   const isExpanded = expandedMobileCat === cat.id;
 
                   return (
-                    <div key={cat.id} className="border-b border-zinc-50 py-1">
+                    <div key={cat.id} className="border-b border-zinc-100 last:border-0 py-1">
                       <div className="flex items-center justify-between">
                         <Link
                           href={`/products?category=${cat.slug}`}
                           onClick={() => setShowMobileDrawer(false)}
-                          className="text-sm font-semibold text-zinc-700 hover:text-indigo-650 transition-colors py-2 flex-1"
+                          className="text-sm font-bold text-zinc-800 hover:text-teal-600 py-2 flex-1"
                         >
                           {cat.name}
                         </Link>
                         {subs.length > 0 && (
                           <button
                             onClick={() => setExpandedMobileCat(isExpanded ? null : cat.id)}
-                            className="p-2 text-zinc-400 hover:text-zinc-950 transition-colors text-lg font-bold"
+                            className="p-2 text-zinc-400 hover:text-zinc-950 transition-colors"
                           >
-                            {isExpanded ? '−' : '+'}
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                           </button>
                         )}
                       </div>
 
+                      {/* Subcategories Dropdown */}
                       {subs.length > 0 && isExpanded && (
-                        <div className="pl-4 pb-2 flex flex-col gap-2 border-l-2 border-zinc-150/80 mt-1 animate-in slide-in-from-top-2 duration-150">
+                        <div className="pl-3 pb-2 flex flex-col gap-1.5 border-l-2 border-zinc-200 ml-2 mt-1 animate-in slide-in-from-top-1 duration-150">
                           <Link
                             href={`/products?category=${cat.slug}`}
                             onClick={() => setShowMobileDrawer(false)}
-                            className="text-xs font-bold text-indigo-600 hover:underline py-1"
+                            className="text-xs font-bold text-teal-600 py-1"
                           >
-                            Shop All {cat.name}
+                            View All {cat.name}
                           </Link>
                           {subs.map((sub: any, idx: number) => (
                             <Link
                               key={idx}
                               href={`/products?category=${sub.slug}`}
                               onClick={() => setShowMobileDrawer(false)}
-                              className="text-xs text-zinc-500 hover:text-indigo-650 py-1"
+                              className="text-xs font-medium text-zinc-600 hover:text-zinc-950 py-1"
                             >
                               {sub.name}
                             </Link>
@@ -632,43 +697,63 @@ export default function Navbar() {
                   );
                 })}
               </div>
+
+              {/* Customer Contact Support */}
+              <div className="flex flex-col gap-2 bg-zinc-50 p-3.5 rounded-2xl border border-zinc-100">
+                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">
+                  Customer Hotline
+                </p>
+                <a
+                  href={`tel:${settings.phone || '01603742963'}`}
+                  className="flex items-center gap-2 text-xs font-bold text-zinc-800"
+                >
+                  <Phone className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>{settings.phone || '01603-742963'}</span>
+                </a>
+              </div>
+
             </div>
 
-            {/* Footer inside Drawer */}
-            <div className="pt-4 border-t border-zinc-100 flex flex-col gap-2">
+            {/* Drawer Footer Auth Button */}
+            <div className="p-4 border-t border-zinc-100 bg-zinc-50 flex flex-col gap-2">
               {user ? (
-                <>
-                  <div className="text-xs text-zinc-500 mb-2">Logged in as <strong className="text-zinc-800">{user.name}</strong></div>
-                  <Link
-                    href="/profile"
-                    onClick={() => setShowMobileDrawer(false)}
-                    className="flex justify-center items-center py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
-                  >
-                    My Profile
-                  </Link>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-zinc-900 truncate">{user.name}</span>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase">{user.role}</span>
+                  </div>
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setShowMobileDrawer(false)}
+                      className="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs text-center shadow-xs"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       logout();
                       setShowMobileDrawer(false);
                     }}
-                    className="w-full py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-colors"
+                    className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-xs bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
                   >
                     Logout
                   </button>
-                </>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <Link
                     href="/login"
                     onClick={() => setShowMobileDrawer(false)}
-                    className="flex justify-center items-center py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+                    className="py-2.5 rounded-xl border border-zinc-200 text-center text-xs font-bold text-zinc-800 bg-white hover:bg-zinc-100 transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setShowMobileDrawer(false)}
-                    className="flex justify-center items-center py-2.5 rounded-xl bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700"
+                    className="py-2.5 rounded-xl bg-zinc-950 text-center text-xs font-bold text-white hover:bg-zinc-800 transition-colors shadow-xs"
                   >
                     Register
                   </Link>
@@ -676,62 +761,75 @@ export default function Navbar() {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
 
-      {/* STICKY BOTTOM NAVIGATION BAR (Mobile only) */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 border-t border-zinc-200 bg-white/95 backdrop-blur-md z-40 md:hidden flex items-center justify-around px-4 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-        <button
-          onClick={() => setShowMobileDrawer(true)}
-          className="flex flex-col items-center justify-center text-zinc-500 hover:text-indigo-600 transition-colors w-14"
-        >
-          <Menu className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Category</span>
-        </button>
-
-        <Link
-          href="/"
-          className="flex flex-col items-center justify-center text-zinc-500 hover:text-indigo-600 transition-colors w-14"
-        >
-          <Home className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Home</span>
-        </Link>
-
-        {user ? (
+      {/* 5. STICKY 5-TAB NATIVE APP MOBILE BOTTOM NAVIGATION */}
+      {!pathname.startsWith('/products/') && pathname !== '/checkout' && (
+        <div className="fixed bottom-0 left-0 right-0 h-16 border-t border-zinc-200/80 bg-white/95 backdrop-blur-md z-40 md:hidden flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+          
+          {/* Tab 1: Home */}
           <Link
-            href="/profile"
-            className="flex flex-col items-center justify-center text-zinc-500 hover:text-indigo-600 transition-colors w-14"
+            href="/"
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              pathname === '/' ? 'text-zinc-950 font-bold' : 'text-zinc-400 hover:text-zinc-700'
+            }`}
+          >
+            <Home className="h-5 w-5" />
+            <span className="text-[10px] mt-1">Home</span>
+          </Link>
+
+          {/* Tab 2: Shop */}
+          <Link
+            href="/products"
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              pathname === '/products' ? 'text-zinc-950 font-bold' : 'text-zinc-400 hover:text-zinc-700'
+            }`}
+          >
+            <ShoppingBag className="h-5 w-5" />
+            <span className="text-[10px] mt-1">Shop</span>
+          </Link>
+
+          {/* Tab 3: Track Order */}
+          <Link
+            href="/orders/track"
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              pathname === '/orders/track' ? 'text-teal-650 font-bold' : 'text-zinc-400 hover:text-zinc-700'
+            }`}
+          >
+            <Package className="h-5 w-5" />
+            <span className="text-[10px] mt-1">Track</span>
+          </Link>
+
+          {/* Tab 4: Wishlist */}
+          <Link
+            href="/wishlist"
+            className={`relative flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              pathname === '/wishlist' ? 'text-zinc-950 font-bold' : 'text-zinc-400 hover:text-zinc-700'
+            }`}
+          >
+            <Heart className="h-5 w-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute top-0.5 right-4 sm:right-6 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white">
+                {wishlistCount}
+              </span>
+            )}
+            <span className="text-[10px] mt-1">Wishlist</span>
+          </Link>
+
+          {/* Tab 5: Profile / Login */}
+          <Link
+            href={user ? '/profile' : '/login'}
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              pathname === '/profile' || pathname === '/login' ? 'text-zinc-950 font-bold' : 'text-zinc-400 hover:text-zinc-700'
+            }`}
           >
             <User className="h-5 w-5" />
-            <span className="text-[10px] font-medium mt-1">Profile</span>
+            <span className="text-[10px] mt-1">{user ? 'Account' : 'Login'}</span>
           </Link>
-        ) : (
-          <Link
-            href="/login"
-            className="flex flex-col items-center justify-center text-zinc-500 hover:text-indigo-600 transition-colors w-14"
-          >
-            <User className="h-5 w-5" />
-            <span className="text-[10px] font-medium mt-1">Login</span>
-          </Link>
-        )}
-      </div>
 
-      {/* 7. FLOATING STICKY CART ACTION BUTTON (Bottom Right) */}
-      <button
-        onClick={openCartDrawer}
-        className="fixed bottom-20 md:bottom-8 right-6 md:right-8 z-40 flex items-center justify-center rounded-full bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl hover:scale-105 transition-all duration-300 w-14 h-14 border border-zinc-700"
-        title="Open Shopping Bag"
-      >
-        <ShoppingCart className="h-6 w-6" />
-        {cartCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 text-xs font-black text-white ring-2 ring-white animate-pulse">
-            {cartCount}
-          </span>
-        )}
-      </button>
-
-      {/* Spacer to prevent bottom nav from overlapping footer on mobile */}
-      <div className="h-16 md:hidden w-full" />
+        </div>
+      )}
     </>
   );
 }

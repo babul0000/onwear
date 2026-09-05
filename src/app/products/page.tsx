@@ -357,25 +357,31 @@ function ProductsPageContent() {
         </aside>
 
         {/* Product Grid Panel */}
-        <main className="lg:col-span-3 flex flex-col gap-8">
+        <main className="lg:col-span-3 flex flex-col gap-6 sm:gap-8">
           {loading ? (
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse flex flex-col gap-3 bg-white border border-zinc-100 p-1">
-                  <div className="aspect-[3/4] w-full bg-zinc-200"></div>
-                  <div className="h-4 w-3/4 rounded bg-zinc-200"></div>
-                  <div className="h-4 w-1/4 rounded bg-zinc-200"></div>
+                <div key={i} className="animate-pulse flex flex-col gap-2.5 bg-white rounded-2xl border border-zinc-100 p-2">
+                  <div className="aspect-[3/4] w-full rounded-xl bg-zinc-100"></div>
+                  <div className="h-4 w-3/4 rounded bg-zinc-100"></div>
+                  <div className="h-4 w-1/4 rounded bg-zinc-100"></div>
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-zinc-200 bg-white p-8">
-              <span className="text-zinc-400 text-sm font-bold uppercase tracking-wider">No products found matching filters</span>
+            <div className="flex flex-col items-center justify-center py-16 text-center rounded-3xl border border-dashed border-zinc-200 bg-white p-8">
+              <span className="text-zinc-400 text-xs font-bold uppercase tracking-wider">No products found matching filters</span>
+              <button
+                onClick={handleClearFilters}
+                className="mt-4 px-4 py-2 rounded-xl bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider"
+              >
+                Clear All Filters
+              </button>
             </div>
           ) : (
-             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
+             <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
                {products.map((prod) => {
-                 const discount = prod.discountPrice !== null;
+                 const discount = prod.discountPrice !== null && prod.discountPrice !== undefined;
                  const isWished = isInWishlist(prod.id);
                  const isSoldOut = prod.stock === 0;
 
@@ -392,66 +398,66 @@ function ProductsPageContent() {
                    >
                      {/* Wishlist Button */}
                      <button
-                       onClick={() => isWished ? addToCart(prod.id, 1) : addToWishlist(prod.id)}
-                       className={`absolute right-2.5 top-2.5 z-10 p-2 shadow-sm border border-zinc-100 bg-white hover:scale-105 transition-transform ${
-                         isWished ? 'text-red-500' : 'text-zinc-450 hover:text-red-500'
+                       onClick={() => addToWishlist(prod.id, prod)}
+                       className={`absolute right-2.5 top-2.5 z-10 p-2 rounded-full shadow-xs border border-zinc-100 bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer ${
+                         isWished ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
                        }`}
+                       title="Wishlist"
                      >
                        <Heart className="h-4 w-4" fill={isWished ? 'currentColor' : 'none'} />
                      </button>
 
                      {/* Aspect 3/4 Image Container */}
-                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
+                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
                         {/* Primary Image */}
                         <img
                           src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
                           alt={prod.name}
-                          className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-110 ${
-                            isSoldOut ? 'opacity-50 group-hover:scale-100' : 'group-hover:opacity-0'
+                          className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
+                            isSoldOut ? 'opacity-50' : prod.image2 ? 'group-hover:opacity-0' : ''
                           }`}
                         />
 
-                        {/* Secondary Image (Fades in & zooms slightly on hover) */}
+                        {/* Secondary Image */}
                         {!isSoldOut && prod.image2 && (
                           <img
                             src={prod.image2}
-                            alt={`${prod.name} Hover`}
-                            className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-110"
+                            alt={`${prod.name} Alternate`}
+                            className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-105"
                           />
                         )}
                        
                        {/* Sold Out Badge overlay */}
-                       {isSoldOut && (
-                         <span className="absolute left-2.5 top-2.5 z-10 bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase shadow">
+                       {isSoldOut ? (
+                         <span className="absolute left-2.5 top-2.5 z-10 bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase rounded shadow-xs">
                            Sold Out
                          </span>
-                       )}
+                       ) : discount ? (
+                         <span className="absolute top-2.5 left-2.5 bg-teal-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                           Sale
+                         </span>
+                       ) : null}
 
-                       {/* Add to Cart Overlay */}
-                       <div className="absolute inset-x-3 bottom-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
+                       {/* Add to Cart Floating Button (Visible on mobile, animated hover on desktop) */}
+                       {!isSoldOut && (
                          <button
                            onClick={(e) => {
                              e.preventDefault();
-                             if (!token) {
-                               router.push('/login');
-                               return;
-                             }
+                             e.stopPropagation();
                              addToCart(prod.id, 1);
                            }}
-                           disabled={isSoldOut}
-                           className="w-full flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm py-2.5 text-xs font-bold text-zinc-950 hover:bg-white transition-all shadow-md uppercase tracking-wider disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                           className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 bg-zinc-950/90 hover:bg-zinc-950 text-white p-2.5 rounded-full shadow-md opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 active:scale-90 transition-all duration-200 z-10 cursor-pointer"
+                           title="Add to Bag"
                          >
-                           <ShoppingBag className="h-4 w-4" />
-                           <span>{!isSoldOut ? 'Order Now' : 'Out of Stock'}</span>
+                           <ShoppingBag className="h-3.5 w-3.5" />
                          </button>
-                       </div>
+                       )}
                      </a>
 
                      {/* Info Block */}
-                     <div className="mt-3 flex flex-col flex-1 px-0.5">
+                     <div className="mt-2.5 flex flex-col flex-1 px-0.5">
                        <div className="flex items-center justify-between">
-                         <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{prod.category?.name}</span>
-                         {/* Rating stars display (hidden if 0 reviews) */}
+                         <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 font-mono truncate">{prod.category?.name || 'ONWEAR'}</span>
                          {reviewCount > 0 && (
                            <div className="flex items-center gap-0.5 text-amber-400 text-[10px] font-bold">
                              <Star className="h-3 w-3 fill-current" />
@@ -460,18 +466,24 @@ function ProductsPageContent() {
                          )}
                        </div>
                        
-                       <a href={`/products/${prod.id}`} className="font-semibold text-zinc-900 group-hover:text-teal-600 transition-colors mt-1 block line-clamp-1">
+                       <a href={`/products/${prod.id}`} className="font-bold text-xs uppercase tracking-tight text-zinc-900 group-hover:text-teal-650 transition-colors mt-0.5 block line-clamp-1">
                          {prod.name}
                        </a>
 
-                       <div className="mt-2 flex items-baseline gap-2">
+                       <div className="mt-1 flex items-baseline gap-1.5">
                          {discount ? (
                            <>
-                             <span className={`text-lg font-bold ${isSoldOut ? 'text-zinc-400' : 'text-zinc-900'}`}>{formatPrice(prod.discountPrice)}</span>
-                             <span className="text-sm text-zinc-400 line-through">{formatPrice(prod.price)}</span>
+                             <span className={`text-xs sm:text-sm font-black font-mono ${isSoldOut ? 'text-zinc-400' : 'text-zinc-950'}`}>
+                               {formatPrice(prod.discountPrice)}
+                             </span>
+                             <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">
+                               {formatPrice(prod.price)}
+                             </span>
                            </>
                          ) : (
-                           <span className={`text-lg font-bold ${isSoldOut ? 'text-zinc-400 font-medium' : 'text-zinc-900'}`}>{formatPrice(prod.price)}</span>
+                           <span className={`text-xs sm:text-sm font-black font-mono ${isSoldOut ? 'text-zinc-400 font-medium' : 'text-zinc-950'}`}>
+                             {formatPrice(prod.price)}
+                           </span>
                          )}
                        </div>
                      </div>

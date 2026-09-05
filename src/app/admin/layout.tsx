@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { Info } from 'lucide-react';
@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { token, user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (loading) {
     return (
@@ -44,19 +45,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const menuNames: Record<string, string> = {
     '/admin': 'Dashboard Overview',
     '/admin/products': 'Products Inventory',
+    '/admin/products/add-product': 'Add Product',
     '/admin/categories': 'Product Categories',
     '/admin/orders': 'Customer Orders',
     '/admin/reviews': 'Customer Reviews',
     '/admin/users': 'User Directory',
+    '/admin/promotions': 'Promotions & Hero Banners',
+    '/admin/coupons': 'Discount Coupons',
+    '/admin/campaigns': 'Flash Campaigns',
+    '/admin/settings': 'Store Settings'
   };
   const pageTitle = menuNames[pathname] || 'Admin Panel';
 
   return (
     <div className="min-h-screen flex bg-zinc-50 font-sans text-zinc-900">
-      <AdminSidebar />
+      <AdminSidebar
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
-        <AdminHeader pageTitle={pageTitle} />
-        <main className="p-8 flex-1 flex flex-col">
+        <AdminHeader
+          pageTitle={pageTitle}
+          onOpenSidebar={() => setMobileSidebarOpen(true)}
+        />
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col">
           {children}
         </main>
       </div>

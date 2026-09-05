@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HeroSlide from './HeroSlide';
 import SlideIndicator from './SlideIndicator';
 import HeroNavigation from './HeroNavigation';
@@ -30,6 +30,7 @@ export default function HeroSlider({
 }: HeroSliderProps) {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   // Auto-play timer with progress percentage
   useEffect(() => {
@@ -59,14 +60,36 @@ export default function HeroSlider({
     setProgress(0);
   }, [activeSlideIdx]);
 
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setActiveSlideIdx((curr) => (curr === 0 ? slides.length - 1 : curr - 1));
   };
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setActiveSlideIdx((curr) => (curr + 1) % slides.length);
+  };
+
+  // Mobile Touch Swipe Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX.current - touchEndX;
+
+    if (Math.abs(diffX) > 40) {
+      if (diffX > 0) {
+        // Swiped Left -> Next slide
+        handleNext();
+      } else {
+        // Swiped Right -> Prev slide
+        handlePrev();
+      }
+    }
+    touchStartX.current = null;
   };
 
   const handleMouseEnter = () => {
@@ -87,6 +110,8 @@ export default function HeroSlider({
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className="absolute inset-0 w-full h-full"
     >
       {slides.map((slide, idx) => {

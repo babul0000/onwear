@@ -15,7 +15,7 @@ export default function LayoutContent({ children }) {
   return (
     <div className="min-h-full flex flex-col">
       {!isAuthPage && !isAdminPage && <Navbar />}
-      <main className="flex-1 flex flex-col">{children}</main>
+      <main className={`flex-1 flex flex-col ${!isAdminPage ? 'pb-16 md:pb-0' : ''}`}>{children}</main>
       {!isAuthPage && !isAdminPage && <Footer />}
       {!isAdminPage && <WhatsAppButton />}
       <CartDrawer />

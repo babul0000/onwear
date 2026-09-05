@@ -451,7 +451,7 @@ export default function CheckoutPage() {
                 placeholder="e.g. John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -463,7 +463,7 @@ export default function CheckoutPage() {
                 placeholder="e.g. john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -475,7 +475,7 @@ export default function CheckoutPage() {
                 placeholder="01XXXXXXXXX"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
               <select
                 value={zone}
                 onChange={handleZoneChange}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-semibold"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-semibold cursor-pointer"
               >
                 <option value="inside">Inside Dhaka ({formatPrice(insideRate)})</option>
                 <option value="outside">Outside Dhaka ({formatPrice(outsideRate)})</option>
@@ -499,7 +499,7 @@ export default function CheckoutPage() {
                 placeholder="House #, Road #, Area, District"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -510,7 +510,7 @@ export default function CheckoutPage() {
                 placeholder="e.g. Dhaka"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -521,7 +521,7 @@ export default function CheckoutPage() {
                 placeholder="e.g. 1229"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
 
@@ -532,7 +532,7 @@ export default function CheckoutPage() {
                 placeholder="Special instructions for delivery"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
             </div>
           </div>
@@ -544,7 +544,7 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* COD Option */}
               <label
-                className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
                   paymentMethod === 'COD'
                     ? 'border-zinc-950 bg-zinc-50 shadow-sm ring-1 ring-zinc-950/10'
                     : 'border-zinc-200 hover:border-zinc-300 bg-white'
@@ -566,7 +566,7 @@ export default function CheckoutPage() {
 
               {/* bKash Option */}
               <label
-                className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
                   paymentMethod === 'BKASH'
                     ? 'border-[#E2136E] bg-pink-50/60 shadow-sm ring-1 ring-[#E2136E]/20'
                     : 'border-zinc-200 hover:border-zinc-300 bg-white'
@@ -591,7 +591,7 @@ export default function CheckoutPage() {
 
               {/* Nagad Option */}
               <label
-                className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
                   paymentMethod === 'NAGAD'
                     ? 'border-[#F7921E] bg-amber-50/60 shadow-sm ring-1 ring-[#F7921E]/20'
                     : 'border-zinc-200 hover:border-zinc-300 bg-white'
@@ -608,17 +608,17 @@ export default function CheckoutPage() {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-[#F7921E]">Nagad</span>
-                    <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Personal</span>
+                    <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Merchant</span>
                   </div>
                   <span className="text-[10px] text-zinc-400">Send Money / TrxID Verification</span>
                 </div>
               </label>
 
-              {/* SSLCommerz Option */}
+              {/* Online Payment Option */}
               <label
-                className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
                   paymentMethod === 'ONLINE'
-                    ? 'border-zinc-950 bg-zinc-50 shadow-sm ring-1 ring-zinc-950/10'
+                    ? 'border-indigo-600 bg-indigo-50/60 shadow-sm ring-1 ring-indigo-600/20'
                     : 'border-zinc-200 hover:border-zinc-300 bg-white'
                 }`}
               >
@@ -628,11 +628,11 @@ export default function CheckoutPage() {
                   value="ONLINE"
                   checked={paymentMethod === 'ONLINE'}
                   onChange={() => setPaymentMethod('ONLINE')}
-                  className="h-4 w-4 text-zinc-950 focus:ring-zinc-950"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-900">Online Gateway</span>
-                  <span className="text-[10px] text-zinc-400">Cards & Instant Gateway (SSLCommerz)</span>
+                  <span className="text-xs font-bold text-zinc-900">Card & Mobile Banking</span>
+                  <span className="text-[10px] text-zinc-400">Visa, Mastercard, Amex, SSLCommerz</span>
                 </div>
               </label>
             </div>
