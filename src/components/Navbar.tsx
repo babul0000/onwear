@@ -144,35 +144,23 @@ export default function Navbar() {
     return () => clearTimeout(timeout);
   }, [searchQuery]);
 
-  // Fetch categories for bottom navigation row
+  // Fetch categories for bottom navigation row dynamically from database
   useEffect(() => {
     async function loadCategories() {
       try {
         const res = await fetch(`${API_URL}/categories`);
         const data = await res.json();
-        if (data.success) {
-          const fetchedCats = data.data;
-
-          // Merge fetched categories from DB with our default navigation layout
-          const merged = DEFAULT_NAV_CATEGORIES.map((defCat) => {
-            const match = fetchedCats.find(
-              (c: any) => c.slug.toLowerCase() === defCat.slug.toLowerCase()
-            );
-
-            let subs = defCat.subcategories;
-            if (match && match.subcategories && match.subcategories.length > 0) {
-              subs = match.subcategories.map((s: any) => ({ name: s.name, slug: s.slug }));
-            }
-
-            return {
-              ...defCat,
-              id: match ? match.id : defCat.id,
-              name: match ? match.name : defCat.name,
-              subcategories: subs
-            };
-          });
-
-          setCategories(merged);
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const dynamicCats = data.data.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            subcategories: (cat.subcategories || []).map((sub: any) => ({
+              name: sub.name,
+              slug: sub.slug
+            }))
+          }));
+          setCategories(dynamicCats);
         }
       } catch (err) {
         console.error('Error fetching navbar categories:', err);
@@ -200,6 +188,23 @@ export default function Navbar() {
 
   return (
     <>
+      {/* 0. DYNAMIC TOP ANNOUNCEMENT BAR */}
+      {settings.announcementEnabled && settings.announcementText && (
+        <div className="w-full bg-zinc-950 text-white text-[11px] font-semibold py-2 px-4 text-center tracking-wide flex items-center justify-center gap-2 border-b border-zinc-800 z-[70] relative">
+          {settings.announcementLink ? (
+            <Link
+              href={settings.announcementLink}
+              className="hover:text-teal-400 transition-colors flex items-center gap-1.5 font-medium"
+            >
+              <span>{settings.announcementText}</span>
+              <ArrowRight className="h-3 w-3 inline" />
+            </Link>
+          ) : (
+            <span>{settings.announcementText}</span>
+          )}
+        </div>
+      )}
+
       {/* HEADER / NAVIGATION CONTAINER */}
       <header className="w-full bg-white relative py-3 md:py-4 border-b border-zinc-100/50 z-[60]">
         {/* MAIN HEADER ROW (Middle) */}

@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const [shippingCost, setShippingCost] = useState(80);
   const [insideRate, setInsideRate] = useState(80);
   const [outsideRate, setOutsideRate] = useState(150);
+  const [freeShippingMinAmount, setFreeShippingMinAmount] = useState(2500);
 
   // Coupon States
   const [couponCode, setCouponCode] = useState('');
@@ -82,10 +83,14 @@ export default function CheckoutPage() {
           setInsideRate(ratesData.data.insideDhaka);
           setOutsideRate(ratesData.data.outsideDhaka);
           setShippingCost(ratesData.data.insideDhaka);
+          if (ratesData.data.freeShippingMinAmount) {
+            setFreeShippingMinAmount(ratesData.data.freeShippingMinAmount);
+          }
         }
         if (settingsData.success && settingsData.data) {
           if (settingsData.data.bkashNumber) setBkashNumber(settingsData.data.bkashNumber);
           if (settingsData.data.nagadNumber) setNagadNumber(settingsData.data.nagadNumber);
+          if (settingsData.data.freeShippingMinAmount) setFreeShippingMinAmount(settingsData.data.freeShippingMinAmount);
         }
       } catch (err) {
         console.error('Error fetching checkout configs:', err);
@@ -110,7 +115,9 @@ export default function CheckoutPage() {
     return acc + price * item.quantity;
   }, 0);
 
-  const grandTotal = Math.max(0, cartSubtotal - discountApplied + shippingCost);
+  const isFreeShipping = freeShippingMinAmount > 0 && cartSubtotal >= freeShippingMinAmount;
+  const effectiveShippingCost = isFreeShipping ? 0 : shippingCost;
+  const grandTotal = Math.max(0, cartSubtotal - discountApplied + effectiveShippingCost);
 
   // If order was just placed, render celebratory success card
   if (orderSuccessData) {
@@ -847,9 +854,15 @@ export default function CheckoutPage() {
               <span>Subtotal</span>
               <span className="font-mono font-bold text-zinc-900">{formatPrice(cartSubtotal)}</span>
             </div>
-            <div className="flex justify-between text-zinc-500">
+            <div className="flex justify-between text-zinc-500 items-center">
               <span>Shipping ({zone === 'inside' ? 'Dhaka' : 'Outside'})</span>
-              <span className="font-mono font-bold text-zinc-900">{formatPrice(shippingCost)}</span>
+              {isFreeShipping ? (
+                <span className="font-mono font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px] uppercase tracking-wider">
+                  FREE DELIVERY
+                </span>
+              ) : (
+                <span className="font-mono font-bold text-zinc-900">{formatPrice(shippingCost)}</span>
+              )}
             </div>
             {discountApplied > 0 && (
               <div className="flex justify-between text-emerald-600 font-bold">

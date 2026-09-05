@@ -13,8 +13,20 @@ export interface StoreSetting {
   address: string;
   facebookUrl: string;
   instagramUrl: string;
+  bkashNumber: string;
+  nagadNumber: string;
+  whatsappNumber: string;
   shippingInsideDhaka: number;
   shippingOutsideDhaka: number;
+  freeShippingMinAmount: number;
+  announcementText: string | null;
+  announcementEnabled: boolean;
+  announcementLink: string | null;
+  lookbookTitle: string | null;
+  lookbookSubtitle: string | null;
+  lookbookDescription: string | null;
+  lookbookImageUrl: string | null;
+  lookbookLinkUrl: string | null;
   updatedAt: string;
 }
 
@@ -29,13 +41,25 @@ const defaultSettings: StoreSetting = {
   storeName: 'ONWEAR',
   tagline: 'Unique way of elegance.',
   logoUrl: null,
-  phone: '01603-742663',
+  phone: '01603-742963',
   email: 'onwear.25@gmail.com',
   address: 'Khilkhet, Dhaka, Bangladesh, 1229',
   facebookUrl: 'https://facebook.com/onwear.bd',
   instagramUrl: 'https://instagram.com/onwear_bd',
+  bkashNumber: '01603742963',
+  nagadNumber: '01603742963',
+  whatsappNumber: '8801603742963',
   shippingInsideDhaka: 80,
   shippingOutsideDhaka: 150,
+  freeShippingMinAmount: 2500,
+  announcementText: '🎉 Free Shipping on all orders above Tk 2,500! Use coupon ONWEAR10',
+  announcementEnabled: true,
+  announcementLink: '/products',
+  lookbookTitle: 'THE SIGNATURE COLLECTION',
+  lookbookSubtitle: 'THE DENIM OVERCOAT LOOK',
+  lookbookDescription: 'Combine our signature Indigo Denim Overshirt with tailormade stretch pants for a modern casual lookup that fits both office work and weekend outings.',
+  lookbookImageUrl: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000',
+  lookbookLinkUrl: '/products?category=denim',
   updatedAt: new Date().toISOString()
 };
 

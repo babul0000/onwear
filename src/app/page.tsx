@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../config';
-import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Flame } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import EcommerceHero from '../components/Hero/EcommerceHero';
 
@@ -34,22 +35,29 @@ export default function Home() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { token, user } = useAuth();
+  const { settings } = useSettings();
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [catsRes, prodsRes] = await Promise.all([
+        const [catsRes, prodsRes, campsRes] = await Promise.all([
           fetch(`${API_URL}/categories`),
-          fetch(`${API_URL}/products?limit=9`)
+          fetch(`${API_URL}/products?limit=9`),
+          fetch(`${API_URL}/campaigns`).catch(() => null)
         ]);
         const catsData = await catsRes.json();
         const prodsData = await prodsRes.json();
+        const campsData = campsRes ? await campsRes.json() : null;
 
         if (catsData.success) setCategories(catsData.data);
         if (prodsData.success) setProducts(prodsData.data);
+        if (campsData && campsData.success && Array.isArray(campsData.data)) {
+          setCampaigns(campsData.data.filter((c: any) => c.isActive));
+        }
       } catch (err) {
         console.error('Error fetching home page data:', err);
       } finally {
@@ -59,10 +67,42 @@ export default function Home() {
     loadData();
   }, []);
 
+  const activeCampaign = campaigns.length > 0 ? campaigns[0] : null;
+
   return (
     <div className="flex flex-col gap-20 pb-24 bg-white">
       {/* 1. IMMERSIVE REVEAL HERO SECTION */}
       <EcommerceHero user={user} token={token} />
+
+      {/* 1.5. ACTIVE FLASH SALE / CAMPAIGN BANNER (IF ACTIVE) */}
+      {activeCampaign && (
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+          <div className="rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="rounded-2xl bg-white/20 p-4 backdrop-blur-md shrink-0">
+                <Flame className="h-8 w-8 text-yellow-300 animate-bounce" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest bg-black/20 px-2.5 py-0.5 rounded font-mono">
+                  Active Flash Campaign
+                </span>
+                <h3 className="text-2xl font-black uppercase tracking-tight mt-1">{activeCampaign.name}</h3>
+                {activeCampaign.description && (
+                  <p className="text-xs text-white/90 mt-0.5">{activeCampaign.description}</p>
+                )}
+              </div>
+            </div>
+
+            <Link
+              href="/products"
+              className="rounded-full bg-white text-zinc-950 hover:bg-zinc-100 font-black text-xs uppercase tracking-wider py-3.5 px-8 shadow-md transition-all shrink-0 flex items-center gap-2"
+            >
+              <span>Explore Campaign</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* 2. MINIMALIST TRUST BANNER */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
@@ -73,7 +113,9 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Fast Shipping</h3>
-              <p className="text-xs text-zinc-400 mt-1 font-medium">Free home delivery on order value above $50</p>
+              <p className="text-xs text-zinc-400 mt-1 font-medium">
+                Free home delivery on order value above {formatPrice(settings.freeShippingMinAmount || 2500)}
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-4">
@@ -82,7 +124,7 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Premium Quality</h3>
-              <p className="text-xs text-zinc-400 mt-1 font-medium">Finest hand-selected organic fabrics and fits</p>
+              <p className="text-xs text-zinc-400 mt-1 font-medium">Finest hand-selected fabrics & modern bespoke tailoring</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
@@ -144,18 +186,22 @@ export default function Home() {
         )}
       </section>
 
-      {/* 4. PREMIUM LOOKBOOK HIGHLIGHT (Unique Section) */}
+      {/* 4. DYNAMIC LOOKBOOK SHOWCASE SECTION */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl bg-zinc-950 overflow-hidden text-white shadow-xl min-h-[50vh]">
           <div className="lg:col-span-5 p-10 sm:p-16 flex flex-col justify-center gap-6">
-            <span className="text-xs font-bold tracking-[0.25em] text-teal-400 uppercase">THE OUTFIT INSPIRATION</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase leading-none">THE DENIM OVERCOAT LOOK</h2>
+            <span className="text-xs font-bold tracking-[0.25em] text-teal-400 uppercase font-mono">
+              {settings.lookbookTitle || 'THE SIGNATURE COLLECTION'}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase leading-tight">
+              {settings.lookbookSubtitle || 'THE DENIM OVERCOAT LOOK'}
+            </h2>
             <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-              Combine our signature Indigo Denim Overshirt with tailormade stretch pants for a modern casual lookup that fits both office work and weekend outings.
+              {settings.lookbookDescription || 'Combine our signature pieces for a modern tailored aesthetic suited for every occasion.'}
             </p>
             <div>
               <Link
-                href="/products?category=denim"
+                href={settings.lookbookLinkUrl || '/products'}
                 className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-teal-400 hover:text-white border-b-2 border-teal-400 pb-1.5 transition-colors duration-300"
               >
                 <span>Shop This Look</span>
@@ -165,8 +211,8 @@ export default function Home() {
           </div>
           <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-full overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000"
-              alt="Denim Lookbook Collection"
+              src={settings.lookbookImageUrl || 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000'}
+              alt={settings.lookbookSubtitle || 'Lookbook Collection'}
               className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
             />
           </div>
