@@ -30,7 +30,7 @@ export const metadata = {
     siteName: "ONWEAR",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1200",
+        url: "https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg",
         width: 1200,
         height: 630,
         alt: "ONWEAR - Unique Way of Elegance"
@@ -41,7 +41,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "OnWear - Unique Way of Elegance",
     description: "Premium men's clothing brand. Discover the latest collections with fast delivery.",
-    images: ["https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1200"]
+    images: ["https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg"]
   },
   robots: {
     index: true,

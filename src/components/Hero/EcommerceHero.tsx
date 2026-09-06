@@ -24,8 +24,29 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
   const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
 
+  const defaultSlides: SlideData[] = [
+    {
+      id: 'default-1',
+      title: 'Hero Slide 1',
+      imageUrl: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg',
+      linkUrl: '/products?category=shirt'
+    },
+    {
+      id: 'default-2',
+      title: 'Hero Slide 2',
+      imageUrl: 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg',
+      linkUrl: '/products?category=denim'
+    },
+    {
+      id: 'default-3',
+      title: 'Hero Slide 3',
+      imageUrl: 'https://i.ibb.co/rVYXTBD/Gemini-Generated-Image-p7ik1p7ik1p7ik1p.jpg',
+      linkUrl: '/products?category=winter-collection'
+    }
+  ];
+
   // Slides State
-  const [slides, setSlides] = useState<SlideData[]>([]);
+  const [slides, setSlides] = useState<SlideData[]>(defaultSlides);
   const [editSlides, setEditSlides] = useState<any[]>([]);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   
@@ -40,27 +61,6 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadingSlideIdx, setUploadingSlideIdx] = useState<number | null>(null);
 
-  const defaultSlides: SlideData[] = [
-    {
-      id: 'default-1',
-      title: 'Casual Shirts',
-      imageUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600',
-      linkUrl: '/products?category=shirt'
-    },
-    {
-      id: 'default-2',
-      title: 'Refined Denim',
-      imageUrl: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1600',
-      linkUrl: '/products?category=denim'
-    },
-    {
-      id: 'default-3',
-      title: 'Winter Collection',
-      imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1600',
-      linkUrl: '/products?category=winter-collection'
-    }
-  ];
-
   const activeSlides = slides.length === 3 ? slides : defaultSlides;
 
   // Detect mobile device
@@ -73,14 +73,29 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch Hero Slides
+  // Fetch Hero Slides and load from localStorage cache
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('onwear_hero_slides');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length === 3) {
+          setSlides(parsed);
+        }
+      }
+    } catch (e) {
+      console.error('Error reading slides cache:', e);
+    }
+
     async function loadSlides() {
       try {
         const res = await fetch(`${API_URL}/promotions/hero-slides`);
         const data = await res.json();
         if (data.success && data.data && data.data.length === 3) {
           setSlides(data.data);
+          try {
+            localStorage.setItem('onwear_hero_slides', JSON.stringify(data.data));
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Error loading hero slides:', err);
@@ -199,6 +214,9 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
       const data = await res.json();
       if (data.success && data.data && data.data.length === 3) {
         setSlides(data.data);
+        try {
+          localStorage.setItem('onwear_hero_slides', JSON.stringify(data.data));
+        } catch (e) {}
         setIsModalOpen(false);
         alert('Hero banner slides updated successfully!');
       } else {
