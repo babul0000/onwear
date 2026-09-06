@@ -3,10 +3,17 @@
 import React from 'react';
 import { DollarSign, Package, Truck, CreditCard, Tag } from 'lucide-react';
 
+interface SubCategoryItem {
+  id: string;
+  name: string;
+  slug?: string;
+}
+
 interface Category {
   id: string;
   name: string;
   slug: string;
+  subcategories?: SubCategoryItem[];
 }
 
 interface AddProductPricingProps {
@@ -347,59 +354,40 @@ export default function AddProductPricing({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Sub-category</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Sub-category</label>
+              {categoryId && (
+                <span className="text-[10px] text-zinc-400 font-medium">
+                  {categories.find(c => c.id === categoryId)?.subcategories?.length || 0} available
+                </span>
+              )}
+            </div>
             <select
               value={subCategory}
               onChange={(e) => setSubCategory(e.target.value)}
-              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:outline-indigo-600 transition-all cursor-pointer outline-none"
+              disabled={!categoryId}
+              className="rounded-xl border border-zinc-200 p-3 text-sm bg-zinc-50 focus:outline-indigo-600 transition-all cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select Sub-category</option>
+              <option value="">
+                {!categoryId ? 'Select a Category first' : 'Select Sub-category (Optional)'}
+              </option>
               {(() => {
                 const selectedCategory = categories.find(cat => cat.id === categoryId);
-                const categorySlug = selectedCategory?.slug ? selectedCategory.slug.toLowerCase() : '';
-                
-                const subcategoryMap: Record<string, { value: string; label: string }[]> = {
-                  'shirts': [
-                    { value: 'casual-shirts', label: 'Casual Shirts' },
-                    { value: 'formal-shirts', label: 'Formal Shirts' },
-                    { value: 'linen-shirts', label: 'Linen Shirts' }
-                  ],
-                  'pants': [
-                    { value: 'chinos', label: 'Chinos' },
-                    { value: 'joggers', label: 'Joggers' },
-                    { value: 'trousers', label: 'Trousers' },
-                    { value: 'cargos', label: 'Cargo Pants' }
-                  ],
-                  't-shirts': [
-                    { value: 'crewneck', label: 'Crewneck T-Shirts' },
-                    { value: 'v-neck', label: 'V-Neck T-Shirts' },
-                    { value: 'graphic-tees', label: 'Graphic Tees' }
-                  ],
-                  'denim': [
-                    { value: 'jeans', label: 'Jeans' },
-                    { value: 'jackets', label: 'Denim Jackets' }
-                  ],
-                  'caps': [
-                    { value: 'baseball-caps', label: 'Baseball Caps' },
-                    { value: 'dad-hats', label: 'Dad Hats' }
-                  ],
-                  'sandals': [
-                    { value: 'slides', label: 'Slides' },
-                    { value: 'leather-sandals', label: 'Leather Sandals' }
-                  ]
-                };
+                const dbSubcategories = selectedCategory?.subcategories || [];
 
-                const options = subcategoryMap[categorySlug] || [
-                  { value: 'casual-wear', label: 'Casual Wear' },
-                  { value: 'formal-wear', label: 'Formal Wear' },
-                  { value: 'active-wear', label: 'Active Wear' }
-                ];
+                if (dbSubcategories.length > 0) {
+                  return dbSubcategories.map(sub => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ));
+                }
 
-                return options.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                return (
+                  <option value="" disabled>
+                    No sub-categories created yet (Add in Admin &gt; Categories)
                   </option>
-                ));
+                );
               })()}
             </select>
           </div>

@@ -281,8 +281,15 @@ export default function AdminProductsPage() {
                 className="rounded-xl border border-zinc-200 p-2.5 text-sm bg-zinc-50 focus:outline-indigo-600"
               >
                 <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                {categories.map((cat: any) => (
+                  <React.Fragment key={cat.id}>
+                    <option value={cat.id} className="font-semibold text-zinc-900">{cat.name}</option>
+                    {cat.subcategories?.map((sub: any) => (
+                      <option key={sub.id} value={sub.id} className="text-zinc-600">
+                        &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name}
+                      </option>
+                    ))}
+                  </React.Fragment>
                 ))}
               </select>
             </div>

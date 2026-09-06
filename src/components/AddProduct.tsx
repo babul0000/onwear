@@ -9,10 +9,17 @@ import AddProductGeneral from './AddProductGeneral';
 import AddProductVariants from './AddProductVariants';
 import AddProductPricing from './AddProductPricing';
 
+interface SubCategoryItem {
+  id: string;
+  name: string;
+  slug?: string;
+}
+
 interface Category {
   id: string;
   name: string;
   slug: string;
+  subcategories?: SubCategoryItem[];
 }
 
 interface AddProductProps {
@@ -398,7 +405,7 @@ Free Shipping: ${freeShipping ? 'Yes' : 'No'}
       image2: secondaryImage,
       images: gallery,
       status,
-      categoryId
+      categoryId: subCategory || categoryId
     };
 
     try {
