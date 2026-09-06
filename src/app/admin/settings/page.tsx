@@ -55,11 +55,21 @@ export default function AdminSettingsPage() {
   const [lookbookImageUrl, setLookbookImageUrl] = useState('https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
   const [lookbookLinkUrl, setLookbookLinkUrl] = useState('/products?category=denim');
 
+  // Auth Pages (Login & Register) Visual Studio
+  const [loginImageUrl, setLoginImageUrl] = useState('https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg');
+  const [loginTitle, setLoginTitle] = useState('ELEVATE STYLE');
+  const [loginSubtitle, setLoginSubtitle] = useState('Find your signature clothing comfort at ONWEAR');
+  const [registerImageUrl, setRegisterImageUrl] = useState('https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
+  const [registerTitle, setRegisterTitle] = useState('START JOURNEY');
+  const [registerSubtitle, setRegisterSubtitle] = useState('Join ONWEAR to unlock VIP privileges, track orders & save wishlists');
+
   // UI State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingLookbook, setUploadingLookbook] = useState(false);
+  const [uploadingLoginBanner, setUploadingLoginBanner] = useState(false);
+  const [uploadingRegisterBanner, setUploadingRegisterBanner] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Load current settings into form
@@ -87,6 +97,12 @@ export default function AdminSettingsPage() {
       setLookbookDescription(settings.lookbookDescription || '');
       setLookbookImageUrl(settings.lookbookImageUrl || '');
       setLookbookLinkUrl(settings.lookbookLinkUrl || '/products?category=denim');
+      setLoginImageUrl(settings.loginImageUrl || 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg');
+      setLoginTitle(settings.loginTitle || 'ELEVATE STYLE');
+      setLoginSubtitle(settings.loginSubtitle || 'Find your signature clothing comfort at ONWEAR');
+      setRegisterImageUrl(settings.registerImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
+      setRegisterTitle(settings.registerTitle || 'START JOURNEY');
+      setRegisterSubtitle(settings.registerSubtitle || 'Join ONWEAR to unlock VIP privileges, track orders & save wishlists');
       setLoading(false);
     }
   }, [settings]);
@@ -94,14 +110,16 @@ export default function AdminSettingsPage() {
   // Handle Image Upload to ImgBB
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: 'logo' | 'lookbook'
+    type: 'logo' | 'lookbook' | 'loginBanner' | 'registerBanner'
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     if (type === 'logo') setUploadingLogo(true);
-    else setUploadingLookbook(true);
+    else if (type === 'lookbook') setUploadingLookbook(true);
+    else if (type === 'loginBanner') setUploadingLoginBanner(true);
+    else if (type === 'registerBanner') setUploadingRegisterBanner(true);
     setMessage(null);
 
     const formData = new FormData();
@@ -118,9 +136,15 @@ export default function AdminSettingsPage() {
         if (type === 'logo') {
           setLogoUrl(data.data.url);
           setMessage({ type: 'success', text: 'Logo uploaded successfully. Save changes to make it permanent!' });
-        } else {
+        } else if (type === 'lookbook') {
           setLookbookImageUrl(data.data.url);
           setMessage({ type: 'success', text: 'Lookbook image uploaded successfully. Save changes to apply!' });
+        } else if (type === 'loginBanner') {
+          setLoginImageUrl(data.data.url);
+          setMessage({ type: 'success', text: 'Login page banner uploaded successfully! Save changes to apply.' });
+        } else if (type === 'registerBanner') {
+          setRegisterImageUrl(data.data.url);
+          setMessage({ type: 'success', text: 'Register page banner uploaded successfully! Save changes to apply.' });
         }
       } else {
         setMessage({ type: 'error', text: data.error?.message || 'Image upload failed.' });
@@ -130,7 +154,9 @@ export default function AdminSettingsPage() {
       setMessage({ type: 'error', text: 'An error occurred during image upload. Please try again.' });
     } finally {
       if (type === 'logo') setUploadingLogo(false);
-      else setUploadingLookbook(false);
+      else if (type === 'lookbook') setUploadingLookbook(false);
+      else if (type === 'loginBanner') setUploadingLoginBanner(false);
+      else if (type === 'registerBanner') setUploadingRegisterBanner(false);
     }
   };
 
@@ -171,7 +197,13 @@ export default function AdminSettingsPage() {
           lookbookSubtitle,
           lookbookDescription,
           lookbookImageUrl,
-          lookbookLinkUrl
+          lookbookLinkUrl,
+          loginImageUrl,
+          loginTitle,
+          loginSubtitle,
+          registerImageUrl,
+          registerTitle,
+          registerSubtitle
         })
       });
 
@@ -452,7 +484,216 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* 4. CONTACT INFORMATION */}
+          {/* 4. AUTH PAGES (LOGIN & REGISTER) VISUAL MEDIA STUDIO */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-6">
+            <div className="border-b border-zinc-100 pb-4">
+              <h2 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                <ImageIcon className="h-4.5 w-4.5 text-teal-600" />
+                <span>Auth Pages (Login & Register) Visual Studio</span>
+              </h2>
+              <p className="text-zinc-500 text-xs mt-1 font-medium">
+                Customize the high-fashion editorial imagery and motivational headlines displayed on your customer Login and Registration portals.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* LOGIN PAGE CARD */}
+              <div className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50/50 space-y-4 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase text-zinc-900 tracking-wider flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-teal-500"></span>
+                      Login Portal Banner
+                    </span>
+                    <a
+                      href="/login"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-bold text-teal-700 hover:text-teal-800 underline"
+                    >
+                      View Page ↗
+                    </a>
+                  </div>
+
+                  {/* Thumbnail Preview */}
+                  <div className="relative h-44 w-full rounded-xl overflow-hidden border border-zinc-200 bg-zinc-950 group">
+                    <img
+                      src={loginImageUrl || 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg'}
+                      alt="Login Preview"
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
+                      <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest">{loginTitle || 'ELEVATE STYLE'}</span>
+                      <p className="text-[11px] font-light text-zinc-200 truncate">{loginSubtitle || 'Find your signature clothing comfort'}</p>
+                    </div>
+                  </div>
+
+                  {/* Uploader */}
+                  <label className="cursor-pointer bg-white border border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl p-2.5 flex items-center justify-center gap-2 text-xs font-bold text-zinc-800 transition-all shadow-sm">
+                    {uploadingLoginBanner ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                        <span>Uploading New Banner...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 text-zinc-600" />
+                        <span>Upload Login Banner via File</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'loginBanner')}
+                      disabled={uploadingLoginBanner}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Inputs */}
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1">
+                        Login Hero Headline
+                      </label>
+                      <input
+                        type="text"
+                        value={loginTitle}
+                        onChange={(e) => setLoginTitle(e.target.value)}
+                        placeholder="ELEVATE STYLE"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs text-zinc-900 font-bold focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1">
+                        Login Subtitle Text
+                      </label>
+                      <input
+                        type="text"
+                        value={loginSubtitle}
+                        onChange={(e) => setLoginSubtitle(e.target.value)}
+                        placeholder="Find your signature clothing comfort at ONWEAR"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs text-zinc-700 font-medium focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-200 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginImageUrl('https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg');
+                      setLoginTitle('ELEVATE STYLE');
+                      setLoginSubtitle('Find your signature clothing comfort at ONWEAR');
+                    }}
+                    className="text-[10px] font-bold text-zinc-400 hover:text-zinc-600"
+                  >
+                    Reset to Default
+                  </button>
+                </div>
+              </div>
+
+              {/* REGISTER PAGE CARD */}
+              <div className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50/50 space-y-4 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase text-zinc-900 tracking-wider flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
+                      Register Portal Banner
+                    </span>
+                    <a
+                      href="/register"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 underline"
+                    >
+                      View Page ↗
+                    </a>
+                  </div>
+
+                  {/* Thumbnail Preview */}
+                  <div className="relative h-44 w-full rounded-xl overflow-hidden border border-zinc-200 bg-zinc-950 group">
+                    <img
+                      src={registerImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg'}
+                      alt="Register Preview"
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
+                      <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest">{registerTitle || 'START JOURNEY'}</span>
+                      <p className="text-[11px] font-light text-zinc-200 truncate">{registerSubtitle || 'Join ONWEAR to unlock VIP privileges'}</p>
+                    </div>
+                  </div>
+
+                  {/* Uploader */}
+                  <label className="cursor-pointer bg-white border border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl p-2.5 flex items-center justify-center gap-2 text-xs font-bold text-zinc-800 transition-all shadow-sm">
+                    {uploadingRegisterBanner ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                        <span>Uploading New Banner...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 text-zinc-600" />
+                        <span>Upload Register Banner via File</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'registerBanner')}
+                      disabled={uploadingRegisterBanner}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Inputs */}
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1">
+                        Register Hero Headline
+                      </label>
+                      <input
+                        type="text"
+                        value={registerTitle}
+                        onChange={(e) => setRegisterTitle(e.target.value)}
+                        placeholder="START JOURNEY"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs text-zinc-900 font-bold focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1">
+                        Register Subtitle Text
+                      </label>
+                      <input
+                        type="text"
+                        value={registerSubtitle}
+                        onChange={(e) => setRegisterSubtitle(e.target.value)}
+                        placeholder="Join ONWEAR to unlock VIP privileges, track orders & save wishlists"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs text-zinc-700 font-medium focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-200 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegisterImageUrl('https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
+                      setRegisterTitle('START JOURNEY');
+                      setRegisterSubtitle('Join ONWEAR to unlock VIP privileges, track orders & save wishlists');
+                    }}
+                    className="text-[10px] font-bold text-zinc-400 hover:text-zinc-600"
+                  >
+                    Reset to Default
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. CONTACT INFORMATION */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-5">
             <h2 className="text-sm font-black text-zinc-950 uppercase tracking-wider border-b border-zinc-100 pb-4 flex items-center gap-2">
               <Phone className="h-4.5 w-4.5 text-teal-600" />

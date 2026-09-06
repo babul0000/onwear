@@ -27,6 +27,12 @@ export interface StoreSetting {
   lookbookDescription: string | null;
   lookbookImageUrl: string | null;
   lookbookLinkUrl: string | null;
+  loginImageUrl: string | null;
+  loginTitle: string | null;
+  loginSubtitle: string | null;
+  registerImageUrl: string | null;
+  registerTitle: string | null;
+  registerSubtitle: string | null;
   updatedAt: string;
 }
 
@@ -60,6 +66,12 @@ const defaultSettings: StoreSetting = {
   lookbookDescription: 'Combine our signature Indigo Denim Overshirt with tailormade stretch pants for a modern casual lookup that fits both office work and weekend outings.',
   lookbookImageUrl: 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg',
   lookbookLinkUrl: '/products?category=denim',
+  loginImageUrl: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg',
+  loginTitle: 'ELEVATE STYLE',
+  loginSubtitle: 'Find your signature clothing comfort at ONWEAR',
+  registerImageUrl: 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg',
+  registerTitle: 'START JOURNEY',
+  registerSubtitle: 'Join ONWEAR to unlock VIP privileges, track orders & save wishlists',
   updatedAt: new Date().toISOString()
 };
 
