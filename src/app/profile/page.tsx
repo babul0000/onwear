@@ -948,7 +948,7 @@ export default function ProfilePage() {
 
                         <Link href={`/products/${item.product.id}`} className="aspect-[3/4] w-full overflow-hidden bg-canvas border border-line block">
                           <img
-                            src={item.product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300'}
+                            src={item.product.image || '/placeholder.svg'}
                             alt={item.product.name}
                             className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
                           />

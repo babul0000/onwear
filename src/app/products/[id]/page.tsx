@@ -233,7 +233,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   // Extract only genuine uploaded images
   const galleryImages = extractGalleryImages(product);
-  const displayImage = selectedImage || (galleryImages.length > 0 ? galleryImages[0] : (product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600'));
+  const displayImage = selectedImage || (galleryImages.length > 0 ? galleryImages[0] : (product.image || '/placeholder.svg'));
 
   const meta = parseProductMetadata(product.description);
   const availableColors = meta.colors.length > 0 ? meta.colors : ['black', 'white', 'beige', 'grey'];

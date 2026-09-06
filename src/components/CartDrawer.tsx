@@ -121,10 +121,7 @@ export default function CartDrawer() {
                   className="flex gap-4 rounded-2xl border border-zinc-100 bg-white p-3.5 shadow-sm transition-all hover:border-zinc-200"
                 >
                   <img
-                    src={
-                      item.product.image ||
-                      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=200'
-                    }
+                    src={item.product.image || '/placeholder.svg'}
                     alt={item.product.name}
                     className="h-20 w-20 rounded-xl object-cover border border-zinc-100 shrink-0 bg-zinc-50"
                   />

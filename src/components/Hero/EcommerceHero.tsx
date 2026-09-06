@@ -321,7 +321,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     const newSlide: SlideData = {
       id: `slide-${Date.now()}`,
       title: `Hero Slide ${editSlides.length + 1}`,
-      imageUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1600',
+      imageUrl: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg',
       linkUrl: '/products',
       positionX: 50,
       positionY: 50,

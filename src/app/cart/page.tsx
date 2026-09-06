@@ -68,7 +68,7 @@ export default function CartPage() {
                 >
                   <div className="flex items-center gap-4 w-full sm:w-auto">
                     <img
-                      src={item.product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=100'}
+                      src={item.product.image || '/placeholder.svg'}
                       alt={item.product.name}
                       className="h-20 w-20 rounded-xl object-cover border border-zinc-100 bg-zinc-50 shrink-0"
                     />

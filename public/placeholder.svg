@@ -1,0 +1,19 @@
+<svg width="600" height="750" viewBox="0 0 600 750" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="750" fill="#F4F4F5"/>
+  
+  <!-- Subtle background grid/pattern -->
+  <circle cx="300" cy="340" r="140" fill="#E4E4E7" opacity="0.6"/>
+  
+  <!-- Modern Minimalist Clothes Hanger & Apparel Icon -->
+  <g transform="translate(230, 270)" stroke="#18181B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Hook -->
+    <path d="M70 20 C70 5, 85 5, 85 20 C85 35, 70 38, 70 50" />
+    <!-- Hanger Frame -->
+    <path d="M70 50 L10 85 C5 88, 5 95, 12 95 L128 95 C135 95, 135 88, 130 85 Z" fill="#FFFFFF" fill-opacity="0.5"/>
+    <line x1="20" y1="95" x2="120" y2="95" stroke="#71717A" stroke-width="2.5"/>
+  </g>
+  
+  <!-- Brand Name & Monogram Text -->
+  <text x="300" y="440" font-family="'IBM Plex Sans', -apple-system, sans-serif" font-size="20" font-weight="900" fill="#09090B" letter-spacing="6" text-anchor="middle">ONWEAR</text>
+  <text x="300" y="468" font-family="'IBM Plex Sans', -apple-system, sans-serif" font-size="10" font-weight="600" fill="#A1A1AA" letter-spacing="3" text-anchor="middle">UNIQUE WAY OF ELEGANCE</text>
+</svg>

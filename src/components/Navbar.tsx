@@ -466,7 +466,7 @@ export default function Navbar() {
                               className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-zinc-50 border border-zinc-100 hover:border-zinc-300 transition-all cursor-pointer group"
                             >
                               <img
-                                src={prod.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=100'}
+                                src={prod.image || '/placeholder.svg'}
                                 alt={prod.name}
                                 className="h-14 w-14 rounded-xl object-cover bg-zinc-100 shrink-0"
                               />

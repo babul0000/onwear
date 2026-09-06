@@ -158,7 +158,7 @@ export default function AddProductGeneral({
                   alt={`Preview ${idx + 1}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300';
+                    (e.target as HTMLImageElement).src = '/placeholder.svg';
                   }}
                 />
                 {idx === 0 && (

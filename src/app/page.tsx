@@ -171,7 +171,7 @@ export default function Home() {
               >
                 <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
                   <img
-                    src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=300'}
+                    src={cat.image || '/placeholder.svg'}
                     alt={cat.name}
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -211,7 +211,7 @@ export default function Home() {
           </div>
           <div className="lg:col-span-7 relative min-h-[220px] sm:min-h-[300px] lg:min-h-full overflow-hidden order-1 lg:order-2">
             <img
-              src={settings.lookbookImageUrl || 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000'}
+              src={settings.lookbookImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg'}
               alt={settings.lookbookSubtitle || 'Lookbook Collection'}
               className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
             />
@@ -256,7 +256,7 @@ export default function Home() {
                     className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
                     <img
-                      src={product.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400'}
+                      src={product.image || '/placeholder.svg'}
                       alt={product.name}
                       className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
                         hasTwoImages ? 'group-hover:opacity-0' : ''

@@ -50,7 +50,7 @@ export default function CategoriesPage() {
             >
               <div className="aspect-[4/3] w-full bg-zinc-50 overflow-hidden relative">
                 <img
-                  src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=400'}
+                  src={cat.image || '/placeholder.svg'}
                   alt={cat.name}
                   className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
                 />

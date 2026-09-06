@@ -411,7 +411,7 @@ function ProductsPageContent() {
                       <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
                         {/* Primary Image */}
                         <img
-                          src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
+                          src={prod.image || '/placeholder.svg'}
                           alt={prod.name}
                           className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
                             isSoldOut ? 'opacity-50' : prod.image2 ? 'group-hover:opacity-0' : ''

@@ -52,7 +52,7 @@ export default function AdminSettingsPage() {
   const [lookbookTitle, setLookbookTitle] = useState('THE SIGNATURE COLLECTION');
   const [lookbookSubtitle, setLookbookSubtitle] = useState('THE DENIM OVERCOAT LOOK');
   const [lookbookDescription, setLookbookDescription] = useState('Combine our signature Indigo Denim Overshirt with tailormade stretch pants for a modern casual lookup that fits both office work and weekend outings.');
-  const [lookbookImageUrl, setLookbookImageUrl] = useState('https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1000');
+  const [lookbookImageUrl, setLookbookImageUrl] = useState('https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
   const [lookbookLinkUrl, setLookbookLinkUrl] = useState('/products?category=denim');
 
   // UI State

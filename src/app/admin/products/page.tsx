@@ -379,7 +379,7 @@ export default function AdminProductsPage() {
                   <tr key={prod.id} className={`hover:bg-zinc-50 transition-colors ${prod.isDeleted ? 'bg-red-50/20 opacity-70' : ''}`}>
                     <td className="px-6 py-4">
                       <img
-                        src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=50'}
+                        src={prod.image || '/placeholder.svg'}
                         alt={prod.name}
                         className="h-10 w-10 rounded-lg object-cover border border-zinc-200 bg-zinc-50"
                       />

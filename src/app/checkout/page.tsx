@@ -787,7 +787,7 @@ export default function CheckoutPage() {
                 <div key={item.id} className="flex justify-between items-center text-xs border-b border-zinc-50 pb-2">
                   <div className="flex items-center gap-3 flex-1 pr-2">
                     <img
-                      src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=150'}
+                      src={prod.image || '/placeholder.svg'}
                       alt={prod.name}
                       className="h-10 w-10 object-cover rounded-lg border border-zinc-100 shrink-0"
                     />

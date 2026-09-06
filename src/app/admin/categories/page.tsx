@@ -285,7 +285,7 @@ export default function AdminCategoriesPage() {
                   <tr key={cat.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-4">
                       <img
-                        src={cat.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=50'}
+                        src={cat.image || '/placeholder.svg'}
                         alt={cat.name}
                         className="h-10 w-10 rounded-lg object-cover border border-zinc-200"
                       />

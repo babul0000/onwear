@@ -62,7 +62,7 @@ export default function WishlistPage() {
 
                 <Link href={`/products/${targetId}`} className="aspect-[4/3] w-full overflow-hidden bg-zinc-50 border border-zinc-100 block">
                   <img
-                    src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'}
+                    src={prod.image || '/placeholder.svg'}
                     alt={prod.name || 'Product'}
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />

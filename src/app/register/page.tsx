@@ -199,10 +199,10 @@ export default function RegisterPage() {
 
       {/* RIGHT COLUMN: Clothing Brand Presentation Image (Occupies 7 columns on desktop) */}
       <div className="relative md:col-span-7 hidden md:block overflow-hidden bg-zinc-950">
-        {/* Background Image: Premium Summer Clothing Model */}
+        {/* Background Image: Premium Clothing Model */}
         <img
-          src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200"
-          alt="Premium Clothing Model Collection"
+          src="https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg"
+          alt="ONWEAR Signature Collection"
           className="absolute inset-0 h-full w-full object-cover opacity-95 transition-transform duration-1000 hover:scale-102"
         />
         {/* Subtle Dark Gradient Overlay */}
