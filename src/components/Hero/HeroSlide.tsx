@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface HeroSlideProps {
@@ -8,10 +9,18 @@ interface HeroSlideProps {
   title: string;
   isActive: boolean;
   isMobile: boolean;
+  priority?: boolean;
   children?: React.ReactNode;
 }
 
-export default function HeroSlide({ imageUrl, title, isActive, isMobile, children }: HeroSlideProps) {
+export default function HeroSlide({
+  imageUrl,
+  title,
+  isActive,
+  isMobile,
+  priority = false,
+  children,
+}: HeroSlideProps) {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
 
   // Reset offset if slide becomes inactive
@@ -43,9 +52,7 @@ export default function HeroSlide({ imageUrl, title, isActive, isMobile, childre
       }`}
     >
       {/* Parallax Image Layer */}
-      <motion.img
-        src={imageUrl}
-        alt={title}
+      <motion.div
         animate={{
           x: mouseOffset.x,
           y: mouseOffset.y,
@@ -56,13 +63,17 @@ export default function HeroSlide({ imageUrl, title, isActive, isMobile, childre
           ease: 'easeOut',
           duration: 0.5,
         }}
-        className="absolute inset-0 w-full h-full object-cover object-top origin-center"
-        style={{
-          width: '100%',
-          height: '100%',
-        }}
-        loading="lazy"
-      />
+        className="absolute inset-0 w-full h-full origin-center will-change-transform"
+      >
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          priority={priority}
+          sizes="100vw"
+          className="object-cover object-top"
+        />
+      </motion.div>
 
       {/* Render Hotspots or custom indicators overlay if any */}
       {isActive && children}

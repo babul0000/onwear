@@ -123,6 +123,7 @@ export default function HeroSlider({
             title={slide.title}
             isActive={isActive}
             isMobile={isMobile}
+            priority={idx === 0}
           >
             {/* Slide 2: Render Product Hotspots */}
             {idx === 1 && (

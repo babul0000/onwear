@@ -49,12 +49,20 @@ export const metadata = {
   }
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://i.ibb.co" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://onwear-server.onrender.com" />
+        <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://onwear-server.onrender.com" />
+      </head>
       <body className="min-h-full flex flex-col bg-zinc-50 font-sans text-zinc-900">
         <SettingsProvider>
           <AuthProvider>
