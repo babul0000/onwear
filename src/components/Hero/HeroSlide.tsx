@@ -9,6 +9,8 @@ interface HeroSlideProps {
   title: string;
   isActive: boolean;
   isMobile: boolean;
+  positionX?: number;
+  positionY?: number;
   priority?: boolean;
   children?: React.ReactNode;
 }
@@ -18,6 +20,8 @@ export default function HeroSlide({
   title,
   isActive,
   isMobile,
+  positionX = 50,
+  positionY = 50,
   priority = false,
   children,
 }: HeroSlideProps) {
@@ -42,6 +46,9 @@ export default function HeroSlide({
   const handleMouseLeave = () => {
     setMouseOffset({ x: 0, y: 0 });
   };
+
+  const posX = typeof positionX === 'number' ? positionX : 50;
+  const posY = typeof positionY === 'number' ? positionY : 50;
 
   return (
     <div
@@ -71,7 +78,10 @@ export default function HeroSlide({
           fill
           priority={priority}
           sizes="100vw"
-          className="object-cover object-top"
+          style={{
+            objectPosition: `${posX}% ${posY}%`,
+          }}
+          className="object-cover"
         />
       </motion.div>
 

@@ -11,6 +11,8 @@ interface SlideData {
   title: string;
   imageUrl: string;
   linkUrl: string;
+  positionX?: number;
+  positionY?: number;
 }
 
 interface HeroSliderProps {
@@ -32,9 +34,11 @@ export default function HeroSlider({
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  // Auto-play timer with progress percentage
+  const isMultiSlide = slides.length > 1;
+
+  // Auto-play timer with progress percentage (Only if multiple slides)
   useEffect(() => {
-    if (slides.length === 0 || isPaused) return;
+    if (!isMultiSlide || isPaused) return;
 
     const tickTime = 50; // Update progress every 50ms for smoothness
     const slideDuration = 4500; // 4.5 seconds per slide
@@ -45,15 +49,16 @@ export default function HeroSlider({
     }, tickTime);
 
     return () => clearInterval(timer);
-  }, [slides.length, isPaused]);
+  }, [slides.length, isPaused, isMultiSlide]);
 
   // Sync slide change and reset progress when timer completes
   useEffect(() => {
+    if (!isMultiSlide) return;
     if (progress >= 100) {
       setActiveSlideIdx((curr) => (curr + 1) % slides.length);
       setProgress(0);
     }
-  }, [progress, slides.length, setActiveSlideIdx]);
+  }, [progress, slides.length, setActiveSlideIdx, isMultiSlide]);
 
   // Reset progress bar on slide index change manually
   useEffect(() => {
@@ -61,22 +66,25 @@ export default function HeroSlider({
   }, [activeSlideIdx]);
 
   const handlePrev = (e?: React.MouseEvent) => {
+    if (!isMultiSlide) return;
     if (e) e.stopPropagation();
     setActiveSlideIdx((curr) => (curr === 0 ? slides.length - 1 : curr - 1));
   };
 
   const handleNext = (e?: React.MouseEvent) => {
+    if (!isMultiSlide) return;
     if (e) e.stopPropagation();
     setActiveSlideIdx((curr) => (curr + 1) % slides.length);
   };
 
-  // Mobile Touch Swipe Handlers
+  // Mobile Touch Swipe Handlers (Only active when multiple slides)
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMultiSlide) return;
     touchStartX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
+    if (!isMultiSlide || touchStartX.current === null) return;
     const touchEndX = e.changedTouches[0].clientX;
     const diffX = touchStartX.current - touchEndX;
 
@@ -93,15 +101,19 @@ export default function HeroSlider({
   };
 
   const handleMouseEnter = () => {
-    if (!isMobile) {
+    if (!isMobile && isMultiSlide) {
       setIsPaused(true);
+      onHoverChange(true);
+    } else if (!isMobile) {
       onHoverChange(true);
     }
   };
 
   const handleMouseLeave = () => {
-    if (!isMobile) {
+    if (!isMobile && isMultiSlide) {
       setIsPaused(false);
+      onHoverChange(false);
+    } else if (!isMobile) {
       onHoverChange(false);
     }
   };
@@ -121,11 +133,13 @@ export default function HeroSlider({
             key={slide.id || idx}
             imageUrl={slide.imageUrl}
             title={slide.title}
+            positionX={slide.positionX}
+            positionY={slide.positionY}
             isActive={isActive}
             isMobile={isMobile}
             priority={idx === 0}
           >
-            {/* Slide 2: Render Product Hotspots */}
+            {/* Slide 2: Render Product Hotspots if multi-slide */}
             {idx === 1 && (
               <>
                 {/* Hotspot 1: Oxford Shirt */}
@@ -154,16 +168,20 @@ export default function HeroSlider({
         );
       })}
 
-      {/* Slide Progress Indicator */}
-      <SlideIndicator
-        activeIndex={activeSlideIdx}
-        totalSlides={slides.length}
-        progress={progress}
-        onSelect={setActiveSlideIdx}
-      />
+      {/* Slide Progress Indicator (Only when > 1 slide) */}
+      {isMultiSlide && (
+        <SlideIndicator
+          activeIndex={activeSlideIdx}
+          totalSlides={slides.length}
+          progress={progress}
+          onSelect={setActiveSlideIdx}
+        />
+      )}
 
-      {/* Slide Navigation Controls */}
-      <HeroNavigation onPrev={handlePrev} onNext={handleNext} />
+      {/* Slide Navigation Controls (Only when > 1 slide) */}
+      {isMultiSlide && (
+        <HeroNavigation onPrev={handlePrev} onNext={handleNext} />
+      )}
     </div>
   );
 }
