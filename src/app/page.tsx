@@ -31,12 +31,51 @@ interface Product {
   };
 }
 
+const DEFAULT_HOME_CATEGORIES: Category[] = [
+  {
+    id: 'shirt',
+    name: 'Shirt',
+    slug: 'shirt',
+    image: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg'
+  },
+  {
+    id: 't-shirt',
+    name: 'T-Shirt',
+    slug: 't-shirt',
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400'
+  },
+  {
+    id: 'pant',
+    name: 'Pant',
+    slug: 'pant',
+    image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=400'
+  },
+  {
+    id: 'sandal',
+    name: 'Sandal',
+    slug: 'sandal',
+    image: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=400'
+  },
+  {
+    id: 'winter-collection',
+    name: 'Winter Collection',
+    slug: 'winter-collection',
+    image: 'https://i.ibb.co/rVYXTBD/Gemini-Generated-Image-p7ik1p7ik1p7ik1p.jpg'
+  },
+  {
+    id: 'cap',
+    name: 'Cap',
+    slug: 'cap',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400'
+  }
+];
+
 export default function Home() {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_HOME_CATEGORIES);
   const [products, setProducts] = useState<Product[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
   const { token, user } = useAuth();
   const { settings } = useSettings();
@@ -45,16 +84,20 @@ export default function Home() {
     async function loadData() {
       try {
         const [catsRes, prodsRes, campsRes] = await Promise.all([
-          fetch(`${API_URL}/categories`),
-          fetch(`${API_URL}/products?limit=9`),
+          fetch(`${API_URL}/categories`).catch(() => null),
+          fetch(`${API_URL}/products?limit=9`).catch(() => null),
           fetch(`${API_URL}/campaigns`).catch(() => null)
         ]);
-        const catsData = await catsRes.json();
-        const prodsData = await prodsRes.json();
+        const catsData = catsRes ? await catsRes.json() : null;
+        const prodsData = prodsRes ? await prodsRes.json() : null;
         const campsData = campsRes ? await campsRes.json() : null;
 
-        if (catsData.success) setCategories(catsData.data);
-        if (prodsData.success) setProducts(prodsData.data);
+        if (catsData && catsData.success && Array.isArray(catsData.data) && catsData.data.length > 0) {
+          setCategories(catsData.data);
+        }
+        if (prodsData && prodsData.success && Array.isArray(prodsData.data)) {
+          setProducts(prodsData.data);
+        }
         if (campsData && campsData.success && Array.isArray(campsData.data)) {
           setCampaigns(campsData.data.filter((c: any) => c.isActive));
         }
