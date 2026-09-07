@@ -19,7 +19,11 @@ import {
   Sparkles,
   ExternalLink,
   Tag,
-  AlertCircle
+  AlertCircle,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
+  Move
 } from 'lucide-react';
 
 interface CategoryItem {
@@ -30,6 +34,7 @@ interface CategoryItem {
   image?: string | null;
   status: 'ACTIVE' | 'INACTIVE';
   parentId?: string | null;
+  displayOrder?: number;
   subcategories?: CategoryItem[];
   createdAt?: string;
   updatedAt?: string;
@@ -57,6 +62,81 @@ export default function AdminCategoriesPage() {
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Drag & drop & reordering state
+  const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
+  const [dragOverParentId, setDragOverParentId] = useState<string | null>(null);
+  const [draggedSubId, setDraggedSubId] = useState<{ parentId: string; subId: string } | null>(null);
+  const [dragOverSubId, setDragOverSubId] = useState<{ parentId: string; subId: string } | null>(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  const saveCategoryOrder = async (updatedCategories: CategoryItem[]) => {
+    const payload: { id: string; displayOrder: number }[] = [];
+    const parents = updatedCategories.filter((c) => !c.parentId);
+    parents.forEach((parent, pIdx) => {
+      payload.push({ id: parent.id, displayOrder: pIdx });
+      if (parent.subcategories && parent.subcategories.length > 0) {
+        parent.subcategories.forEach((sub, sIdx) => {
+          payload.push({ id: sub.id, displayOrder: sIdx });
+        });
+      }
+    });
+
+    setIsSavingOrder(true);
+    try {
+      const res = await fetch(`${API_URL}/categories/reorder`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ items: payload })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess('Category sequence updated successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to save category order:', err);
+      setError('Failed to update category order.');
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const handleMoveParent = (parentIdx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? parentIdx - 1 : parentIdx + 1;
+    if (targetIdx < 0 || targetIdx >= parentCategories.length) return;
+    
+    const parentA = parentCategories[parentIdx];
+    const parentB = parentCategories[targetIdx];
+    const idxA = categories.findIndex((c) => c.id === parentA.id);
+    const idxB = categories.findIndex((c) => c.id === parentB.id);
+    if (idxA === -1 || idxB === -1) return;
+
+    const newCats = [...categories];
+    const [moved] = newCats.splice(idxA, 1);
+    newCats.splice(idxB, 0, moved);
+    setCategories(newCats);
+    saveCategoryOrder(newCats);
+  };
+
+  const handleMoveSub = (parentCatId: string, subIdx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? subIdx - 1 : subIdx + 1;
+    const parent = categories.find((c) => c.id === parentCatId);
+    if (!parent || !parent.subcategories || targetIdx < 0 || targetIdx >= parent.subcategories.length) return;
+
+    const newCats = categories.map((cat) => {
+      if (cat.id !== parentCatId || !cat.subcategories) return cat;
+      const subs = [...cat.subcategories];
+      const [moved] = subs.splice(subIdx, 1);
+      subs.splice(targetIdx, 0, moved);
+      return { ...cat, subcategories: subs };
+    });
+    setCategories(newCats);
+    saveCategoryOrder(newCats);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -661,19 +741,108 @@ export default function AdminCategoriesPage() {
             </div>
           ) : viewMode === 'hierarchy' ? (
             
-            /* 1. HIERARCHY TREE VIEW */
+            /* 1. HIERARCHY TREE VIEW WITH DRAG & DROP REORDERING */
             <div className="flex flex-col gap-4">
-              {filteredParents.map((parent) => {
+              {/* Informational tip banner */}
+              <div className="flex items-center justify-between bg-zinc-900 text-white px-4 py-2.5 rounded-2xl text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <Move className="h-4 w-4 text-teal-400 shrink-0" />
+                  <span>Drag cards or click ▲ / ▼ to reorder category positions live.</span>
+                </div>
+                {isSavingOrder && (
+                  <span className="text-teal-400 font-bold animate-pulse text-[11px]">Saving sequence...</span>
+                )}
+              </div>
+
+              {filteredParents.map((parent, pIdx) => {
                 const subs = parent.subcategories || [];
+                const isFirst = pIdx === 0;
+                const isLast = pIdx === filteredParents.length - 1;
+                const isBeingDragged = draggedParentId === parent.id;
+                const isDragOver = dragOverParentId === parent.id;
 
                 return (
                   <div
                     key={parent.id}
-                    className="bg-white rounded-3xl border border-zinc-200/90 shadow-xs overflow-hidden transition-all hover:border-zinc-300"
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedParentId(parent.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverParentId !== parent.id) {
+                        setDragOverParentId(parent.id);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverParentId === parent.id) {
+                        setDragOverParentId(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedParentId && draggedParentId !== parent.id) {
+                        const fromIdx = categories.findIndex((c) => c.id === draggedParentId);
+                        const toIdx = categories.findIndex((c) => c.id === parent.id);
+                        if (fromIdx !== -1 && toIdx !== -1) {
+                          const newCats = [...categories];
+                          const [moved] = newCats.splice(fromIdx, 1);
+                          newCats.splice(toIdx, 0, moved);
+                          setCategories(newCats);
+                          saveCategoryOrder(newCats);
+                        }
+                      }
+                      setDraggedParentId(null);
+                      setDragOverParentId(null);
+                    }}
+                    className={`bg-white rounded-3xl border transition-all overflow-hidden ${
+                      isDragOver
+                        ? 'border-teal-500 ring-2 ring-teal-500/20 shadow-lg scale-[1.01]'
+                        : isBeingDragged
+                        ? 'opacity-40 border-dashed border-zinc-400'
+                        : 'border-zinc-200/90 shadow-xs hover:border-zinc-300'
+                    }`}
                   >
                     {/* Parent Category Header Card */}
                     <div className="p-4 sm:p-5 bg-zinc-50/70 border-b border-zinc-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-center gap-3.5">
+                      <div className="flex items-center gap-3">
+                        
+                        {/* Drag Handle & Up/Down Sequence Controls */}
+                        <div className="flex items-center gap-1 bg-white border border-zinc-200/90 rounded-xl p-1 shadow-2xs">
+                          <div
+                            className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            title="Drag to reorder"
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </div>
+                          <span className="font-mono text-[10px] font-black bg-zinc-100 text-zinc-800 px-1.5 py-0.5 rounded-md">
+                            #{pIdx + 1}
+                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <button
+                              type="button"
+                              disabled={isFirst}
+                              onClick={() => handleMoveParent(pIdx, 'up')}
+                              className="p-0.5 text-zinc-400 hover:text-zinc-900 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ArrowUp className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isLast}
+                              onClick={() => handleMoveParent(pIdx, 'down')}
+                              className="p-0.5 text-zinc-400 hover:text-zinc-900 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ArrowDown className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Thumbnail Image */}
                         <div className="h-12 w-12 rounded-2xl overflow-hidden bg-white border border-zinc-200 shrink-0 shadow-xs">
                           <img
                             src={parent.image || '/placeholder.svg'}
@@ -734,7 +903,7 @@ export default function AdminCategoriesPage() {
                       </div>
                     </div>
 
-                    {/* Subcategories Nested List */}
+                    {/* Subcategories Nested List with Reordering */}
                     <div className="p-3 sm:p-4 bg-white flex flex-col gap-2">
                       {subs.length === 0 ? (
                         <div className="p-4 rounded-2xl bg-zinc-50/50 border border-dashed border-zinc-200 text-center flex items-center justify-between">
@@ -749,60 +918,144 @@ export default function AdminCategoriesPage() {
                           </button>
                         </div>
                       ) : (
-                        subs.map((sub) => (
-                          <div
-                            key={sub.id}
-                            className="p-2.5 sm:p-3 rounded-2xl border border-zinc-150 hover:border-zinc-250 bg-white hover:bg-zinc-50/60 transition-all flex items-center justify-between gap-3 group"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              {/* Subcategory connector icon */}
-                              <div className="text-zinc-300 font-mono text-xs pl-1">└─</div>
+                        subs.map((sub, sIdx) => {
+                          const isSubFirst = sIdx === 0;
+                          const isSubLast = sIdx === subs.length - 1;
+                          const isSubBeingDragged = draggedSubId?.parentId === parent.id && draggedSubId?.subId === sub.id;
+                          const isSubDragOver = dragOverSubId?.parentId === parent.id && dragOverSubId?.subId === sub.id;
 
-                              <div className="h-8 w-8 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0">
-                                <img
-                                  src={sub.image || '/placeholder.svg'}
-                                  alt={sub.name}
-                                  className="h-full w-full object-cover"
-                                />
+                          return (
+                            <div
+                              key={sub.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.stopPropagation();
+                                setDraggedSubId({ parentId: parent.id, subId: sub.id });
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
+                                if (dragOverSubId?.subId !== sub.id) {
+                                  setDragOverSubId({ parentId: parent.id, subId: sub.id });
+                                }
+                              }}
+                              onDragLeave={(e) => {
+                                e.stopPropagation();
+                                if (dragOverSubId?.subId === sub.id) {
+                                  setDragOverSubId(null);
+                                }
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (draggedSubId && draggedSubId.parentId === parent.id && draggedSubId.subId !== sub.id) {
+                                  const fromSubIdx = subs.findIndex((s) => s.id === draggedSubId.subId);
+                                  const toSubIdx = sIdx;
+                                  if (fromSubIdx !== -1 && toSubIdx !== -1) {
+                                    const newCats = categories.map((cat) => {
+                                      if (cat.id !== parent.id || !cat.subcategories) return cat;
+                                      const newSubs = [...cat.subcategories];
+                                      const [moved] = newSubs.splice(fromSubIdx, 1);
+                                      newSubs.splice(toSubIdx, 0, moved);
+                                      return { ...cat, subcategories: newSubs };
+                                    });
+                                    setCategories(newCats);
+                                    saveCategoryOrder(newCats);
+                                  }
+                                }
+                                setDraggedSubId(null);
+                                setDragOverSubId(null);
+                              }}
+                              className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 group ${
+                                isSubDragOver
+                                  ? 'border-teal-500 bg-teal-50/40 ring-1 ring-teal-500/30'
+                                  : isSubBeingDragged
+                                  ? 'opacity-40 border-dashed border-zinc-400 bg-zinc-50'
+                                  : 'border-zinc-150 hover:border-zinc-250 bg-white hover:bg-zinc-50/60'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                {/* Subcategory Sequence Controls */}
+                                <div className="flex items-center gap-0.5 bg-zinc-50 border border-zinc-200/80 rounded-lg p-0.5">
+                                  <div
+                                    className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-400 hover:text-zinc-800"
+                                    title="Drag to reorder subcategory"
+                                  >
+                                    <GripVertical className="h-3 w-3" />
+                                  </div>
+                                  <span className="font-mono text-[9px] font-bold text-zinc-500 px-1">
+                                    {sIdx + 1}
+                                  </span>
+                                  <div className="flex items-center">
+                                    <button
+                                      type="button"
+                                      disabled={isSubFirst}
+                                      onClick={() => handleMoveSub(parent.id, sIdx, 'up')}
+                                      className="p-0.5 text-zinc-400 hover:text-zinc-900 disabled:opacity-20 cursor-pointer"
+                                      title="Move Subcategory Up"
+                                    >
+                                      <ArrowUp className="h-2.5 w-2.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={isSubLast}
+                                      onClick={() => handleMoveSub(parent.id, sIdx, 'down')}
+                                      className="p-0.5 text-zinc-400 hover:text-zinc-900 disabled:opacity-20 cursor-pointer"
+                                      title="Move Subcategory Down"
+                                    >
+                                      <ArrowDown className="h-2.5 w-2.5" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="h-8 w-8 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0">
+                                  <img
+                                    src={sub.image || '/placeholder.svg'}
+                                    alt={sub.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="font-bold text-xs text-zinc-900 truncate font-sans">
+                                    {sub.name}
+                                  </p>
+                                  <p className="text-[10px] text-zinc-400 font-mono truncate">
+                                    /{sub.slug}
+                                  </p>
+                                </div>
                               </div>
 
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs text-zinc-900 truncate font-sans">
-                                  {sub.name}
-                                </p>
-                                <p className="text-[10px] text-zinc-400 font-mono truncate">
-                                  /{sub.slug}
-                                </p>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase font-mono ${
+                                  sub.status === 'ACTIVE'
+                                    ? 'bg-emerald-50 text-emerald-700'
+                                    : 'bg-zinc-100 text-zinc-500'
+                                }`}>
+                                  {sub.status}
+                                </span>
+
+                                <button
+                                  onClick={() => handleEdit(sub)}
+                                  className="p-1.5 text-zinc-400 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
+                                  title="Edit Subcategory"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+
+                                <button
+                                  onClick={() => handleDelete(sub.id, sub.name)}
+                                  className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                  title="Delete Subcategory"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                               </div>
                             </div>
-
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase font-mono ${
-                                sub.status === 'ACTIVE'
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-zinc-100 text-zinc-500'
-                              }`}>
-                                {sub.status}
-                              </span>
-
-                              <button
-                                onClick={() => handleEdit(sub)}
-                                className="p-1.5 text-zinc-400 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
-                                title="Edit Subcategory"
-                              >
-                                <Edit2 className="h-3.5 w-3.5" />
-                              </button>
-
-                              <button
-                                onClick={() => handleDelete(sub.id, sub.name)}
-                                className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                                title="Delete Subcategory"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
 
