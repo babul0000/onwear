@@ -554,6 +554,34 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* 3. MOBILE CATEGORY SCROLL PILLS STRIP (Sticky Mobile Navigation) */}
+      <div className="md:hidden sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-zinc-100 shadow-xs">
+        <div className="px-3 h-11 flex items-center overflow-x-auto no-scrollbar gap-2">
+          <Link
+            href="/products"
+            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+              pathname === '/products'
+                ? 'bg-zinc-950 text-white shadow-xs'
+                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+            }`}
+          >
+            All Products
+          </Link>
+          {categories.map((cat: any) => (
+            <Link
+              key={cat.id}
+              href={`/products?category=${cat.slug}`}
+              className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                pathname.includes(cat.slug)
+                  ? 'bg-zinc-950 text-white font-bold shadow-xs'
+                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+              }`}
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {/* 4. MOBILE SIDEBAR DRAWER (Sliding Left Offcanvas) */}
       {showMobileDrawer && (
