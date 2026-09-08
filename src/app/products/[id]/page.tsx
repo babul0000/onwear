@@ -269,6 +269,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   <img
                     src={imgUrl}
                     alt={`${product.name} Angle ${idx + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </button>

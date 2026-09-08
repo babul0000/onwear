@@ -52,6 +52,8 @@ export default function CategoriesPage() {
                 <img
                   src={cat.image || '/placeholder.svg'}
                   alt={cat.name}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>

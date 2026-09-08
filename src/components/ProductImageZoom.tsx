@@ -66,6 +66,7 @@ export default function ProductImageZoom({ src, zoomSrc, alt, className = '' }: 
       <img
         src={src}
         alt={alt}
+        decoding="async"
         className="h-full w-full object-cover"
       />
 
@@ -74,6 +75,7 @@ export default function ProductImageZoom({ src, zoomSrc, alt, className = '' }: 
         ref={zoomImageRef}
         src={activeZoomSrc}
         alt={`${alt} Zoomed`}
+        decoding="async"
         className="absolute inset-0 h-full w-full object-cover opacity-0 pointer-events-none transition-opacity duration-200 ease-out"
         style={{
           transformOrigin: 'center',

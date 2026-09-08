@@ -216,6 +216,8 @@ export default function Home() {
                   <img
                     src={cat.image || '/placeholder.svg'}
                     alt={cat.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
@@ -256,6 +258,8 @@ export default function Home() {
             <img
               src={settings.lookbookImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg'}
               alt={settings.lookbookSubtitle || 'Lookbook Collection'}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
             />
           </div>
@@ -301,6 +305,8 @@ export default function Home() {
                     <img
                       src={product.image || '/placeholder.svg'}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
                         hasTwoImages ? 'group-hover:opacity-0' : ''
                       }`}
@@ -310,6 +316,8 @@ export default function Home() {
                       <img
                         src={product.image2}
                         alt={`${product.name} alternate`}
+                        loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-105"
                       />
                     )}

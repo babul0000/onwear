@@ -413,6 +413,8 @@ function ProductsPageContent() {
                         <img
                           src={prod.image || '/placeholder.svg'}
                           alt={prod.name}
+                          loading="lazy"
+                          decoding="async"
                           className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
                             isSoldOut ? 'opacity-50' : prod.image2 ? 'group-hover:opacity-0' : ''
                           }`}
@@ -423,6 +425,8 @@ function ProductsPageContent() {
                           <img
                             src={prod.image2}
                             alt={`${prod.name} Alternate`}
+                            loading="lazy"
+                            decoding="async"
                             className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-105"
                           />
                         )}

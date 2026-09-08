@@ -52,6 +52,8 @@ export default function AdminProductsTable({ productList, loading }: AdminProduc
                       <img 
                         src={prod.image} 
                         alt={prod.name} 
+                        loading="lazy"
+                        decoding="async"
                         className="h-10 w-10 rounded-2xl object-cover border border-zinc-100 shadow-sm"
                       />
                     ) : (
