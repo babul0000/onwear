@@ -85,7 +85,7 @@ function SlideRepositionBox({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-full aspect-[16/7] bg-zinc-950 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing border border-zinc-200 shadow-inner select-none touch-none group"
+        className="relative w-full aspect-[16/9] bg-zinc-950 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing border border-zinc-200 shadow-inner select-none touch-none group"
       >
         <img
           src={imageUrl}
@@ -414,8 +414,8 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
 
   return (
     <>
-      {/* Balanced, clamped responsive hero container */}
-      <div className="relative w-full h-[52vh] min-h-[380px] max-h-[500px] sm:h-[65vh] sm:min-h-[480px] sm:max-h-[600px] md:h-[75vh] md:min-h-[540px] md:max-h-[720px] overflow-hidden flex items-end justify-center select-none">
+      {/* Balanced, natural responsive hero container ensuring full banner visibility on mobile */}
+      <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-auto md:h-[75vh] md:min-h-[540px] md:max-h-[720px] overflow-hidden flex items-end justify-center select-none">
         {/* Animated Slide container */}
         <motion.div
           ref={heroRef}
@@ -431,7 +431,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
           {user && user.role === 'admin' && (
             <button
               onClick={handleEditHeroSlides}
-              className="absolute top-5 right-5 z-20 bg-white/95 hover:bg-white text-zinc-800 p-2.5 sm:p-3 rounded-full shadow-lg border border-zinc-200/60 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group/btn font-sans cursor-pointer"
+              className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 bg-white/95 hover:bg-white text-zinc-800 p-2 sm:p-3 rounded-full shadow-lg border border-zinc-200/60 flex items-center gap-2 hover:scale-105 transition-all text-xs font-bold uppercase tracking-wider group/btn font-sans cursor-pointer"
               title="Edit Hero Banner & Slides"
             >
               <Edit className="h-4 w-4 text-zinc-900" />

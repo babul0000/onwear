@@ -13,13 +13,13 @@ export default function SlideIndicator({ activeIndex, totalSlides, progress, onS
   const slides = Array.from({ length: totalSlides }, (_, i) => i);
 
   return (
-    <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-12 z-20 flex items-center gap-2 sm:gap-4 text-[10px] font-bold font-mono tracking-widest text-zinc-400 select-none">
+    <div className="absolute bottom-2.5 sm:bottom-6 left-3 sm:left-12 z-20 flex items-center gap-1.5 sm:gap-4 text-[9px] sm:text-[10px] font-bold font-mono tracking-widest text-zinc-400 select-none">
       {slides.map((idx) => {
         const isActive = activeIndex === idx;
         const isPast = activeIndex > idx;
         const scale = isActive ? Math.min(Math.max(progress / 100, 0), 1) : isPast ? 1 : 0;
         const numLabel = String(idx + 1).padStart(2, '0');
-        const trackWidth = idx === 2 ? 'w-5 sm:w-8' : 'w-8 sm:w-16';
+        const trackWidth = idx === 2 ? 'w-4 sm:w-8' : 'w-6 sm:w-16';
 
         return (
           <React.Fragment key={idx}>
