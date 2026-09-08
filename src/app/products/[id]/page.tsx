@@ -89,7 +89,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     if (!prod) return [];
     const images: string[] = [];
 
-    // 1. Check prod.images array
+    // 1. Primary image
+    if (prod.image && typeof prod.image === 'string' && prod.image.trim()) {
+      images.push(prod.image.trim());
+    }
+
+    // 2. Secondary image
+    if (prod.image2 && typeof prod.image2 === 'string' && prod.image2.trim() && !images.includes(prod.image2.trim())) {
+      images.push(prod.image2.trim());
+    }
+
+    // 3. Check prod.images array
     if (Array.isArray(prod.images) && prod.images.length > 0) {
       prod.images.forEach((img: any) => {
         if (typeof img === 'string' && img.trim() && !images.includes(img.trim())) {
@@ -98,7 +108,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       });
     }
 
-    // 2. Check serialized Images: in description
+    // 4. Check serialized Images: in description
     if (images.length === 0 && prod.description) {
       const match = prod.description.match(/Images:\s*([^\n\r]+)/i);
       if (match && match[1]) {
@@ -108,16 +118,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             images.push(trimmed);
           }
         });
-      }
-    }
-
-    // 3. Check prod.image and prod.image2
-    if (images.length === 0) {
-      if (prod.image && typeof prod.image === 'string' && prod.image.trim()) {
-        images.push(prod.image.trim());
-      }
-      if (prod.image2 && typeof prod.image2 === 'string' && prod.image2.trim() && !images.includes(prod.image2.trim())) {
-        images.push(prod.image2.trim());
       }
     }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { getOptimizedImageUrl } from '../utils/image';
 
 interface ProductImageZoomProps {
@@ -13,24 +13,14 @@ interface ProductImageZoomProps {
 export default function ProductImageZoom({ src, zoomSrc, alt, className = '' }: ProductImageZoomProps) {
   const zoomImageRef = useRef<HTMLImageElement>(null);
   const isZoomedRef = useRef(false);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [shouldLoadZoom, setShouldLoadZoom] = useState(false);
 
   // Optimized image URLs
-  const optimizedMainSrc = getOptimizedImageUrl(src, 900);
-  const optimizedZoomSrc = getOptimizedImageUrl(zoomSrc || src, 1600);
-
-  // Reset loaded state when src changes
-  useEffect(() => {
-    setIsLoaded(false);
-    setShouldLoadZoom(false);
-  }, [src]);
+  const mainImageSrc = getOptimizedImageUrl(src, 900);
+  const zoomImageSrc = getOptimizedImageUrl(zoomSrc || src, 1600);
 
   const handleMouseEnter = () => {
-    // Only load the heavy zoom image when the user hovers
-    if (!shouldLoadZoom) {
-      setShouldLoadZoom(true);
-    }
+    setShouldLoadZoom(true);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -58,11 +48,8 @@ export default function ProductImageZoom({ src, zoomSrc, alt, className = '' }: 
   };
 
   const handleTouchTap = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!shouldLoadZoom) {
-      setShouldLoadZoom(true);
-    }
+    setShouldLoadZoom(true);
 
-    // Touch devices tap-to-toggle
     if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches && zoomImageRef.current) {
       if (isZoomedRef.current) {
         zoomImageRef.current.style.transformOrigin = 'center';
@@ -83,39 +70,30 @@ export default function ProductImageZoom({ src, zoomSrc, alt, className = '' }: 
 
   return (
     <div
-      className={`relative overflow-hidden aspect-[3/4] w-full bg-zinc-100 border border-[#e6e6e6] shadow-xs flex items-center justify-center cursor-zoom-in select-none ${className}`}
+      className={`relative overflow-hidden aspect-[3/4] w-full bg-zinc-50 border border-[#e6e6e6] flex items-center justify-center cursor-zoom-in select-none ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleTouchTap}
     >
-      {/* Skeleton Shimmer while loading */}
-      {!isLoaded && (
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-100 animate-pulse" />
-      )}
-
-      {/* Base Image with Instant Eager Loading & Smooth Fade-in */}
+      {/* Base Main Image - Always 100% visible and sharp */}
       <img
-        src={optimizedMainSrc}
+        src={mainImageSrc}
         alt={alt}
         loading="eager"
-        fetchPriority="high"
         decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        className={`h-full w-full object-cover transition-opacity duration-300 ease-out ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className="h-full w-full object-cover block"
       />
 
-      {/* Zoom Image Layer (Loaded on hover to maximize initial load speed) */}
+      {/* High-res Zoom Overlay Layer (Smoothly fades in and magnifies on hover/touch) */}
       {shouldLoadZoom && (
         <img
           ref={zoomImageRef}
-          src={optimizedZoomSrc}
+          src={zoomImageSrc}
           alt={`${alt} Zoomed`}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-0 pointer-events-none transition-opacity duration-200 ease-out"
+          className="absolute inset-0 h-full w-full object-cover opacity-0 pointer-events-none transition-opacity duration-200 ease-out z-10"
           style={{
             transformOrigin: 'center',
             transform: 'scale(1)',
