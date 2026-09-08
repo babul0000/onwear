@@ -17,13 +17,14 @@ import {
   Check, 
   ChevronRight, 
   Sparkles,
-  ExternalLink,
-  Tag,
   AlertCircle,
   GripVertical,
   ArrowUp,
   ArrowDown,
-  Move
+  Move,
+  Eye,
+  EyeOff,
+  Filter
 } from 'lucide-react';
 
 interface CategoryItem {
@@ -48,6 +49,7 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'hierarchy' | 'table'>('hierarchy');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
   // Form states
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -184,33 +186,94 @@ export default function AdminCategoriesPage() {
 
   // Total count
   const totalCategoriesCount = parentCategories.length + allSubcategories.length;
+  const activeCount = parentCategories.filter(c => c.status === 'ACTIVE').length + allSubcategories.filter(s => s.status === 'ACTIVE').length;
+  const hiddenCount = totalCategoriesCount - activeCount;
 
   // Selected parent category object
   const selectedParent = useMemo(() => {
     return parentCategories.find((p) => p.id === parentId);
   }, [parentCategories, parentId]);
 
-  // ImgBB Upload Handler
+  // 1-Click Toggle Category Visibility Status (Show / Hide)
+  const handleToggleStatus = async (cat: CategoryItem) => {
+    const newStatus: 'ACTIVE' | 'INACTIVE' = cat.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+
+    // Optimistic UI update
+    const updateList = (list: CategoryItem[]): CategoryItem[] => {
+      return list.map((item) => {
+        if (item.id === cat.id) {
+          return { ...item, status: newStatus };
+        }
+        if (item.subcategories && item.subcategories.length > 0) {
+          return { ...item, subcategories: updateList(item.subcategories) };
+        }
+        return item;
+      });
+    };
+
+    setCategories((prev) => updateList(prev));
+
+    try {
+      const res = await fetch(`${API_URL}/categories/${cat.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(`"${cat.name}" is now ${newStatus === 'ACTIVE' ? 'Visible (Active)' : 'Hidden (Inactive)'} on the storefront.`);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(data.message || 'Failed to update visibility');
+        fetchCategories(); // revert
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+      setError('An error occurred while updating category status.');
+      fetchCategories();
+    }
+  };
+
+  // Image Upload Handler (Cloudinary with ImgBB fallback)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     setUploadingImage(true);
-
     const formData = new FormData();
     formData.append('image', file);
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
-        body: formData,
+        headers,
+        body: formData
       });
       const data = await res.json();
-      if (data.success && data.data && data.data.url) {
+
+      if (data.success && data.data?.url) {
         setImage(data.data.url);
+        setSuccess('Image uploaded to Cloudinary CDN successfully!');
+        setTimeout(() => setSuccess(''), 3000);
       } else {
-        alert(data.error?.message || 'ImgBB upload failed.');
+        // Fallback to ImgBB
+        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
+        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+          method: 'POST',
+          body: formData,
+        });
+        const imgbbData = await imgbbRes.json();
+        if (imgbbData.success && imgbbData.data?.url) {
+          setImage(imgbbData.data.url);
+        } else {
+          alert(data.message || 'Image upload failed.');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -282,7 +345,6 @@ export default function AdminCategoriesPage() {
       setParentId('');
     }
 
-    // Scroll to form smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -328,16 +390,28 @@ export default function AdminCategoriesPage() {
     setParentId('');
   };
 
-  // Filtered categories according to search query
+  // Filtered categories according to search query and statusFilter
   const filteredParents = useMemo(() => {
-    if (!searchQuery.trim()) return parentCategories;
+    let list = parentCategories;
+
+    // Apply status filter
+    if (statusFilter !== 'ALL') {
+      list = list.filter((p) => {
+        if (p.status === statusFilter) return true;
+        // If parent is not of status, check if any sub matches
+        return p.subcategories?.some((s) => s.status === statusFilter);
+      });
+    }
+
+    // Apply search filter
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return parentCategories.filter((p) => {
+    return list.filter((p) => {
       const matchParent = p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
       const matchChild = p.subcategories?.some((s) => s.name.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q));
       return matchParent || matchChild;
     });
-  }, [parentCategories, searchQuery]);
+  }, [parentCategories, searchQuery, statusFilter]);
 
   if (!token || !user || user.role !== 'admin') {
     return null;
@@ -364,7 +438,7 @@ export default function AdminCategoriesPage() {
                 Category & Taxonomy Studio
               </h1>
               <p className="text-xs text-zinc-500 font-sans mt-0.5">
-                Manage top-level departments and assign subcategories with 1-click hierarchical controls.
+                Manage top-level departments, hide/show categories in 1-click, and assign subcategories.
               </p>
             </div>
           </div>
@@ -372,13 +446,13 @@ export default function AdminCategoriesPage() {
 
         {/* Quick Stats Badges */}
         <div className="flex items-center gap-2 font-mono self-start sm:self-auto">
-          <div className="bg-white border border-zinc-200/80 rounded-2xl px-3.5 py-2 text-center shadow-xs">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-400 block font-bold">Main</span>
-            <span className="text-base font-black text-zinc-900">{parentCategories.length}</span>
+          <div className="bg-white border border-zinc-200/80 rounded-2xl px-3 py-2 text-center shadow-xs">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-400 block font-bold">Visible</span>
+            <span className="text-base font-black text-emerald-600">{activeCount}</span>
           </div>
-          <div className="bg-white border border-zinc-200/80 rounded-2xl px-3.5 py-2 text-center shadow-xs">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-400 block font-bold">Subs</span>
-            <span className="text-base font-black text-teal-650">{allSubcategories.length}</span>
+          <div className="bg-white border border-zinc-200/80 rounded-2xl px-3 py-2 text-center shadow-xs">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-400 block font-bold">Hidden</span>
+            <span className="text-base font-black text-amber-600">{hiddenCount}</span>
           </div>
           <div className="bg-zinc-900 text-white rounded-2xl px-3.5 py-2 text-center shadow-xs">
             <span className="text-[10px] uppercase tracking-widest text-zinc-400 block font-bold">Total</span>
@@ -390,14 +464,14 @@ export default function AdminCategoriesPage() {
       {/* Alerts */}
       {success && (
         <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs font-bold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-200">
-          <Check className="h-4 w-4 text-emerald-600" />
+          <Check className="h-4 w-4 text-emerald-600 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {error && (
         <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-800 flex items-center gap-2 animate-in fade-in duration-200">
-          <AlertCircle className="h-4 w-4 text-rose-600" />
+          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -499,6 +573,8 @@ export default function AdminCategoriesPage() {
                           <img
                             src={p.image || '/placeholder.svg'}
                             alt={p.name}
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover"
                           />
                         </div>
@@ -594,6 +670,8 @@ export default function AdminCategoriesPage() {
                   <img
                     src={image || '/placeholder.svg'}
                     alt="Preview"
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -619,12 +697,12 @@ export default function AdminCategoriesPage() {
                     {uploadingImage ? (
                       <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-700">
                         <span className="h-3 w-3 border-2 border-zinc-700 border-t-transparent rounded-full animate-spin"></span>
-                        <span>Uploading to cloud...</span>
+                        <span>Uploading to Cloudinary...</span>
                       </div>
                     ) : (
                       <>
                         <Upload className="h-3.5 w-3.5 text-zinc-500" />
-                        <span className="text-[10px] font-bold text-zinc-700">Upload Photo from Computer</span>
+                        <span className="text-[10px] font-bold text-zinc-700">Upload to Cloudinary CDN</span>
                       </>
                     )}
                   </div>
@@ -632,37 +710,56 @@ export default function AdminCategoriesPage() {
               </div>
             </div>
 
-            {/* 6. STATUS & DESCRIPTION */}
-            <div className="grid grid-cols-1 gap-3 font-sans">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
-                  Visibility Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
-                  className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50/50 focus:bg-white focus:outline-none focus:border-zinc-900 font-bold"
-                >
-                  <option value="ACTIVE">ACTIVE (Visible on Storefront)</option>
-                  <option value="INACTIVE">INACTIVE (Hidden)</option>
-                </select>
-              </div>
+            {/* 6. VISIBILITY (SHOW / HIDE) SELECTOR */}
+            <div className="flex flex-col gap-2 font-sans">
+              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
+                Storefront Visibility (Show / Hide)
+              </label>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
-                  Description (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Short description for SEO & collection headers..."
-                  className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50/50 focus:bg-white focus:outline-none focus:border-zinc-900 resize-none"
-                />
+              <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-100/80 rounded-2xl border border-zinc-200/60 font-sans">
+                <button
+                  type="button"
+                  onClick={() => setStatus('ACTIVE')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    status === 'ACTIVE'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>Visible (Active)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatus('INACTIVE')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    status === 'INACTIVE'
+                      ? 'bg-zinc-800 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
+                >
+                  <EyeOff className="h-3.5 w-3.5" />
+                  <span>Hidden (Inactive)</span>
+                </button>
               </div>
             </div>
 
-            {/* 7. SUBMIT & RESET BUTTONS */}
+            {/* 7. DESCRIPTION */}
+            <div className="flex flex-col gap-1.5 font-sans">
+              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
+                Description (Optional)
+              </label>
+              <textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short description for SEO & collection headers..."
+                className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50/50 focus:bg-white focus:outline-none focus:border-zinc-900 resize-none"
+              />
+            </div>
+
+            {/* 8. SUBMIT & RESET BUTTONS */}
             <div className="flex items-center gap-2 pt-2 border-t border-zinc-100">
               <button
                 type="submit"
@@ -689,40 +786,87 @@ export default function AdminCategoriesPage() {
         {/* RIGHT COLUMN: Interactive Hierarchy & Grouped Category Tree (7 Cols) */}
         <div className="lg:col-span-7 flex flex-col gap-4">
           
-          {/* Controls Bar: Search & View Toggle */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-zinc-200 shadow-xs">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search categories & subcategories..."
-                className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:bg-white focus:border-zinc-900 font-sans"
-              />
+          {/* Controls Bar: Search, Status Filter & View Toggle */}
+          <div className="flex flex-col gap-3 bg-white p-3.5 rounded-2xl border border-zinc-200 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search categories & subcategories..."
+                  className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:bg-white focus:border-zinc-900 font-sans"
+                />
+              </div>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 p-1 bg-zinc-100 rounded-xl font-mono text-[11px] font-bold self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('hierarchy')}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMode === 'hierarchy' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'
+                  }`}
+                >
+                  Grouped Tree
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMode === 'table' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'
+                  }`}
+                >
+                  Flat Table
+                </button>
+              </div>
             </div>
 
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 p-1 bg-zinc-100 rounded-xl font-mono text-[11px] font-bold">
-              <button
-                type="button"
-                onClick={() => setViewMode('hierarchy')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'hierarchy' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'
-                }`}
-              >
-                Grouped Tree
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('table')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'table' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'
-                }`}
-              >
-                Flat Table
-              </button>
+            {/* Visibility Quick Filters (All / Visible / Hidden) */}
+            <div className="flex items-center gap-2 pt-2 border-t border-zinc-100 font-sans text-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1">
+                <Filter className="h-3 w-3" />
+                Filter:
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    statusFilter === 'ALL'
+                      ? 'bg-zinc-900 text-white'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                >
+                  All ({totalCategoriesCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('ACTIVE')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    statusFilter === 'ACTIVE'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  <Eye className="h-3 w-3" />
+                  <span>Visible ({activeCount})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('INACTIVE')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    statusFilter === 'INACTIVE'
+                      ? 'bg-zinc-800 text-white'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                >
+                  <EyeOff className="h-3 w-3" />
+                  <span>Hidden ({hiddenCount})</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -734,9 +878,9 @@ export default function AdminCategoriesPage() {
           ) : filteredParents.length === 0 ? (
             <div className="p-12 text-center bg-white rounded-3xl border border-zinc-200 flex flex-col items-center gap-3 text-zinc-500">
               <FolderTree className="h-10 w-10 text-zinc-300" />
-              <p className="text-sm font-bold text-zinc-800">No categories found</p>
+              <p className="text-sm font-bold text-zinc-800">No categories found matching filter</p>
               <p className="text-xs text-zinc-400 max-w-sm">
-                Create your first parent category using the form on the left to start organizing your clothing catalog.
+                Try switching the filter to &quot;All&quot; or create a new category using the form on the left.
               </p>
             </div>
           ) : viewMode === 'hierarchy' ? (
@@ -747,7 +891,7 @@ export default function AdminCategoriesPage() {
               <div className="flex items-center justify-between bg-zinc-900 text-white px-4 py-2.5 rounded-2xl text-xs font-mono">
                 <div className="flex items-center gap-2">
                   <Move className="h-4 w-4 text-teal-400 shrink-0" />
-                  <span>Drag cards or click ▲ / ▼ to reorder category positions live.</span>
+                  <span>Click 👁️ to instantly Hide/Show on store, or drag to reorder.</span>
                 </div>
                 {isSavingOrder && (
                   <span className="text-teal-400 font-bold animate-pulse text-[11px]">Saving sequence...</span>
@@ -755,11 +899,15 @@ export default function AdminCategoriesPage() {
               </div>
 
               {filteredParents.map((parent, pIdx) => {
-                const subs = parent.subcategories || [];
+                const subs = (parent.subcategories || []).filter((s) => {
+                  if (statusFilter === 'ALL') return true;
+                  return s.status === statusFilter;
+                });
                 const isFirst = pIdx === 0;
                 const isLast = pIdx === filteredParents.length - 1;
                 const isBeingDragged = draggedParentId === parent.id;
                 const isDragOver = dragOverParentId === parent.id;
+                const isParentInactive = parent.status === 'INACTIVE';
 
                 return (
                   <div
@@ -802,11 +950,15 @@ export default function AdminCategoriesPage() {
                         ? 'border-teal-500 ring-2 ring-teal-500/20 shadow-lg scale-[1.01]'
                         : isBeingDragged
                         ? 'opacity-40 border-dashed border-zinc-400'
+                        : isParentInactive
+                        ? 'border-zinc-200/60 bg-zinc-50/60 opacity-80'
                         : 'border-zinc-200/90 shadow-xs hover:border-zinc-300'
                     }`}
                   >
                     {/* Parent Category Header Card */}
-                    <div className="p-4 sm:p-5 bg-zinc-50/70 border-b border-zinc-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className={`p-4 sm:p-5 border-b border-zinc-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      isParentInactive ? 'bg-zinc-100/70' : 'bg-zinc-50/70'
+                    }`}>
                       <div className="flex items-center gap-3">
                         
                         {/* Drag Handle & Up/Down Sequence Controls */}
@@ -843,12 +995,19 @@ export default function AdminCategoriesPage() {
                         </div>
 
                         {/* Thumbnail Image */}
-                        <div className="h-12 w-12 rounded-2xl overflow-hidden bg-white border border-zinc-200 shrink-0 shadow-xs">
+                        <div className="h-12 w-12 rounded-2xl overflow-hidden bg-white border border-zinc-200 shrink-0 shadow-xs relative">
                           <img
                             src={parent.image || '/placeholder.svg'}
                             alt={parent.name}
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover"
                           />
+                          {isParentInactive && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <EyeOff className="h-4 w-4 text-white" />
+                            </div>
+                          )}
                         </div>
 
                         <div>
@@ -856,25 +1015,68 @@ export default function AdminCategoriesPage() {
                             <h4 className="font-black text-sm text-zinc-950 font-sans tracking-tight uppercase">
                               {parent.name}
                             </h4>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase font-mono border ${
-                              parent.status === 'ACTIVE'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-zinc-100 text-zinc-600 border-zinc-200'
-                            }`}>
-                              {parent.status}
-                            </span>
+                            
+                            {/* 1-Click Visibility Toggle Badge */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(parent)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase font-mono border transition-all cursor-pointer ${
+                                parent.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                                  : 'bg-zinc-200 text-zinc-700 border-zinc-300 hover:bg-zinc-300'
+                              }`}
+                              title={parent.status === 'ACTIVE' ? 'Click to HIDE from storefront' : 'Click to SHOW on storefront'}
+                            >
+                              {parent.status === 'ACTIVE' ? (
+                                <>
+                                  <Eye className="h-3 w-3 text-emerald-600" />
+                                  <span>Visible</span>
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="h-3 w-3 text-zinc-600" />
+                                  <span>Hidden</span>
+                                </>
+                              )}
+                            </button>
                           </div>
                           
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400 font-mono">
                             <span>/{parent.slug}</span>
                             <span>•</span>
-                            <span className="text-teal-650 font-bold">{subs.length} sub-categories</span>
+                            <span className="text-teal-650 font-bold">{parent.subcategories?.length || 0} sub-categories</span>
+                            {isParentInactive && (
+                              <span className="text-amber-600 font-bold text-[10px] bg-amber-50 px-1.5 py-0.2 rounded">
+                                (Hidden from store)
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
 
                       {/* Parent Actions */}
                       <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                        {/* Quick Hide/Show button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(parent)}
+                          className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs font-bold font-mono ${
+                            parent.status === 'ACTIVE'
+                              ? 'text-zinc-600 hover:text-amber-600 hover:bg-amber-50'
+                              : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                          }`}
+                          title={parent.status === 'ACTIVE' ? 'Hide Category' : 'Unhide Category'}
+                        >
+                          {parent.status === 'ACTIVE' ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 text-emerald-600" />
+                              <span className="text-[10px]">Show</span>
+                            </>
+                          )}
+                        </button>
+
                         {/* 1-Click "+ Add Subcategory" Button */}
                         <button
                           onClick={() => handleAddSubcategoryUnderParent(parent)}
@@ -908,7 +1110,7 @@ export default function AdminCategoriesPage() {
                       {subs.length === 0 ? (
                         <div className="p-4 rounded-2xl bg-zinc-50/50 border border-dashed border-zinc-200 text-center flex items-center justify-between">
                           <span className="text-xs text-zinc-400 font-medium font-sans">
-                            No subcategories under {parent.name} yet.
+                            {parent.subcategories?.length === 0 ? `No subcategories under ${parent.name} yet.` : 'No subcategories match the current filter.'}
                           </span>
                           <button
                             onClick={() => handleAddSubcategoryUnderParent(parent)}
@@ -923,6 +1125,7 @@ export default function AdminCategoriesPage() {
                           const isSubLast = sIdx === subs.length - 1;
                           const isSubBeingDragged = draggedSubId?.parentId === parent.id && draggedSubId?.subId === sub.id;
                           const isSubDragOver = dragOverSubId?.parentId === parent.id && dragOverSubId?.subId === sub.id;
+                          const isSubInactive = sub.status === 'INACTIVE';
 
                           return (
                             <div
@@ -973,6 +1176,8 @@ export default function AdminCategoriesPage() {
                                   ? 'border-teal-500 bg-teal-50/40 ring-1 ring-teal-500/30'
                                   : isSubBeingDragged
                                   ? 'opacity-40 border-dashed border-zinc-400 bg-zinc-50'
+                                  : isSubInactive
+                                  ? 'border-zinc-200/60 bg-zinc-50/50 opacity-75'
                                   : 'border-zinc-150 hover:border-zinc-250 bg-white hover:bg-zinc-50/60'
                               }`}
                             >
@@ -1010,12 +1215,19 @@ export default function AdminCategoriesPage() {
                                   </div>
                                 </div>
 
-                                <div className="h-8 w-8 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0">
+                                <div className="h-8 w-8 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0 relative">
                                   <img
                                     src={sub.image || '/placeholder.svg'}
                                     alt={sub.name}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-full w-full object-cover"
                                   />
+                                  {isSubInactive && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                      <EyeOff className="h-3 w-3 text-white" />
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="min-w-0">
@@ -1023,19 +1235,35 @@ export default function AdminCategoriesPage() {
                                     {sub.name}
                                   </p>
                                   <p className="text-[10px] text-zinc-400 font-mono truncate">
-                                    /{sub.slug}
+                                    /{sub.slug} {isSubInactive && <span className="text-amber-600 font-bold">(Hidden)</span>}
                                   </p>
                                 </div>
                               </div>
 
                               <div className="flex items-center gap-2">
-                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase font-mono ${
-                                  sub.status === 'ACTIVE'
-                                    ? 'bg-emerald-50 text-emerald-700'
-                                    : 'bg-zinc-100 text-zinc-500'
-                                }`}>
-                                  {sub.status}
-                                </span>
+                                {/* 1-Click Subcategory Visibility Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleStatus(sub)}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase font-mono border transition-all cursor-pointer ${
+                                    sub.status === 'ACTIVE'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                      : 'bg-zinc-200 text-zinc-600 border-zinc-300 hover:bg-zinc-300'
+                                  }`}
+                                  title={sub.status === 'ACTIVE' ? 'Click to HIDE from store' : 'Click to SHOW on store'}
+                                >
+                                  {sub.status === 'ACTIVE' ? (
+                                    <>
+                                      <Eye className="h-2.5 w-2.5" />
+                                      <span>Visible</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <EyeOff className="h-2.5 w-2.5" />
+                                      <span>Hidden</span>
+                                    </>
+                                  )}
+                                </button>
 
                                 <button
                                   onClick={() => handleEdit(sub)}
@@ -1086,6 +1314,8 @@ export default function AdminCategoriesPage() {
                         <img
                           src={cat.image || '/placeholder.svg'}
                           alt={cat.name}
+                          loading="lazy"
+                          decoding="async"
                           className="h-9 w-9 rounded-xl object-cover border border-zinc-200 bg-zinc-50"
                         />
                       </td>
@@ -1103,13 +1333,28 @@ export default function AdminCategoriesPage() {
                       </td>
                       <td className="px-5 py-3 font-mono text-zinc-500">/{cat.slug}</td>
                       <td className="px-5 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          cat.status === 'ACTIVE'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-zinc-100 text-zinc-600'
-                        }`}>
-                          {cat.status}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(cat)}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border transition-all cursor-pointer ${
+                            cat.status === 'ACTIVE'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200'
+                          }`}
+                          title={cat.status === 'ACTIVE' ? 'Click to Hide' : 'Click to Show'}
+                        >
+                          {cat.status === 'ACTIVE' ? (
+                            <>
+                              <Eye className="h-3 w-3" />
+                              <span>Visible</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-3 w-3" />
+                              <span>Hidden</span>
+                            </>
+                          )}
+                        </button>
                       </td>
                       <td className="px-5 py-3 text-right">
                         <div className="flex justify-end gap-1.5">
@@ -1143,4 +1388,3 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
-
