@@ -23,6 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { formatPrice } from '../../../utils/format';
+import { getOptimizedImageUrl } from '../../../utils/image';
 import ProductImageZoom from '../../../components/ProductImageZoom';
 import SizeGuideModal from '../../../components/SizeGuideModal';
 
@@ -393,9 +394,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                       }`}
                     >
                       <img
-                        src={imgUrl}
+                        src={getOptimizedImageUrl(imgUrl, 160)}
                         alt={`${product.name} thumb ${idx + 1}`}
                         loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     </button>
@@ -808,9 +810,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     <Link href={`/products/${relProd.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
                       {/* Primary Image */}
                       <img
-                        src={relProd.image || '/placeholder.svg'}
+                        src={getOptimizedImageUrl(relProd.image, 450)}
                         alt={relProd.name}
                         loading="lazy"
+                        decoding="async"
                         className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
                           relSoldOut ? 'opacity-50' : relProd.image2 ? 'group-hover:opacity-0' : ''
                         }`}
@@ -819,9 +822,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                       {/* Secondary Image */}
                       {!relSoldOut && relProd.image2 && (
                         <img
-                          src={relProd.image2}
+                          src={getOptimizedImageUrl(relProd.image2, 450)}
                           alt={`${relProd.name} Alternate`}
                           loading="lazy"
+                          decoding="async"
                           className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-105"
                         />
                       )}
