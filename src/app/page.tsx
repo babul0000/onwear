@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../config';
-import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, Star, Flame } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Star, Flame } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import EcommerceHero from '../components/Hero/EcommerceHero';
 
@@ -147,40 +147,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* 2. MINIMALIST TRUST BANNER */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 border-y border-zinc-100 py-6 sm:py-10">
-          <div className="flex items-center sm:items-start gap-4">
-            <div className="rounded-2xl bg-teal-50 p-3 text-teal-600 shrink-0">
-              <Truck className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 uppercase tracking-wider">Fast Shipping</h3>
-              <p className="text-xs text-zinc-400 mt-0.5 font-medium">
-                Free delivery on order above {formatPrice(settings.freeShippingMinAmount || 2500)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center sm:items-start gap-4">
-            <div className="rounded-2xl bg-teal-50 p-3 text-teal-600 shrink-0">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 uppercase tracking-wider">Premium Quality</h3>
-              <p className="text-xs text-zinc-400 mt-0.5 font-medium">Finest hand-selected fabrics & bespoke craftsmanship</p>
-            </div>
-          </div>
-          <div className="flex items-center sm:items-start gap-4">
-            <div className="rounded-2xl bg-teal-50 p-3 text-teal-600 shrink-0">
-              <RefreshCw className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 uppercase tracking-wider">Easy Exchange</h3>
-              <p className="text-xs text-zinc-400 mt-0.5 font-medium">Hassle-free 7-day return and exchange policy</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 3. DYNAMIC CATEGORIES GRID */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-6 sm:gap-10">
