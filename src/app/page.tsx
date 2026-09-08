@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../config';
 import { ArrowRight, ShoppingBag, Star, Flame } from 'lucide-react';
 import { formatPrice } from '../utils/format';
@@ -78,7 +77,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
   const { token, user } = useAuth();
-  const { settings } = useSettings();
 
   useEffect(() => {
     async function loadData() {
@@ -197,40 +195,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* 4. DYNAMIC LOOKBOOK SHOWCASE SECTION */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl bg-zinc-950 overflow-hidden text-white shadow-xl min-h-auto lg:min-h-[50vh]">
-          <div className="lg:col-span-5 p-6 sm:p-10 lg:p-16 flex flex-col justify-center gap-4 sm:gap-6 order-2 lg:order-1">
-            <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-teal-400 uppercase font-mono">
-              {settings.lookbookTitle || 'THE SIGNATURE COLLECTION'}
-            </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight uppercase leading-tight">
-              {settings.lookbookSubtitle || 'THE DENIM OVERCOAT LOOK'}
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-medium">
-              {settings.lookbookDescription || 'Combine our signature pieces for a modern tailored aesthetic suited for every occasion.'}
-            </p>
-            <div>
-              <Link
-                href={settings.lookbookLinkUrl || '/products'}
-                className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-teal-400 hover:text-white border-b-2 border-teal-400 pb-1.5 transition-colors duration-300"
-              >
-                <span>Shop This Look</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-          <div className="lg:col-span-7 relative min-h-[220px] sm:min-h-[300px] lg:min-h-full overflow-hidden order-1 lg:order-2">
-            <img
-              src={settings.lookbookImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg'}
-              alt={settings.lookbookSubtitle || 'Lookbook Collection'}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
-            />
-          </div>
-        </div>
-      </section>
 
       {/* 5. NEW ARRIVALS GRID */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-6 sm:gap-10">
