@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -214,12 +215,12 @@ export default function Home() {
                 className="group flex flex-col items-center gap-2"
               >
                 <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
-                  <img
-                    src={getOptimizedImageUrl(cat.image, 400, 80)}
+                  <Image
+                    src={cat.image || '/placeholder.svg'}
                     alt={cat.name}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
                 </div>
@@ -269,23 +270,23 @@ export default function Home() {
                     onClick={() => router.push(`/products/${product.id}`)}
                     className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
-                    <img
-                      src={getOptimizedImageUrl(product.image, 500, 80)}
+                    <Image
+                      src={product.image || '/placeholder.svg'}
                       alt={product.name}
-                      loading="lazy"
-                      decoding="async"
-                      className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                      className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
                         hasTwoImages ? 'group-hover:opacity-0' : ''
                       }`}
                     />
                     
                     {hasTwoImages && (
-                      <img
-                        src={getOptimizedImageUrl(product.image2, 500, 80)}
+                      <Image
+                        src={product.image2!}
                         alt={`${product.name} alternate`}
-                        loading="lazy"
-                        decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                        className="object-cover opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-105"
                       />
                     )}
 
