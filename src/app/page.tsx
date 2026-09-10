@@ -87,6 +87,22 @@ export default function Home() {
           setCategories(parsed);
         }
       }
+
+      const cachedProds = localStorage.getItem('onwear_home_products_cache');
+      if (cachedProds) {
+        const parsed = JSON.parse(cachedProds);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+        }
+      }
+
+      const cachedCamps = localStorage.getItem('onwear_campaigns_cache');
+      if (cachedCamps) {
+        const parsed = JSON.parse(cachedCamps);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCampaigns(parsed);
+        }
+      }
     } catch (e) {}
 
     async function loadData() {
@@ -106,11 +122,18 @@ export default function Home() {
             localStorage.setItem('onwear_categories_cache', JSON.stringify(catsData.data));
           } catch (e) {}
         }
-        if (prodsData && prodsData.success && Array.isArray(prodsData.data)) {
+        if (prodsData && prodsData.success && Array.isArray(prodsData.data) && prodsData.data.length > 0) {
           setProducts(prodsData.data);
+          try {
+            localStorage.setItem('onwear_home_products_cache', JSON.stringify(prodsData.data));
+          } catch (e) {}
         }
         if (campsData && campsData.success && Array.isArray(campsData.data)) {
-          setCampaigns(campsData.data.filter((c: any) => c.isActive));
+          const active = campsData.data.filter((c: any) => c.isActive);
+          setCampaigns(active);
+          try {
+            localStorage.setItem('onwear_campaigns_cache', JSON.stringify(active));
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Error fetching home page data:', err);
