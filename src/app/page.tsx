@@ -32,37 +32,37 @@ interface Product {
 
 const DEFAULT_HOME_CATEGORIES: Category[] = [
   {
-    id: 'shirt',
+    id: '7266fa89-2e18-4e5c-b386-dda933c8fb96',
     name: 'Shirt',
     slug: 'shirt',
-    image: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg'
+    image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=400'
   },
   {
-    id: 't-shirt',
+    id: '393c88a9-d40d-4a5d-966d-d8a44ea401d2',
     name: 'T-Shirt',
     slug: 't-shirt',
     image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400'
   },
   {
-    id: 'pant',
+    id: '3c8497fc-f3fe-45ae-bcde-6e3a1163d67f',
     name: 'Pant',
     slug: 'pant',
     image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=400'
   },
   {
-    id: 'sandal',
+    id: 'f22ed804-44cf-4de9-a93e-34b0bccb4600',
     name: 'Sandal',
     slug: 'sandal',
-    image: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=400'
+    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=400'
   },
   {
-    id: 'winter-collection',
+    id: 'a87fdb21-2c07-4d5f-8d51-c619c89829dc',
     name: 'Winter Collection',
     slug: 'winter-collection',
-    image: 'https://i.ibb.co/rVYXTBD/Gemini-Generated-Image-p7ik1p7ik1p7ik1p.jpg'
+    image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=400'
   },
   {
-    id: 'cap',
+    id: '779fd8ec-c953-4e52-a23b-d022785cdbf0',
     name: 'Cap',
     slug: 'cap',
     image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400'
@@ -79,6 +79,16 @@ export default function Home() {
   const { token, user } = useAuth();
 
   useEffect(() => {
+    try {
+      const cachedCats = localStorage.getItem('onwear_categories_cache');
+      if (cachedCats) {
+        const parsed = JSON.parse(cachedCats);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCategories(parsed);
+        }
+      }
+    } catch (e) {}
+
     async function loadData() {
       try {
         const [catsRes, prodsRes, campsRes] = await Promise.all([
@@ -92,6 +102,9 @@ export default function Home() {
 
         if (catsData && catsData.success && Array.isArray(catsData.data) && catsData.data.length > 0) {
           setCategories(catsData.data);
+          try {
+            localStorage.setItem('onwear_categories_cache', JSON.stringify(catsData.data));
+          } catch (e) {}
         }
         if (prodsData && prodsData.success && Array.isArray(prodsData.data)) {
           setProducts(prodsData.data);
