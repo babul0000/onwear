@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 import { ArrowRight, ShoppingBag, Star, Flame } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { getOptimizedImageUrl } from '../utils/image';
 import EcommerceHero from '../components/Hero/EcommerceHero';
 
 interface Category {
@@ -214,7 +215,7 @@ export default function Home() {
               >
                 <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
                   <img
-                    src={cat.image || '/placeholder.svg'}
+                    src={getOptimizedImageUrl(cat.image, 400, 80)}
                     alt={cat.name}
                     loading="lazy"
                     decoding="async"
@@ -269,7 +270,7 @@ export default function Home() {
                     className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
                     <img
-                      src={product.image || '/placeholder.svg'}
+                      src={getOptimizedImageUrl(product.image, 500, 80)}
                       alt={product.name}
                       loading="lazy"
                       decoding="async"
@@ -280,7 +281,7 @@ export default function Home() {
                     
                     {hasTwoImages && (
                       <img
-                        src={product.image2}
+                        src={getOptimizedImageUrl(product.image2, 500, 80)}
                         alt={`${product.name} alternate`}
                         loading="lazy"
                         decoding="async"
