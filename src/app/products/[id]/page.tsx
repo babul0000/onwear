@@ -798,7 +798,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     <button
                       type="button"
                       onClick={() => addToWishlist(relProd.id, relProd)}
-                      className={`absolute right-2.5 top-2.5 z-10 p-1.5 rounded-full border border-[#e6e6e6] bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer shadow-xs ${
+                      className={`absolute right-2.5 top-2.5 z-10 p-1.5 border border-[#e6e6e6] bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer shadow-xs ${
                         relIsWished ? 'text-red-500' : 'text-[#727272] hover:text-red-500'
                       }`}
                       title="Wishlist"

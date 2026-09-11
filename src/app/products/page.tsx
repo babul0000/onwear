@@ -361,19 +361,19 @@ function ProductsPageContent() {
           {loading ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse flex flex-col gap-2.5 bg-white rounded-2xl border border-zinc-100 p-2">
-                  <div className="aspect-[3/4] w-full rounded-xl bg-zinc-100"></div>
-                  <div className="h-4 w-3/4 rounded bg-zinc-100"></div>
-                  <div className="h-4 w-1/4 rounded bg-zinc-100"></div>
+                <div key={i} className="animate-pulse flex flex-col gap-2.5 bg-white border border-zinc-100 p-2">
+                  <div className="aspect-[3/4] w-full bg-zinc-100"></div>
+                  <div className="h-4 w-3/4 bg-zinc-100"></div>
+                  <div className="h-4 w-1/4 bg-zinc-100"></div>
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center rounded-3xl border border-dashed border-zinc-200 bg-white p-8">
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-zinc-200 bg-white p-8">
               <span className="text-zinc-400 text-xs font-bold uppercase tracking-wider">No products found matching filters</span>
               <button
                 onClick={handleClearFilters}
-                className="mt-4 px-4 py-2 rounded-xl bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider"
+                className="mt-4 px-4 py-2 bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider"
               >
                 Clear All Filters
               </button>
@@ -399,7 +399,7 @@ function ProductsPageContent() {
                      {/* Wishlist Button */}
                      <button
                        onClick={() => addToWishlist(prod.id, prod)}
-                       className={`absolute right-2.5 top-2.5 z-10 p-2 rounded-full shadow-xs border border-zinc-100 bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer ${
+                       className={`absolute right-2.5 top-2.5 z-10 p-2 shadow-xs border border-zinc-100 bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer ${
                          isWished ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
                        }`}
                        title="Wishlist"
@@ -408,7 +408,7 @@ function ProductsPageContent() {
                      </button>
 
                      {/* Aspect 3/4 Image Container */}
-                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
+                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
                         {/* Primary Image */}
                         <img
                           src={prod.image || '/placeholder.svg'}
@@ -433,11 +433,11 @@ function ProductsPageContent() {
                        
                        {/* Sold Out Badge overlay */}
                        {isSoldOut ? (
-                         <span className="absolute left-2.5 top-2.5 z-10 bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase rounded shadow-xs">
+                         <span className="absolute left-2.5 top-2.5 z-10 bg-zinc-950 px-2 py-0.5 text-[8px] font-bold text-white tracking-widest uppercase shadow-xs">
                            Sold Out
                          </span>
                        ) : discount ? (
-                         <span className="absolute top-2.5 left-2.5 bg-teal-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                         <span className="absolute top-2.5 left-2.5 bg-teal-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 shadow-xs">
                            Sale
                          </span>
                        ) : null}
@@ -450,7 +450,7 @@ function ProductsPageContent() {
                              e.stopPropagation();
                              addToCart(prod.id, 1);
                            }}
-                           className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 bg-zinc-950/90 hover:bg-zinc-950 text-white p-2.5 rounded-full shadow-md opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 active:scale-90 transition-all duration-200 z-10 cursor-pointer"
+                           className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 bg-zinc-950/90 hover:bg-zinc-950 text-white p-2.5 shadow-md opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 active:scale-90 transition-all duration-200 z-10 cursor-pointer"
                            title="Add to Bag"
                          >
                            <ShoppingBag className="h-3.5 w-3.5" />

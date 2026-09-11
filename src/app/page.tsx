@@ -201,8 +201,8 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-2">
-                <div className="aspect-[3/4] w-full rounded-xl bg-zinc-100"></div>
-                <div className="h-3 w-2/3 rounded bg-zinc-100 mx-auto"></div>
+                <div className="aspect-[3/4] w-full bg-zinc-100"></div>
+                <div className="h-3 w-2/3 bg-zinc-100 mx-auto"></div>
               </div>
             ))}
           </div>
@@ -214,7 +214,7 @@ export default function Home() {
                 href={`/products?category=${cat.slug}`}
                 className="group flex flex-col items-center gap-2"
               >
-                <div className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
+                <div className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
                   <Image
                     src={cat.image || '/placeholder.svg'}
                     alt={cat.name}
@@ -251,9 +251,9 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-2">
-                <div className="aspect-[3/4] w-full rounded-2xl bg-zinc-100"></div>
-                <div className="h-4 w-2/3 rounded bg-zinc-100"></div>
-                <div className="h-3 w-1/3 rounded bg-zinc-100"></div>
+                <div className="aspect-[3/4] w-full bg-zinc-100"></div>
+                <div className="h-4 w-2/3 bg-zinc-100"></div>
+                <div className="h-3 w-1/3 bg-zinc-100"></div>
               </div>
             ))}
           </div>
@@ -268,7 +268,7 @@ export default function Home() {
                   {/* Image wrapper */}
                   <div 
                     onClick={() => router.push(`/products/${product.id}`)}
-                    className="relative aspect-[3/4] w-full rounded-2xl bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
+                    className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
                     <Image
                       src={product.image || '/placeholder.svg'}
@@ -292,15 +292,15 @@ export default function Home() {
 
                     {/* Stock status badge */}
                     {product.stock <= 0 ? (
-                      <span className="absolute top-2.5 left-2.5 bg-red-500/90 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                      <span className="absolute top-2.5 left-2.5 bg-red-500/90 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 shadow-xs">
                         Out of stock
                       </span>
                     ) : product.stock <= 5 ? (
-                      <span className="absolute top-2.5 left-2.5 bg-amber-500/90 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                      <span className="absolute top-2.5 left-2.5 bg-amber-500/90 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 shadow-xs">
                         Low stock
                       </span>
                     ) : hasDiscount ? (
-                      <span className="absolute top-2.5 left-2.5 bg-teal-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                      <span className="absolute top-2.5 left-2.5 bg-teal-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 shadow-xs">
                         Sale
                       </span>
                     ) : null}
@@ -312,7 +312,7 @@ export default function Home() {
                           e.stopPropagation();
                           addToCart(product.id, 1);
                         }}
-                        className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 bg-zinc-950/90 hover:bg-zinc-950 text-white p-2.5 sm:p-3 rounded-full shadow-md opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 active:scale-90 transition-all duration-200 cursor-pointer"
+                        className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 bg-zinc-950/90 hover:bg-zinc-950 text-white p-2.5 sm:p-3 shadow-md opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 active:scale-90 transition-all duration-200 cursor-pointer"
                         title="Add to Cart"
                       >
                         <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
