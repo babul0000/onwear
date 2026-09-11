@@ -177,6 +177,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           setSelectedImage(prodData.data.image);
         }
 
+        // Real-time Analytics: Track product page view
+        try {
+          const sessionId = typeof window !== 'undefined' ? localStorage.getItem('onwear_visitor_session') : '';
+          fetch(`${API_URL}/analytics/track-view`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: prodData.data.id, sessionId })
+          }).catch(() => {});
+        } catch {}
+
         // Fetch Related Products from same category
         fetchRelatedProducts(prodData.data);
       }

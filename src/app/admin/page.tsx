@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation';
 import { API_URL } from '../../config';
 import Link from 'next/link';
 import { 
-  Users, ShoppingBag, DollarSign, Clock, Truck, ShoppingCart, ArrowRight, CheckCircle2, Package
+  Users, ShoppingBag, DollarSign, Clock, ShoppingCart, ArrowRight, CheckCircle2, Package, Eye
 } from 'lucide-react';
 import QuickAddProduct from '../../components/QuickAddProduct';
-import SalesOverviewChart from '../../components/SalesOverviewChart';
+import SalesOverviewChart, { AnalyticsMetrics, ChartDataPoint } from '../../components/SalesOverviewChart';
 import AdminProductsTable from '../../components/AdminProductsTable';
+import { formatPrice } from '../../utils/format';
 
 export default function AdminDashboard() {
   const { token, user } = useAuth();
@@ -29,6 +30,9 @@ export default function AdminDashboard() {
     adminsCount: 0
   });
 
+  const [analyticsMetrics, setAnalyticsMetrics] = useState<AnalyticsMetrics | null>(null);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+
   const [statusCounts, setStatusCounts] = useState({
     PENDING: 0,
     CONFIRMED: 0,
@@ -39,6 +43,7 @@ export default function AdminDashboard() {
   });
 
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [topViewedProducts, setTopViewedProducts] = useState<any[]>([]);
   const [productList, setProductList] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,96 +52,57 @@ export default function AdminDashboard() {
     if (user && user.role !== 'admin') {
       router.push('/');
     }
-  }, [user]);
+  }, [user, router]);
 
   const loadStatsAndProducts = async () => {
     if (!token) return;
     try {
-      const [usersRes, productsRes, ordersRes, categoriesRes] = await Promise.all([
-        fetch(`${API_URL}/users`, { headers: { Authorization: `Bearer ${token}` } }),
+      const [analyticsRes, productsRes, categoriesRes] = await Promise.all([
+        fetch(`${API_URL}/analytics/dashboard-overview`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/products?limit=9999&includeDeleted=true`),
-        fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/categories`)
       ]);
 
-      const usersData = await usersRes.json();
+      const analyticsData = await analyticsRes.json();
       const productsData = await productsRes.json();
-      const ordersData = await ordersRes.json();
       const categoriesData = await categoriesRes.json();
 
-      const usersList = usersData.success ? usersData.data : [];
-      const ordersList = ordersData.success ? ordersData.data : [];
       const prodList = productsData.success ? productsData.data : [];
-      
       setCategories(categoriesData.success ? categoriesData.data : []);
       setProductList(prodList.slice(0, 5)); // Recent 5 for dashboard overview
 
-      // Compute statistics based on database records
-      const totalUsers = usersList.length;
-      const totalProducts = prodList.filter((p: any) => !p.isDeleted).length;
-      const totalOrders = ordersList.length;
-      const totalRevenue = ordersList
-        .filter((o: any) => o.paymentStatus === 'PAID')
-        .reduce((sum: number, o: any) => sum + o.totalAmount, 0);
+      if (analyticsData.success && analyticsData.data) {
+        const { metrics, statusBreakdown, topSellingProducts, topViewedProducts: topViewed, chartData: cData } = analyticsData.data;
 
-      const pendingOrders = ordersList.filter((o: any) => o.status === 'PENDING').length;
-      const deliveredOrders = ordersList.filter((o: any) => o.status === 'DELIVERED').length;
+        setStats({
+          totalUsers: metrics.totalUsers || 0,
+          totalProducts: metrics.totalProducts || 0,
+          totalOrders: metrics.totalOrders || 0,
+          totalRevenue: metrics.totalRevenue || 0,
+          pendingOrders: metrics.pendingOrders || 0,
+          deliveredOrders: metrics.deliveredOrders || 0,
+          activeProducts: metrics.activeProducts || 0,
+          blockedProducts: metrics.blockedProducts || 0,
+          customersCount: metrics.customersCount || 0,
+          adminsCount: metrics.adminsCount || 0
+        });
 
-      const activeProducts = prodList.filter((p: any) => p.status === 'ACTIVE' && !p.isDeleted).length;
-      const blockedProducts = prodList.filter((p: any) => p.status === 'INACTIVE' || p.isDeleted).length;
+        setAnalyticsMetrics(metrics);
+        setChartData(cData || []);
+        setStatusCounts(statusBreakdown || {
+          PENDING: 0,
+          CONFIRMED: 0,
+          PROCESSING: 0,
+          SHIPPED: 0,
+          DELIVERED: 0,
+          CANCELLED: 0
+        });
 
-      const customersCount = usersList.filter((u: any) => u.role === 'customer').length;
-      const adminsCount = usersList.filter((u: any) => u.role === 'admin').length;
-
-      setStats({
-        totalUsers,
-        totalProducts,
-        totalOrders,
-        totalRevenue,
-        pendingOrders,
-        deliveredOrders,
-        activeProducts,
-        blockedProducts,
-        customersCount,
-        adminsCount
-      });
-
-      // Compute order status breakdown
-      setStatusCounts({
-        PENDING: ordersList.filter((o: any) => o.status === 'PENDING').length,
-        CONFIRMED: ordersList.filter((o: any) => o.status === 'CONFIRMED').length,
-        PROCESSING: ordersList.filter((o: any) => o.status === 'PROCESSING').length,
-        SHIPPED: ordersList.filter((o: any) => o.status === 'SHIPPED').length,
-        DELIVERED: ordersList.filter((o: any) => o.status === 'DELIVERED').length,
-        CANCELLED: ordersList.filter((o: any) => o.status === 'CANCELLED').length,
-      });
-
-      // Compute top selling products
-      const salesMap: { [key: string]: { name: string, quantity: number, revenue: number } } = {};
-      ordersList.forEach((order: any) => {
-        if (order.items) {
-          order.items.forEach((item: any) => {
-            if (!salesMap[item.productId]) {
-              salesMap[item.productId] = {
-                name: item.productName || 'Unknown Product',
-                quantity: 0,
-                revenue: 0
-              };
-            }
-            salesMap[item.productId].quantity += item.quantity;
-            salesMap[item.productId].revenue += item.subtotal;
-          });
-        }
-      });
-
-      const sortedTop = Object.entries(salesMap)
-        .map(([id, data]) => ({ id, ...data }))
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5);
-
-      setTopProducts(sortedTop);
+        setTopProducts(topSellingProducts || []);
+        setTopViewedProducts(topViewed || []);
+      }
     } catch (err) {
-      console.error('Error fetching admin statistics:', err);
+      console.error('Error fetching real admin analytics:', err);
     } finally {
       setLoading(false);
     }
@@ -178,7 +144,7 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      {/* 2. SIX SUMMARY METRICS CARDS */}
+      {/* 2. SIX SUMMARY METRICS CARDS (100% Real from Database) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Card 1: Total Users */}
         <div className="bg-white border border-zinc-200/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
@@ -237,7 +203,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-3">
-            <p className="text-2xl font-black text-zinc-950 truncate">৳{stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-2xl font-black text-zinc-950 truncate">{formatPrice(stats.totalRevenue)}</p>
             <p className="text-[9px] text-zinc-400 font-extrabold uppercase mt-1 tracking-wider truncate">
               Paid Transactions
             </p>
@@ -277,10 +243,10 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 3. CHART AND STATISTICS LAYOUT */}
-      <SalesOverviewChart revenue={stats.totalRevenue} orders={stats.totalOrders} />
+      {/* 3. 100% REAL CHART AND VISITOR ANALYTICS LAYOUT */}
+      <SalesOverviewChart metrics={analyticsMetrics || undefined} chartData={chartData} />
 
-      {/* 3.5 ADDITIONAL CHARTS: ORDERS BY STATUS & TOP PRODUCTS */}
+      {/* 3.5 REAL CHARTS: ORDERS BY STATUS & TOP PRODUCTS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Side: Orders by Status Breakdown */}
         <div className="lg:col-span-6 bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
@@ -325,20 +291,22 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Right Side: Top Selling Products */}
+        {/* Right Side: Top Performing / Selling Products */}
         <div className="lg:col-span-6 bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
           <div>
             <span className="text-xs font-black text-zinc-400 uppercase tracking-widest block">Top Products</span>
-            <h4 className="text-lg font-bold text-zinc-950 mt-1">Best performing items by quantity sold</h4>
+            <h4 className="text-lg font-bold text-zinc-950 mt-1">
+              {topProducts.length > 0 ? 'Best performing items by quantity sold' : 'Most viewed catalog items'}
+            </h4>
           </div>
 
           <div className="flex flex-col gap-4 mt-2 justify-center h-full">
-            {topProducts.length === 0 ? (
+            {topProducts.length === 0 && topViewedProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-zinc-400 gap-2">
                 <Package className="h-10 w-10 text-zinc-300" />
-                <p className="text-xs font-black uppercase tracking-wider">No products sold yet</p>
+                <p className="text-xs font-black uppercase tracking-wider">No products catalog data</p>
               </div>
-            ) : (
+            ) : topProducts.length > 0 ? (
               topProducts.map((prod, idx) => (
                 <div key={prod.id} className="flex items-center justify-between border-b border-zinc-100 pb-3 last:border-0 last:pb-0 group">
                   <div className="flex items-center gap-3">
@@ -350,13 +318,37 @@ export default function AdminDashboard() {
                         {prod.name}
                       </span>
                       <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">
-                        ৳{prod.revenue.toLocaleString()} in revenue
+                        {formatPrice(prod.revenue)} in revenue
                       </span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="inline-flex items-center rounded-full bg-zinc-50 border border-zinc-200 px-3 py-1 text-xs font-black text-zinc-700">
                       {prod.quantity} sold
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              topViewedProducts.map((prod, idx) => (
+                <div key={prod.id} className="flex items-center justify-between border-b border-zinc-100 pb-3 last:border-0 last:pb-0 group">
+                  <div className="flex items-center gap-3">
+                    <span className="h-6 w-6 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-black border border-rose-100">
+                      #{idx + 1}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-800 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                        {prod.name}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">
+                        Price: {formatPrice(prod.price)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-xs font-black text-rose-700">
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>{prod.views ?? 0} views</span>
                     </span>
                   </div>
                 </div>
