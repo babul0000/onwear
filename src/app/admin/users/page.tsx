@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
-import { ArrowLeft, User as UserIcon, ShieldCheck, Users, Loader2 } from 'lucide-react';
+import { ArrowLeft, User as UserIcon, ShieldCheck, Users, Loader2, Trash2 } from 'lucide-react';
 import ConfirmModal from '../../../components/ConfirmModal';
 
 interface UserRecord {
@@ -25,6 +25,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [targetUser, setTargetUser] = useState<{ user: UserRecord; nextRole: 'admin' | 'customer' } | null>(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState<UserRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchUsers = async () => {
@@ -47,7 +49,7 @@ export default function AdminUsersPage() {
     if (user && user.role !== 'admin') {
       router.push('/');
     }
-  }, [user]);
+  }, [user, router]);
 
   useEffect(() => {
     if (token) {
@@ -91,6 +93,38 @@ export default function AdminUsersPage() {
       setMessage({ type: 'error', text: 'An error occurred while updating user role' });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!token || !deleteUserTarget) return;
+    setDeleting(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`${API_URL}/users/${deleteUserTarget.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setMessage({
+          type: 'success',
+          text: `User "${deleteUserTarget.name}" has been deleted successfully.`
+        });
+        setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
+        setDeleteUserTarget(null);
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to delete user' });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'An error occurred while deleting user' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -177,14 +211,25 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {user.id !== u.id && (
-                        <button
-                          onClick={() => handlePromptRoleChange(u)}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-800 hover:text-zinc-950 px-3.5 py-1.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-xl transition-all cursor-pointer shadow-xs"
-                          title="Change Role"
-                        >
-                          <ShieldCheck className="h-3.5 w-3.5" />
-                          <span>Switch to {u.role === 'admin' ? 'Customer' : 'Admin'}</span>
-                        </button>
+                        <div className="inline-flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handlePromptRoleChange(u)}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-800 hover:text-zinc-950 px-3 py-1.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-xl transition-all cursor-pointer shadow-xs"
+                            title="Change Role"
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5 text-zinc-600" />
+                            <span className="hidden sm:inline">Switch to {u.role === 'admin' ? 'Customer' : 'Admin'}</span>
+                          </button>
+
+                          <button
+                            onClick={() => setDeleteUserTarget(u)}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/80 border border-red-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                            title="Delete User"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -201,7 +246,7 @@ export default function AdminUsersPage() {
         onClose={() => setTargetUser(null)}
         onConfirm={handleConfirmRoleChange}
         title={`Change Role to ${targetUser?.nextRole?.toUpperCase()}`}
-        message={
+        description={
           targetUser?.nextRole === 'admin'
             ? `Are you sure you want to grant Admin access to "${targetUser?.user.name}"? They will gain access to the admin dashboard, inventory management, and store orders.`
             : `Are you sure you want to demote "${targetUser?.user.name}" to Customer? They will lose access to the administrative dashboard.`
@@ -216,6 +261,28 @@ export default function AdminUsersPage() {
                 title: targetUser.user.name,
                 subtitle: targetUser.user.email,
                 badge: `Current Role: ${targetUser.user.role.toUpperCase()}`
+              }
+            : undefined
+        }
+      />
+
+      {/* CONFIRM DELETE USER MODAL */}
+      <ConfirmModal
+        isOpen={!!deleteUserTarget}
+        onClose={() => !deleting && setDeleteUserTarget(null)}
+        onConfirm={handleConfirmDeleteUser}
+        title={`Delete User "${deleteUserTarget?.name}"?`}
+        description={`Are you sure you want to delete user account "${deleteUserTarget?.name}" (${deleteUserTarget?.email})? This user will be permanently removed from the user directory.`}
+        confirmText="Delete User"
+        cancelText="Keep User"
+        variant="danger"
+        loading={deleting}
+        itemPreview={
+          deleteUserTarget
+            ? {
+                title: deleteUserTarget.name,
+                subtitle: deleteUserTarget.email,
+                badge: `Role: ${deleteUserTarget.role.toUpperCase()}`
               }
             : undefined
         }
