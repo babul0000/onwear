@@ -79,6 +79,8 @@ export default function ProfilePage() {
   const [cancelTargetOrder, setCancelTargetOrder] = useState<any | null>(null);
   const [cancelReasonInput, setCancelReasonInput] = useState('Ordered wrong size');
   const [cancellingOrder, setCancellingOrder] = useState(false);
+  const [deleteTargetOrder, setDeleteTargetOrder] = useState<any | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState(false);
 
   // Profile Form States
   const [name, setName] = useState('');
@@ -129,6 +131,31 @@ export default function ProfilePage() {
       setDashboardError('Error cancelling order. Try again.');
     } finally {
       setCancellingOrder(false);
+    }
+  };
+
+  const handleConfirmDeleteOrder = async () => {
+    if (!deleteTargetOrder || !token) return;
+    setDeletingOrder(true);
+    try {
+      const res = await fetch(`${API_URL}/orders/${deleteTargetOrder.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== deleteTargetOrder.id));
+        setDeleteTargetOrder(null);
+      } else {
+        setDashboardError(data.message || 'Failed to delete order from history');
+      }
+    } catch (err) {
+      console.error(err);
+      setDashboardError('Network error while deleting order. Try again.');
+    } finally {
+      setDeletingOrder(false);
     }
   };
 
@@ -833,6 +860,19 @@ export default function ProfilePage() {
                               <span className={`border px-2.5 py-0.5 text-[9px] font-mono font-black uppercase tracking-wide rounded-[4px] ${getPaymentStatusColor(order.paymentStatus)}`}>
                                 {order.paymentStatus}
                               </span>
+                              {order.status === 'CANCELLED' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteTargetOrder(order);
+                                  }}
+                                  title="Delete from History"
+                                  className="flex items-center gap-1 border border-red-200 text-red-600 hover:bg-red-50 px-2 py-0.5 rounded-[4px] text-[9px] font-mono font-bold uppercase transition-colors"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  <span>Delete</span>
+                                </button>
+                              )}
                             </div>
                             {isExpanded ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
                           </div>
@@ -913,6 +953,17 @@ export default function ProfilePage() {
                                     className="w-full border border-thread/20 bg-white text-thread hover:bg-thread/5 py-2 text-center text-[10px] font-mono font-black uppercase rounded-[4px] transition-all cursor-pointer"
                                   >
                                     Cancel Order
+                                  </button>
+                                )}
+
+                                {/* Delete from history button if cancelled */}
+                                {order.status === 'CANCELLED' && (
+                                  <button
+                                    onClick={() => setDeleteTargetOrder(order)}
+                                    className="w-full border border-red-200 bg-red-50/70 text-red-700 hover:bg-red-100/80 py-2.5 text-center text-[10px] font-mono font-black uppercase rounded-[4px] transition-all cursor-pointer flex items-center justify-center gap-2 mt-1"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <span>Delete from History</span>
                                   </button>
                                 )}
                               </div>
@@ -1470,6 +1521,23 @@ export default function ProfilePage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Order Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTargetOrder)}
+        onClose={() => !deletingOrder && setDeleteTargetOrder(null)}
+        onConfirm={handleConfirmDeleteOrder}
+        title="Delete Cancelled Order?"
+        description={
+          deleteTargetOrder
+            ? `Are you sure you want to remove order #${deleteTargetOrder.id.slice(0, 8).toUpperCase()} from your order history? This action cannot be undone.`
+            : ''
+        }
+        confirmText="Delete from History"
+        cancelText="Keep in History"
+        variant="danger"
+        loading={deletingOrder}
+      />
     </div>
   );
 }

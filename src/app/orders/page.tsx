@@ -5,13 +5,16 @@ import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../config';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, ReceiptText } from 'lucide-react';
+import { Eye, ReceiptText, Trash2 } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function OrdersHistoryPage() {
   const { token, user } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTargetOrder, setDeleteTargetOrder] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [paymentStatusAlert, setPaymentStatusAlert] = useState<{
     status: 'success' | 'failed' | 'cancelled' | 'failed_initiation';
     orderId: string;
@@ -36,7 +39,6 @@ export default function OrdersHistoryPage() {
     }
   }, []);
 
-
   useEffect(() => {
     if (!token) return;
 
@@ -57,6 +59,29 @@ export default function OrdersHistoryPage() {
     }
     loadOrders();
   }, [token]);
+
+  const handleDeleteOrder = async () => {
+    if (!deleteTargetOrder || !token) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`${API_URL}/orders/${deleteTargetOrder.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== deleteTargetOrder.id));
+        setDeleteTargetOrder(null);
+      } else {
+        alert(data.message || 'Failed to remove order');
+      }
+    } catch (err) {
+      console.error('Error deleting order:', err);
+      alert('Network error while deleting order');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (!token || !user) {
     return (
@@ -110,7 +135,6 @@ export default function OrdersHistoryPage() {
         </div>
       )}
 
-
       {loading ? (
         <div className="mx-auto py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-indigo-600"></div>
@@ -142,7 +166,7 @@ export default function OrdersHistoryPage() {
               </thead>
               <tbody className="divide-y divide-zinc-200">
                 {orders.map((order) => {
-                  const statusColors = {
+                  const statusColors: Record<string, string> = {
                     PENDING: 'bg-zinc-50 text-zinc-700 border-zinc-200',
                     CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
                     PROCESSING: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -151,12 +175,14 @@ export default function OrdersHistoryPage() {
                     CANCELLED: 'bg-red-50 text-red-700 border-red-200'
                   };
 
-                  const paymentColors = {
+                  const paymentColors: Record<string, string> = {
                     UNPAID: 'bg-red-50 text-red-700 border-red-200',
                     PAID: 'bg-green-50 text-green-700 border-green-200',
                     FAILED: 'bg-rose-50 text-rose-700 border-rose-200',
                     REFUNDED: 'bg-zinc-50 text-zinc-700 border-zinc-200'
                   };
+
+                  const isCancelled = order.status === 'CANCELLED';
 
                   return (
                     <tr key={order.id} className="hover:bg-zinc-50 transition-colors">
@@ -184,13 +210,26 @@ export default function OrdersHistoryPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/orders/${order.id}`}
-                          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 p-1.5"
-                        >
-                          <Eye className="h-4.5 w-4.5" />
-                          <span className="hidden sm:inline">Details</span>
-                        </Link>
+                        <div className="inline-flex items-center justify-end gap-2">
+                          <Link
+                            href={`/orders/${order.id}`}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/60 px-2.5 py-1.5 rounded-lg transition-colors"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="hidden sm:inline">Details</span>
+                          </Link>
+
+                          {isCancelled && (
+                            <button
+                              onClick={() => setDeleteTargetOrder(order)}
+                              title="Delete from History"
+                              className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -200,6 +239,23 @@ export default function OrdersHistoryPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTargetOrder)}
+        onClose={() => !isDeleting && setDeleteTargetOrder(null)}
+        onConfirm={handleDeleteOrder}
+        title="Delete Cancelled Order?"
+        description={
+          deleteTargetOrder
+            ? `Are you sure you want to delete order #${deleteTargetOrder.id.slice(0, 8).toUpperCase()} from your order history? This action cannot be undone.`
+            : ''
+        }
+        confirmText="Delete from History"
+        cancelText="Keep in History"
+        variant="danger"
+        loading={isDeleting}
+      />
     </div>
   );
 }

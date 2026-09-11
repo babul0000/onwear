@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { formatPrice } from '../../../utils/format';
 import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../config';
-import { ShoppingBag, ArrowLeft, Printer, Loader2, X, AlertCircle } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Printer, Loader2, X, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -19,6 +20,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const [cancelReason, setCancelReason] = useState('Ordered wrong size');
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -66,6 +69,29 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
       setCancelError('Error cancelling order. Try again.');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.push('/orders');
+      } else {
+        alert(data.message || 'Failed to delete order from history');
+      }
+    } catch (err) {
+      console.error('Delete order error:', err);
+      alert('Error deleting order. Try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -131,9 +157,18 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
       {/* Cancellation Notice Banner */}
       {order.status === 'CANCELLED' && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-800 flex flex-col gap-1">
-          <span className="font-bold uppercase tracking-wider">Order Cancelled</span>
-          <p>Reason: {order.cancelReason || 'Order was cancelled by customer.'}</p>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <span className="font-bold uppercase tracking-wider">Order Cancelled</span>
+            <p>Reason: {order.cancelReason || 'Order was cancelled by customer.'}</p>
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="inline-flex items-center gap-1.5 self-start sm:self-center border border-red-300 bg-white hover:bg-red-50 text-red-700 px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider text-[11px] transition-colors cursor-pointer shrink-0 shadow-xs"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Delete from History</span>
+          </button>
         </div>
       )}
 
@@ -326,6 +361,19 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete from History Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => !isDeleting && setShowDeleteModal(false)}
+        onConfirm={handleDeleteOrder}
+        title="Delete Order from History?"
+        description={`Are you sure you want to permanently delete cancelled order #${order.id.slice(0, 8).toUpperCase()} from your order history?`}
+        confirmText="Delete from History"
+        cancelText="Keep in History"
+        variant="danger"
+        loading={isDeleting}
+      />
     </div>
   );
 }
