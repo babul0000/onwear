@@ -27,6 +27,8 @@ import {
   Filter
 } from 'lucide-react';
 
+import ConfirmModal from '../../../components/ConfirmModal';
+
 interface CategoryItem {
   id: string;
   name: string;
@@ -50,6 +52,10 @@ export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'hierarchy' | 'table'>('hierarchy');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+  // Delete modal state
+  const [deleteModalCat, setDeleteModalCat] = useState<CategoryItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form states
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -356,27 +362,31 @@ export default function AdminCategoriesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete category "${name}"? Associated products and subcategories will be updated.`)) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteModalCat) return;
+    setIsDeleting(true);
     setError('');
     setSuccess('');
 
     try {
-      const res = await fetch(`${API_URL}/categories/${id}`, {
+      const res = await fetch(`${API_URL}/categories/${deleteModalCat.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
 
       if (data.success) {
-        setSuccess(`Category "${name}" deleted successfully!`);
+        setSuccess(`Category "${deleteModalCat.name}" deleted successfully!`);
         fetchCategories();
+        setDeleteModalCat(null);
       } else {
         setError(data.message || 'Failed to delete category');
       }
     } catch (err) {
       console.error(err);
-      setError('An error occurred');
+      setError('An error occurred while deleting category');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1097,7 +1107,7 @@ export default function AdminCategoriesPage() {
                         </button>
 
                         <button
-                          onClick={() => handleDelete(parent.id, parent.name)}
+                          onClick={() => setDeleteModalCat(parent)}
                           className="p-2 text-zinc-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Delete Parent"
                         >
@@ -1275,7 +1285,7 @@ export default function AdminCategoriesPage() {
                                 </button>
 
                                 <button
-                                  onClick={() => handleDelete(sub.id, sub.name)}
+                                  onClick={() => setDeleteModalCat(sub)}
                                   className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                                   title="Delete Subcategory"
                                 >
@@ -1361,14 +1371,14 @@ export default function AdminCategoriesPage() {
                         <div className="flex justify-end gap-1.5">
                           <button
                             onClick={() => handleEdit(cat)}
-                            className="p-1.5 text-zinc-500 hover:text-zinc-900 rounded-lg hover:bg-zinc-100"
+                            className="p-1.5 text-zinc-500 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 cursor-pointer"
                             title="Edit"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(cat.id, cat.name)}
-                            className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
+                            onClick={() => setDeleteModalCat(cat)}
+                            className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1386,6 +1396,41 @@ export default function AdminCategoriesPage() {
         </div>
 
       </div>
+
+      {/* CONFIRM CATEGORY DELETE MODAL */}
+      <ConfirmModal
+        isOpen={deleteModalCat !== null}
+        onClose={() => setDeleteModalCat(null)}
+        onConfirm={handleDeleteConfirm}
+        title={`Delete Category "${deleteModalCat?.name}"?`}
+        description={
+          deleteModalCat?.subcategories && deleteModalCat.subcategories.length > 0 ? (
+            <div className="space-y-2">
+              <p>Are you sure you want to delete this parent category?</p>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold">
+                ⚠️ <strong>Warning:</strong> This category contains <strong>{deleteModalCat.subcategories.length} subcategories</strong>. Deleting it will unassign and update associated products.
+              </div>
+            </div>
+          ) : (
+            'Are you sure you want to permanently delete this category? Associated products will have their category unassigned.'
+          )
+        }
+        confirmText="Yes, Delete Category"
+        cancelText="Keep Category"
+        variant="danger"
+        loading={isDeleting}
+        itemPreview={
+          deleteModalCat
+            ? {
+                image: deleteModalCat.image || '/placeholder.svg',
+                title: deleteModalCat.name,
+                subtitle: `/${deleteModalCat.slug}`,
+                badge: deleteModalCat.parentId ? 'Sub-Category' : 'Main Department',
+              }
+            : undefined
+        }
+      />
+
     </div>
   );
 }

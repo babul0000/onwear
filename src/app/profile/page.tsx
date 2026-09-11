@@ -30,8 +30,11 @@ import {
   Edit2,
   LogOut,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Loader2
 } from 'lucide-react';
+import ConfirmModal from '../../components/ConfirmModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Status tracking constants
 const STAGES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
@@ -69,6 +72,13 @@ export default function ProfilePage() {
   const [addressZone, setAddressZone] = useState<'INSIDE_DHAKA' | 'OUTSIDE_DHAKA'>('INSIDE_DHAKA');
   const [addressDefault, setAddressDefault] = useState(false);
   const [addressError, setAddressError] = useState('');
+  const [addressToDelete, setAddressToDelete] = useState<any | null>(null);
+  const [deletingAddress, setDeletingAddress] = useState(false);
+
+  // Cancel Order Modal State
+  const [cancelTargetOrder, setCancelTargetOrder] = useState<any | null>(null);
+  const [cancelReasonInput, setCancelReasonInput] = useState('Ordered wrong size');
+  const [cancellingOrder, setCancellingOrder] = useState(false);
 
   // Profile Form States
   const [name, setName] = useState('');
@@ -93,27 +103,32 @@ export default function ProfilePage() {
   const [initiatingPaymentId, setInitiatingPaymentId] = useState<string | null>(null);
   const [dashboardError, setDashboardError] = useState('');
 
-  const handleCancelOrder = async (orderId: string, reason: string = 'Cancelled by customer') => {
+  const handleConfirmCancelOrder = async () => {
+    if (!cancelTargetOrder) return;
+    setCancellingOrder(true);
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_URL}/orders/${cancelTargetOrder.id}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({ reason: cancelReasonInput })
       });
       const data = await res.json();
       if (data.success) {
         setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status: 'CANCELLED', cancelReason: reason } : o))
+          prev.map((o) => (o.id === cancelTargetOrder.id ? { ...o, status: 'CANCELLED', cancelReason: cancelReasonInput } : o))
         );
+        setCancelTargetOrder(null);
       } else {
         setDashboardError(data.message || 'Failed to cancel order');
       }
     } catch (err) {
       console.error(err);
       setDashboardError('Error cancelling order. Try again.');
+    } finally {
+      setCancellingOrder(false);
     }
   };
 
@@ -242,16 +257,18 @@ export default function ProfilePage() {
   };
 
   // Handle Delete Address
-  const handleDeleteAddress = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this address?')) return;
+  const handleConfirmDeleteAddress = async () => {
+    if (!token || !addressToDelete) return;
+    setDeletingAddress(true);
     try {
-      const res = await fetch(`${API_URL}/addresses/${id}`, {
+      const res = await fetch(`${API_URL}/addresses/${addressToDelete.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (data.success) {
-        setAddresses(addresses.filter(a => a.id !== id));
+        setAddresses(addresses.filter(a => a.id !== addressToDelete.id));
+        setAddressToDelete(null);
         // Refresh to check if default flipped
         const listRes = await fetch(`${API_URL}/addresses`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -263,6 +280,8 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeletingAddress(false);
     }
   };
 
@@ -890,13 +909,8 @@ export default function ProfilePage() {
                                 {/* Cancel button if eligible */}
                                 {canCancel && (
                                   <button
-                                    onClick={() => {
-                                      const reason = prompt('Please enter reason for cancellation:', 'Ordered wrong size');
-                                      if (reason !== null) {
-                                        handleCancelOrder(order.id, reason || 'Cancelled by customer');
-                                      }
-                                    }}
-                                    className="w-full border border-thread/20 bg-white text-thread hover:bg-thread/5 py-2 text-center text-[10px] font-mono font-black uppercase rounded-[4px] transition-all"
+                                    onClick={() => setCancelTargetOrder(order)}
+                                    className="w-full border border-thread/20 bg-white text-thread hover:bg-thread/5 py-2 text-center text-[10px] font-mono font-black uppercase rounded-[4px] transition-all cursor-pointer"
                                   >
                                     Cancel Order
                                   </button>
@@ -1162,11 +1176,11 @@ export default function ProfilePage() {
                           </div>
 
                           <div className="border-t border-line/30 pt-3 flex justify-end gap-3">
-                            <button onClick={() => openEditAddress(addr)} className="text-muted hover:text-indigo" title="Edit Address">
+                            <button onClick={() => openEditAddress(addr)} className="text-muted hover:text-indigo cursor-pointer" title="Edit Address">
                               <Edit2 className="h-4.5 w-4.5" />
                             </button>
                             {!addr.isDefault && (
-                              <button onClick={() => handleDeleteAddress(addr.id)} className="text-muted hover:text-thread" title="Delete Address">
+                              <button onClick={() => setAddressToDelete(addr)} className="text-muted hover:text-thread cursor-pointer" title="Delete Address">
                                 <Trash2 className="h-4.5 w-4.5" />
                               </button>
                             )}
@@ -1186,7 +1200,7 @@ export default function ProfilePage() {
                           setAddressDefault(false);
                           setShowAddressForm(true);
                         }}
-                        className="border border-dashed border-line bg-panel/10 hover:bg-panel/30 hover:border-indigo p-6 rounded-[4px] flex flex-col items-center justify-center gap-2 text-muted transition-colors min-h-[160px]"
+                        className="border border-dashed border-line bg-panel/10 hover:bg-panel/30 hover:border-indigo p-6 rounded-[4px] flex flex-col items-center justify-center gap-2 text-muted transition-colors min-h-[160px] cursor-pointer"
                       >
                         <Plus className="h-6 w-6 text-line" />
                         <span className="text-xs font-mono font-black uppercase text-ink tracking-wider">Add New Address</span>
@@ -1300,7 +1314,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={loadingProfile}
-                    className="w-full rounded-[4px] bg-indigo py-3.5 text-xs font-mono font-black uppercase text-white hover:bg-zinc-800 transition-colors shadow-none disabled:bg-line disabled:text-muted flex items-center justify-center gap-2 mt-4"
+                    className="w-full rounded-[4px] bg-indigo py-3.5 text-xs font-mono font-black uppercase text-white hover:bg-zinc-800 transition-colors shadow-none disabled:bg-line disabled:text-muted flex items-center justify-center gap-2 mt-4 cursor-pointer"
                   >
                     <Save className="h-4.5 w-4.5" />
                     <span>{loadingProfile ? 'Saving updates...' : 'Save Profile Details'}</span>
@@ -1353,6 +1367,110 @@ export default function ProfilePage() {
 
       {/* Spacing spacer for mobile sticky bar */}
       <div className="lg:hidden h-14" />
+
+      {/* CONFIRM ADDRESS DELETE MODAL */}
+      <ConfirmModal
+        isOpen={!!addressToDelete}
+        onClose={() => setAddressToDelete(null)}
+        onConfirm={handleConfirmDeleteAddress}
+        title="Delete Shipping Address"
+        message="Are you sure you want to delete this saved delivery destination? You can add a new address anytime."
+        confirmText="Delete Address"
+        cancelText="Keep Address"
+        variant="danger"
+        loading={deletingAddress}
+        itemPreview={
+          addressToDelete
+            ? {
+                title: `${addressToDelete.label} (${addressToDelete.name})`,
+                subtitle: `${addressToDelete.line} - Phone: ${addressToDelete.phone}`,
+                badge: addressToDelete.zone === 'INSIDE_DHAKA' ? 'Inside Dhaka' : 'Outside Dhaka'
+              }
+            : undefined
+        }
+      />
+
+      {/* CANCEL ORDER CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {cancelTargetOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white w-full max-w-md rounded-3xl border border-zinc-200 shadow-2xl p-6 sm:p-8 space-y-6 relative"
+            >
+              <button
+                onClick={() => !cancellingOrder && setCancelTargetOrder(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-zinc-700 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div>
+                <h3 className="text-lg font-black text-zinc-950 tracking-tight">Cancel Order</h3>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Are you sure you want to cancel Order <span className="font-mono font-bold text-zinc-800">#{cancelTargetOrder.id.slice(0, 8).toUpperCase()}</span>? Reserved items will be restored to store inventory.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-700 space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Total Amount:</span>
+                  <span className="font-black text-zinc-950">{formatPrice(cancelTargetOrder.totalAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Items:</span>
+                  <span className="font-semibold text-zinc-800">{cancelTargetOrder.items?.length || 0} product(s)</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider">Reason for Cancellation</label>
+                <select
+                  value={cancelReasonInput}
+                  onChange={(e) => setCancelReasonInput(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-800 font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-950/10 focus:border-zinc-950 transition-all cursor-pointer"
+                >
+                  <option value="Ordered wrong size">Ordered wrong size / need to change size</option>
+                  <option value="Need to change delivery address">Need to change delivery address or contact number</option>
+                  <option value="Placed duplicate order">Placed duplicate order by mistake</option>
+                  <option value="Delivery time too long">Delivery timeline is too long</option>
+                  <option value="Changed mind">Changed my mind</option>
+                  <option value="Other">Other reason</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={cancellingOrder}
+                  onClick={() => setCancelTargetOrder(null)}
+                  className="flex-1 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 font-extrabold py-3 rounded-2xl text-xs tracking-wider uppercase transition-all shadow-xs cursor-pointer"
+                >
+                  Keep Order
+                </button>
+                <button
+                  type="button"
+                  disabled={cancellingOrder}
+                  onClick={handleConfirmCancelOrder}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-2xl text-xs tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {cancellingOrder ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    'Confirm Cancel'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

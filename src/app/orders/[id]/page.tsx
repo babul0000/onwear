@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { formatPrice } from '../../../utils/format';
 import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../config';
-import { Truck, ShoppingBag, ArrowLeft, Printer } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Printer, Loader2, X, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -89,7 +90,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Order not found</h2>
-        <button onClick={() => router.push('/orders')} className="mt-4 rounded-full bg-zinc-950 px-6 py-2 text-white">
+        <button onClick={() => router.push('/orders')} className="mt-4 rounded-full bg-zinc-950 px-6 py-2 text-white cursor-pointer">
           Back to Orders
         </button>
       </div>
@@ -102,7 +103,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
       <div className="flex items-center justify-between print:hidden">
         <button
           onClick={() => router.push('/orders')}
-          className="inline-flex items-center gap-1 text-xs font-bold text-zinc-500 hover:text-zinc-950 uppercase tracking-wider transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-950 uppercase tracking-wider transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Order History</span>
@@ -112,7 +113,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           {order.status === 'PENDING' && (
             <button
               onClick={() => setShowCancelModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 transition-all uppercase tracking-wider"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all uppercase tracking-wider cursor-pointer shadow-xs"
             >
               <span>Cancel Order</span>
             </button>
@@ -120,7 +121,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-800 hover:bg-zinc-50 shadow-sm transition-all"
+            className="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-800 hover:bg-zinc-50 shadow-xs transition-all cursor-pointer"
           >
             <Printer className="h-4 w-4 text-zinc-600" />
             <span>Print Invoice</span>
@@ -137,7 +138,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
       )}
 
       {/* Printable Invoice Card */}
-      <div className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm flex flex-col gap-6 print:border-none print:shadow-none print:p-0">
+      <div className="rounded-3xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-xs flex flex-col gap-6 print:border-none print:shadow-none print:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-100 pb-5 gap-4">
           <div>
             <span className="text-[10px] font-black uppercase text-teal-650 tracking-widest font-mono">
@@ -245,70 +246,86 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           )}
           <div className="border-t border-zinc-200 pt-3 flex justify-between items-baseline">
             <span className="text-sm font-black uppercase tracking-wider text-zinc-950">Grand Total</span>
-            <span className="text-2xl font-black text-teal-650 font-mono">{formatPrice(order.totalAmount)}</span>
+            <span className="text-2xl font-black text-zinc-950 font-mono">{formatPrice(order.totalAmount)}</span>
           </div>
         </div>
       </div>
 
       {/* Cancel Order Confirmation Modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            onClick={() => !cancelling && setShowCancelModal(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-          />
-          <div className="relative z-10 w-full max-w-md bg-white p-6 shadow-2xl border border-zinc-200 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
-            <div>
-              <h3 className="text-lg font-black text-zinc-950 uppercase tracking-tight">Cancel This Order?</h3>
-              <p className="text-xs text-zinc-500 mt-1">
-                Are you sure you want to cancel Order #{order.id}? Reserved inventory will be returned to stock.
-              </p>
-            </div>
+      <AnimatePresence>
+        {showCancelModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white w-full max-w-md rounded-3xl border border-zinc-200 shadow-2xl p-6 sm:p-8 space-y-6 relative"
+            >
+              <button
+                onClick={() => !cancelling && setShowCancelModal(false)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-zinc-700 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
 
-            {cancelError && (
-              <div className="bg-red-50 border border-red-200 p-3 text-xs text-red-700 font-medium">
-                {cancelError}
+              <div>
+                <h3 className="text-lg font-black text-zinc-950 tracking-tight">Cancel This Order?</h3>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Are you sure you want to cancel Order <span className="font-mono font-bold text-zinc-800">#{order.id.slice(0, 8).toUpperCase()}</span>? Reserved inventory will be returned to stock.
+                </p>
               </div>
-            )}
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Reason for Cancellation</label>
-              <select
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="border border-zinc-200 p-2.5 text-xs bg-zinc-50 text-zinc-900 font-semibold focus:outline-none focus:border-zinc-950"
-              >
-                <option value="Ordered wrong size">Ordered wrong size / need to change size</option>
-                <option value="Need to change delivery address">Need to change delivery address or phone</option>
-                <option value="Placed duplicate order">Placed duplicate order by mistake</option>
-                <option value="Delivery time too long">Delivery time too long</option>
-                <option value="Changed mind">Changed mind</option>
-                <option value="Other">Other reason</option>
-              </select>
-            </div>
+              {cancelError && (
+                <div className="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs text-red-700 font-medium">
+                  {cancelError}
+                </div>
+              )}
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                disabled={cancelling}
-                onClick={() => setShowCancelModal(false)}
-                className="flex-1 border border-zinc-200 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 hover:bg-zinc-50"
-              >
-                Keep Order
-              </button>
-              <button
-                type="button"
-                disabled={cancelling}
-                onClick={handleCancelOrder}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm disabled:opacity-50"
-              >
-                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
-              </button>
-            </div>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider">Reason for Cancellation</label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-800 font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-950/10 focus:border-zinc-950 transition-all cursor-pointer"
+                >
+                  <option value="Ordered wrong size">Ordered wrong size / need to change size</option>
+                  <option value="Need to change delivery address">Need to change delivery address or phone</option>
+                  <option value="Placed duplicate order">Placed duplicate order by mistake</option>
+                  <option value="Delivery time too long">Delivery time too long</option>
+                  <option value="Changed mind">Changed mind</option>
+                  <option value="Other">Other reason</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={cancelling}
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 font-extrabold py-3 rounded-2xl text-xs tracking-wider uppercase transition-all shadow-xs cursor-pointer"
+                >
+                  Keep Order
+                </button>
+                <button
+                  type="button"
+                  disabled={cancelling}
+                  onClick={handleCancelOrder}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-2xl text-xs tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {cancelling ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    'Confirm Cancel'
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-

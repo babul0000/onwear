@@ -18,6 +18,27 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import AddProduct from '../../../components/AddProduct';
+import ConfirmModal from '../../../components/ConfirmModal';
+
+interface ProductItem {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  price: number;
+  discountPrice?: number | null;
+  stock: number;
+  image?: string | null;
+  image2?: string | null;
+  images?: string[];
+  status: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
+  categoryId: string;
+  category?: { id: string; name: string };
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export default function AdminProductsPage() {
   const { token, user } = useAuth();
@@ -25,10 +46,16 @@ export default function AdminProductsPage() {
   
   const [showAddProduct, setShowAddProduct] = useState(false);
 
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'trash'>('active');
+
+  // Dual Delete Modal State
+  const [deleteModalProduct, setDeleteModalProduct] = useState<any | null>(null);
+  const [showPurgeAllModal, setShowPurgeAllModal] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
   // Form states
   const [showForm, setShowForm] = useState(false);
@@ -42,10 +69,6 @@ export default function AdminProductsPage() {
   const [image, setImage] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('ACTIVE');
-
-  // Dual Delete Modal State
-  const [deleteModalProduct, setDeleteModalProduct] = useState<any | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -232,7 +255,7 @@ export default function AdminProductsPage() {
 
   // Purge All Trashed Products
   const handlePurgeAllTrash = async () => {
-    if (!confirm('Are you sure you want to permanently delete all items in trash right now? This cannot be undone.')) return;
+    setIsPurging(true);
     setError('');
     setSuccess('');
 
@@ -246,12 +269,15 @@ export default function AdminProductsPage() {
       if (data.success) {
         setSuccess('All trashed products permanently purged from database!');
         fetchProducts();
+        setShowPurgeAllModal(false);
       } else {
         setError(data.message || 'Failed to purge trash');
       }
     } catch (err) {
       console.error(err);
       setError('An error occurred while purging trash');
+    } finally {
+      setIsPurging(false);
     }
   };
 
@@ -613,11 +639,24 @@ export default function AdminProductsPage() {
       {/* PRODUCTS TAB: TRASH / AUTO-PURGE */}
       {activeTab === 'trash' && (
         <div className="space-y-4">
-          <div className="bg-amber-50 border border-amber-200/80 rounded-3xl p-4 flex items-center gap-3 text-xs font-semibold text-amber-900">
-            <Clock className="h-5 w-5 text-amber-600 flex-shrink-0" />
-            <div>
-              <span><strong>5-Day Auto-Purge Policy:</strong> Items moved to Trash stay protected for 5 days. You can restore them anytime before they expire. After 5 days, the system permanently removes them automatically.</span>
+          <div className="bg-amber-50 border border-amber-200/80 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-amber-900 shadow-xs">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <span><strong>5-Day Auto-Purge Policy:</strong> Items moved to Trash stay protected for 5 days. You can restore them anytime before they expire. After 5 days, the system permanently removes them automatically.</span>
+              </div>
             </div>
+
+            {trashedProducts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowPurgeAllModal(true)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer shrink-0"
+              >
+                <Flame className="h-3.5 w-3.5" />
+                <span>Empty All Trash Now</span>
+              </button>
+            )}
           </div>
 
           <div className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-sm">
@@ -670,7 +709,7 @@ export default function AdminProductsPage() {
                             <div className="flex justify-end gap-2">
                               <button
                                 onClick={() => handleRestore(prod.id)}
-                                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                                 title="Restore Product"
                               >
                                 <RotateCcw className="h-3.5 w-3.5" />
@@ -679,7 +718,7 @@ export default function AdminProductsPage() {
 
                               <button
                                 onClick={() => handleHardDelete(prod.id)}
-                                className="px-3 py-1.5 bg-red-50 hover:bg-red-100/80 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                                className="px-3 py-1.5 bg-red-50 hover:bg-red-100/80 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                                 title="Permanently Delete Now"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -700,71 +739,92 @@ export default function AdminProductsPage() {
 
       {/* DUAL DELETE CONFIRMATION MODAL */}
       {deleteModalProduct && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 flex flex-col gap-6 relative">
+        <div className="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 flex flex-col gap-5 relative animate-in zoom-in-95 duration-200 text-zinc-850">
             
             <button
               onClick={() => setDeleteModalProduct(null)}
-              className="absolute right-6 top-6 p-2 text-zinc-400 hover:text-zinc-700 rounded-full hover:bg-zinc-100 transition-colors"
+              className="absolute right-5 top-5 p-2 text-zinc-400 hover:text-zinc-700 rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
             {/* Header */}
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold mb-3 border border-red-100">
-                <ShieldAlert className="h-4 w-4 text-red-600" />
-                <span>Delete Confirmation</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-full text-[11px] font-bold mb-2.5 border border-red-200/60 font-mono">
+                <ShieldAlert className="h-3.5 w-3.5 text-red-600" />
+                <span>Delete Product Options</span>
               </div>
-              <h2 className="text-xl font-black text-zinc-950">How would you like to delete this product?</h2>
-              <p className="text-xs text-zinc-500 mt-1">
-                Selected: <strong className="text-zinc-800">{deleteModalProduct.name}</strong> (SKU: {deleteModalProduct.sku})
-              </p>
+              <h2 className="text-lg font-black text-zinc-950 font-sans tracking-tight">How would you like to delete this product?</h2>
+            </div>
+
+            {/* Product Item Preview */}
+            <div className="flex items-center gap-3.5 p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200/80">
+              <div className="h-13 w-13 rounded-xl overflow-hidden bg-white border border-zinc-200 shrink-0">
+                <img
+                  src={deleteModalProduct.image || '/placeholder.svg'}
+                  alt={deleteModalProduct.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold text-zinc-900 truncate font-sans">
+                  {deleteModalProduct.name}
+                </h4>
+                <div className="flex items-center gap-3 mt-1 text-[11px] font-mono text-zinc-500">
+                  <span>SKU: <strong>{deleteModalProduct.sku}</strong></span>
+                  <span>•</span>
+                  <span>Price: <strong className="text-zinc-950">৳{deleteModalProduct.price}</strong></span>
+                </div>
+              </div>
             </div>
 
             {/* Options */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3.5 font-sans">
               
               {/* Option 1: Soft Delete (Trash - 5 Days) */}
-              <div className="p-4 rounded-2xl border-2 border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition-all flex flex-col gap-3">
+              <div className="p-4 rounded-2xl border-2 border-amber-300/80 bg-amber-50/40 hover:bg-amber-50/80 transition-all flex flex-col gap-3">
                 <div className="flex items-start gap-3">
                   <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl flex-shrink-0">
-                    <Clock className="h-5 w-5" />
+                    <Clock className="h-4.5 w-4.5 text-amber-700" />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-black text-zinc-900">Move to Trash (5-Day Auto-Purge)</h4>
-                    <p className="text-[11px] text-zinc-500 leading-relaxed mt-0.5 font-medium">
-                      Product will be hidden from customer storefront immediately. It remains stored in your <strong>Trash</strong> for 5 days with an option to restore anytime before automatic permanent deletion.
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-zinc-900">Move to Trash (5-Day Auto-Purge)</h4>
+                      <span className="text-[9px] font-black uppercase text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded font-mono">Recommended</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 leading-relaxed mt-1 font-medium">
+                      Hides product from storefront immediately. Protected in your <strong>Trash</strong> for 5 days with 1-click restore.
                     </p>
                   </div>
                 </div>
                 <button
                   disabled={isDeleting}
                   onClick={() => handleSoftDelete(deleteModalProduct.id)}
-                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  <span>Move to Trash (5 Days)</span>
+                  <span>Move to Trash (5 Days Recovery)</span>
                 </button>
               </div>
 
               {/* Option 2: Hard Delete (Permanent Wipe) */}
-              <div className="p-4 rounded-2xl border-2 border-red-200 bg-red-50/40 hover:bg-red-50 transition-all flex flex-col gap-3">
+              <div className="p-4 rounded-2xl border-2 border-red-300/80 bg-red-50/40 hover:bg-red-50/80 transition-all flex flex-col gap-3">
                 <div className="flex items-start gap-3">
                   <div className="p-2.5 bg-red-100 text-red-800 rounded-xl flex-shrink-0">
-                    <Flame className="h-5 w-5" />
+                    <Flame className="h-4.5 w-4.5 text-red-700" />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-black text-zinc-900">Permanent Delete Now (Hard Delete)</h4>
-                    <p className="text-[11px] text-zinc-500 leading-relaxed mt-0.5 font-medium">
-                      Instantly and permanently purges this product record from the database. <strong>This action cannot be undone.</strong>
+                  <div className="flex-1">
+                    <h4 className="text-xs font-black text-zinc-900">Permanent Delete (Hard Delete)</h4>
+                    <p className="text-[11px] text-zinc-500 leading-relaxed mt-1 font-medium">
+                      Instantly purges this product record from database and Cloudinary storage. <strong>Cannot be recovered.</strong>
                     </p>
                   </div>
                 </div>
                 <button
                   disabled={isDeleting}
                   onClick={() => handleHardDelete(deleteModalProduct.id)}
-                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Flame className="h-3.5 w-3.5" />
                   <span>Permanent Hard Delete</span>
@@ -773,11 +833,11 @@ export default function AdminProductsPage() {
 
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1 border-t border-zinc-100">
               <button
                 type="button"
                 onClick={() => setDeleteModalProduct(null)}
-                className="text-xs font-bold text-zinc-500 hover:text-zinc-800 px-4 py-2"
+                className="text-xs font-bold text-zinc-500 hover:text-zinc-800 px-5 py-2 rounded-full hover:bg-zinc-100 transition-colors uppercase tracking-wider cursor-pointer font-sans"
               >
                 Cancel
               </button>
@@ -786,6 +846,19 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
+
+      {/* EMPTY ALL TRASH CONFIRMATION MODAL */}
+      <ConfirmModal
+        isOpen={showPurgeAllModal}
+        onClose={() => setShowPurgeAllModal(false)}
+        onConfirm={handlePurgeAllTrash}
+        title="Empty All Trashed Products?"
+        description={`This will permanently wipe all ${trashedProducts.length} soft-deleted items from the database immediately. This action cannot be undone.`}
+        confirmText="Yes, Empty Trash Now"
+        cancelText="Keep in Trash"
+        variant="danger"
+        loading={isPurging}
+      />
 
     </div>
   );
