@@ -350,20 +350,24 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     setEditSlides(copy);
   };
 
-  // Admin: Upload via ImgBB
+  // Admin: Upload via Cloudinary CDN
   const handleSlideFileChange = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     setUploadingSlideIdx(idx);
 
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('folder', 'onwear/hero_slides');
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
+        headers,
         body: formData,
       });
       const data = await res.json();
@@ -373,11 +377,11 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
         copy[idx].imageUrl = data.data.url;
         setEditSlides(copy);
       } else {
-        alert(data.error?.message || 'ImgBB upload failed.');
+        alert(data.message || 'Image upload failed.');
       }
     } catch (err) {
-      console.error(err);
-      alert('Image upload failed.');
+      console.error('Error uploading slide image:', err);
+      alert('Image upload failed. Please try again.');
     } finally {
       setUploadingSlideIdx(null);
     }

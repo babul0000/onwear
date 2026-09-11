@@ -278,6 +278,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
 
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('folder', 'onwear/products');
 
     try {
       const headers: Record<string, string> = {};

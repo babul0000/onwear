@@ -245,6 +245,7 @@ export default function AdminCategoriesPage() {
     setUploadingImage(true);
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('folder', 'onwear/categories');
 
     try {
       const headers: Record<string, string> = {};

@@ -107,7 +107,7 @@ export default function AdminSettingsPage() {
     }
   }, [settings]);
 
-  // Handle Image Upload to ImgBB
+  // Handle Image Upload to Cloudinary CDN
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'logo' | 'lookbook' | 'loginBanner' | 'registerBanner'
@@ -115,7 +115,6 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     if (type === 'logo') setUploadingLogo(true);
     else if (type === 'lookbook') setUploadingLookbook(true);
     else if (type === 'loginBanner') setUploadingLoginBanner(true);
@@ -124,10 +123,15 @@ export default function AdminSettingsPage() {
 
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('folder', 'onwear/settings');
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
+        headers,
         body: formData,
       });
       const data = await res.json();
@@ -135,22 +139,22 @@ export default function AdminSettingsPage() {
       if (data.success && data.data && data.data.url) {
         if (type === 'logo') {
           setLogoUrl(data.data.url);
-          setMessage({ type: 'success', text: 'Logo uploaded successfully. Save changes to make it permanent!' });
+          setMessage({ type: 'success', text: 'Logo uploaded & optimized successfully. Save changes to make it permanent!' });
         } else if (type === 'lookbook') {
           setLookbookImageUrl(data.data.url);
-          setMessage({ type: 'success', text: 'Lookbook image uploaded successfully. Save changes to apply!' });
+          setMessage({ type: 'success', text: 'Lookbook image uploaded & optimized successfully. Save changes to apply!' });
         } else if (type === 'loginBanner') {
           setLoginImageUrl(data.data.url);
-          setMessage({ type: 'success', text: 'Login page banner uploaded successfully! Save changes to apply.' });
+          setMessage({ type: 'success', text: 'Login page banner uploaded & optimized successfully! Save changes to apply.' });
         } else if (type === 'registerBanner') {
           setRegisterImageUrl(data.data.url);
-          setMessage({ type: 'success', text: 'Register page banner uploaded successfully! Save changes to apply.' });
+          setMessage({ type: 'success', text: 'Register page banner uploaded & optimized successfully! Save changes to apply.' });
         }
       } else {
-        setMessage({ type: 'error', text: data.error?.message || 'Image upload failed.' });
+        setMessage({ type: 'error', text: data.message || 'Image upload failed.' });
       }
     } catch (err) {
-      console.error('Error uploading image to ImgBB:', err);
+      console.error('Error uploading image:', err);
       setMessage({ type: 'error', text: 'An error occurred during image upload. Please try again.' });
     } finally {
       if (type === 'logo') setUploadingLogo(false);

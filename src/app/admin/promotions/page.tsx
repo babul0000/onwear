@@ -43,33 +43,37 @@ export default function AdminPromotionsPage() {
     loadBanner();
   }, []);
 
-  // Upload image to ImgBB
+  // Upload image to Cloudinary CDN
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
     setUploading(true);
     setMessage(null);
 
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('folder', 'onwear/promotions');
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
+        headers,
         body: formData,
       });
       const data = await res.json();
       
       if (data.success && data.data && data.data.url) {
         setImageUrl(data.data.url);
-        setMessage({ type: 'success', text: 'Image uploaded successfully. Save changes to make it permanent!' });
+        setMessage({ type: 'success', text: 'Image uploaded & optimized successfully. Save changes to make it permanent!' });
       } else {
-        setMessage({ type: 'error', text: data.error?.message || 'Image upload failed.' });
+        setMessage({ type: 'error', text: data.message || 'Image upload failed.' });
       }
     } catch (err) {
-      console.error('Error uploading image to ImgBB:', err);
+      console.error('Error uploading promotional banner:', err);
       setMessage({ type: 'error', text: 'An error occurred during image upload.' });
     } finally {
       setUploading(false);
