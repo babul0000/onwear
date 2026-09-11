@@ -390,11 +390,12 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
   // Admin: Save
   const handleSaveHeroSlides = async () => {
     try {
+      const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('onwear_token') : '');
       const res = await fetch(`${API_URL}/promotions/hero-slides`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({ slides: editSlides })
       });
@@ -418,8 +419,8 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
 
   return (
     <>
-      {/* Balanced, natural responsive hero container ensuring full banner visibility on mobile */}
-      <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-auto md:h-[75vh] md:min-h-[540px] md:max-h-[720px] overflow-hidden flex items-end justify-center select-none">
+      {/* Balanced, natural responsive hero container ensuring full banner visibility on desktop & mobile */}
+      <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[2.35/1] max-h-[640px] overflow-hidden flex items-end justify-center select-none">
         {/* Animated Slide container */}
         <motion.div
           ref={heroRef}
