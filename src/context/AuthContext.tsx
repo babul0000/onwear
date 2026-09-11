@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('shopnest_token');
+    const storedToken = localStorage.getItem('shopnest_token') || localStorage.getItem('onwear_token');
     if (storedToken) {
       setToken(storedToken);
       fetchUserProfile(storedToken);
@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('shopnest_token', data.data.token);
+        localStorage.setItem('onwear_token', data.data.token);
         setToken(data.data.token);
         setUser(data.data.user);
         return { success: true };
@@ -101,12 +102,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const setAuthSession = (newUser: any, newToken: string) => {
     localStorage.setItem('shopnest_token', newToken);
+    localStorage.setItem('onwear_token', newToken);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
     localStorage.removeItem('shopnest_token');
+    localStorage.removeItem('onwear_token');
     setToken(null);
     setUser(null);
   };

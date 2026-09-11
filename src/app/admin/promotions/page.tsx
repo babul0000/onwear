@@ -17,8 +17,8 @@ import {
   ArrowUp, 
   ArrowDown, 
   Move,
-  Eye,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 
 interface SlideData {
@@ -31,7 +31,7 @@ interface SlideData {
   displayOrder?: number;
 }
 
-// Drag-to-Reposition Interactive Component (Facebook Cover Style)
+// Drag-to-Reposition Interactive Component (16:9 Full Desktop & Mobile Preview)
 function SlideRepositionStudio({
   imageUrl,
   positionX = 50,
@@ -82,10 +82,10 @@ function SlideRepositionStudio({
     <div className="flex flex-col gap-2 mt-1">
       <div className="flex items-center justify-between text-[10px] font-black text-zinc-500 uppercase tracking-wider font-mono">
         <span className="flex items-center gap-1.5 text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">
-          <Move className="w-3.5 h-3.5 text-indigo-600" /> Click & Drag Photo to Reposition
+          <Move className="w-3.5 h-3.5 text-indigo-600" /> Drag to Reposition (16:9 Standard Banner View)
         </span>
         <span className="text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-lg font-mono font-bold">
-          Y-Axis: {positionY}% • X-Axis: {positionX}%
+          Y: {positionY}% • X: {positionX}%
         </span>
       </div>
 
@@ -95,7 +95,7 @@ function SlideRepositionStudio({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-full aspect-[21/9] sm:aspect-[2.35/1] bg-zinc-950 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing border-2 border-indigo-500/30 shadow-inner select-none touch-none group"
+        className="relative w-full aspect-[16/9] bg-zinc-950 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing border-2 border-indigo-500/30 shadow-inner select-none touch-none group"
       >
         <img
           src={imageUrl}
@@ -112,9 +112,9 @@ function SlideRepositionStudio({
 
         {/* Center Drag hint */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="bg-zinc-950/75 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase flex items-center gap-2 shadow-xl border border-white/20 opacity-80 group-hover:opacity-100 transition-opacity font-mono">
+          <div className="bg-zinc-950/80 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase flex items-center gap-2 shadow-xl border border-white/20 opacity-80 group-hover:opacity-100 transition-opacity font-mono">
             <Move className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Drag Up / Down to Align View</span>
+            <span>Click & Drag to Adjust Visible Area</span>
           </div>
         </div>
       </div>
@@ -170,14 +170,18 @@ function SlideRepositionStudio({
 }
 
 export default function AdminPromotionsPage() {
-  const { token, user } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const getAuthToken = () => {
+    return token || (typeof window !== 'undefined' ? (localStorage.getItem('shopnest_token') || localStorage.getItem('onwear_token') || '') : '');
+  };
+
   useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (!authLoading && (!user || user.role !== 'admin')) {
       router.push('/');
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,7 +210,7 @@ export default function AdminPromotionsPage() {
     loadSlides();
   }, []);
 
-  // Upload image to Cloudinary CDN
+  // Upload image to Cloudinary CDN with WebP optimization
   const handleSlideImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -219,7 +223,7 @@ export default function AdminPromotionsPage() {
     formData.append('folder', 'onwear/hero_slides');
 
     try {
-      const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('onwear_token') : '');
+      const authToken = getAuthToken();
       const headers: Record<string, string> = {};
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
@@ -234,7 +238,7 @@ export default function AdminPromotionsPage() {
         const copy = [...slides];
         copy[idx].imageUrl = data.data.url;
         setSlides(copy);
-        setMessage({ type: 'success', text: `Slide #${idx + 1} image uploaded & WebP optimized successfully!` });
+        setMessage({ type: 'success', text: `Slide #${idx + 1} image uploaded & WebP compressed successfully!` });
       } else {
         setMessage({ type: 'error', text: data.message || 'Image upload failed.' });
       }
@@ -285,7 +289,7 @@ export default function AdminPromotionsPage() {
   // Save all slides to backend
   const handleSaveAll = async (e: React.FormEvent) => {
     e.preventDefault();
-    const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('onwear_token') : '');
+    const authToken = getAuthToken();
     if (!authToken) {
       setMessage({ type: 'error', text: 'Authentication session expired. Please log in again.' });
       return;
@@ -327,29 +331,34 @@ export default function AdminPromotionsPage() {
     }
   };
 
-  if (!user || user.role !== 'admin') {
-    return null;
+  if (authLoading || (loading && slides.length === 0)) {
+    return (
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider font-mono">Loading Banner Studio...</span>
+      </div>
+    );
   }
 
-  if (loading) {
+  if (!user || user.role !== 'admin') {
     return (
-      <div className="flex h-[70vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 text-center">
+        <p className="text-sm font-bold text-red-600">Access Denied: Admin privileges required.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto text-zinc-700">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto text-zinc-700">
       {/* Title Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-black text-zinc-950 flex items-center gap-2">
-            <Megaphone className="h-7 w-7 text-indigo-600 animate-bounce" />
+            <Megaphone className="h-7 w-7 text-indigo-600" />
             Homepage Hero Banners & Slider Studio
           </h1>
           <p className="text-zinc-500 text-xs mt-1 font-medium">
-            Customize hero carousel slides, drag to align view on desktop, and configure target links.
+            Customize 16:9 hero carousel slides, drag to align view on desktop, and configure target links.
           </p>
         </div>
 
@@ -357,7 +366,7 @@ export default function AdminPromotionsPage() {
           <button
             type="button"
             onClick={loadSlides}
-            className="p-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+            className="p-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             title="Reload from server"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -433,7 +442,7 @@ export default function AdminPromotionsPage() {
               {slide.imageUrl && (
                 <div>
                   <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1.5">
-                    Desktop View & Alignment Preview (Aspect: 21:9 Widescreen)
+                    Desktop & Mobile View (16:9 Standard Banner Ratio)
                   </label>
                   <SlideRepositionStudio
                     imageUrl={slide.imageUrl}
@@ -543,7 +552,7 @@ export default function AdminPromotionsPage() {
             <button
               type="submit"
               disabled={saving || uploadingSlideIdx !== null}
-              className="bg-zinc-950 hover:bg-zinc-800 text-white font-black px-8 py-3 rounded-full text-xs tracking-wider uppercase transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:bg-zinc-400"
+              className="bg-zinc-950 hover:bg-zinc-800 text-white font-black px-8 py-3 rounded-full text-xs tracking-wider uppercase transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:bg-zinc-400 cursor-pointer"
             >
               {saving ? (
                 <>
