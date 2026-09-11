@@ -167,7 +167,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     {
       id: 'default-1',
       title: 'Hero Slide 1',
-      imageUrl: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg',
+      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789142084/onwear/hero_slides/gzm6j166gp64fcxcv0se.webp',
       linkUrl: '/products?category=shirt',
       positionX: 50,
       positionY: 50,
@@ -175,7 +175,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     {
       id: 'default-2',
       title: 'Hero Slide 2',
-      imageUrl: 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg',
+      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789142108/onwear/hero_slides/k1wzl2izqkjqlkuur1y3.webp',
       linkUrl: '/products?category=denim',
       positionX: 50,
       positionY: 50,
