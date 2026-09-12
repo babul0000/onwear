@@ -15,7 +15,13 @@ import {
   Clock, 
   ShieldAlert, 
   Flame,
-  CheckCircle2
+  CheckCircle2,
+  Save,
+  Loader2,
+  Image as ImageIcon,
+  Tag,
+  Layers,
+  Package
 } from 'lucide-react';
 import AddProduct from '../../../components/AddProduct';
 import ConfirmModal from '../../../components/ConfirmModal';
@@ -47,18 +53,19 @@ export default function AdminProductsPage() {
   const [showAddProduct, setShowAddProduct] = useState(false);
 
   const [products, setProducts] = useState<ProductItem[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; subcategories?: any[] }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'trash'>('active');
 
-  // Dual Delete Modal State
+  // Modals State
+  const [editModalProduct, setEditModalProduct] = useState<any | null>(null);
   const [deleteModalProduct, setDeleteModalProduct] = useState<any | null>(null);
   const [showPurgeAllModal, setShowPurgeAllModal] = useState(false);
   const [isPurging, setIsPurging] = useState(false);
 
-  // Form states
-  const [showForm, setShowForm] = useState(false);
+  // Form states for Edit
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -67,8 +74,9 @@ export default function AdminProductsPage() {
   const [stock, setStock] = useState('');
   const [sku, setSku] = useState('');
   const [image, setImage] = useState('');
+  const [image2, setImage2] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState('ACTIVE');
+  const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'>('ACTIVE');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -115,29 +123,47 @@ export default function AdminProductsPage() {
   const activeProducts = products.filter(p => !p.isDeleted);
   const trashedProducts = products.filter(p => p.isDeleted);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEdit = (prod: any) => {
+    setError('');
+    setSuccess('');
+    setEditingId(prod.id);
+    setName(prod.name || '');
+    setSlug(prod.slug || '');
+    setPrice(prod.price !== undefined && prod.price !== null ? prod.price.toString() : '');
+    setDiscountPrice(prod.discountPrice !== null && prod.discountPrice !== undefined ? prod.discountPrice.toString() : '');
+    setStock(prod.stock !== undefined && prod.stock !== null ? prod.stock.toString() : '0');
+    setSku(prod.sku || '');
+    setImage(prod.image || '');
+    setImage2(prod.image2 || '');
+    setCategoryId(prod.categoryId || '');
+    setStatus(prod.status || 'ACTIVE');
+    setEditModalProduct(prod);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingId) return;
+
+    setIsSaving(true);
     setError('');
     setSuccess('');
 
-    const body = {
+    const body: any = {
       name,
       slug,
       price: parseFloat(price),
       discountPrice: discountPrice !== '' ? parseFloat(discountPrice) : null,
       stock: parseInt(stock),
       sku,
-      image,
+      image: image || null,
+      image2: image2 || null,
       categoryId,
       status
     };
 
-    const url = editingId ? `${API_URL}/products/${editingId}` : `${API_URL}/products`;
-    const method = editingId ? 'PATCH' : 'POST';
-
     try {
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(`${API_URL}/products/${editingId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -147,7 +173,7 @@ export default function AdminProductsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setSuccess(editingId ? 'Product updated successfully!' : 'Product created successfully!');
+        setSuccess('Product updated successfully!');
         resetForm();
         fetchProducts();
       } else {
@@ -155,22 +181,10 @@ export default function AdminProductsPage() {
       }
     } catch (err) {
       console.error(err);
-      setError('An error occurred');
+      setError('An error occurred while updating the product');
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  const handleEdit = (prod: any) => {
-    setEditingId(prod.id);
-    setName(prod.name);
-    setSlug(prod.slug);
-    setPrice(prod.price.toString());
-    setDiscountPrice(prod.discountPrice !== null && prod.discountPrice !== undefined ? prod.discountPrice.toString() : '');
-    setStock(prod.stock.toString());
-    setSku(prod.sku);
-    setImage(prod.image || '');
-    setCategoryId(prod.categoryId);
-    setStatus(prod.status);
-    setShowForm(true);
   };
 
   // Perform Soft Delete (5-day trash)
@@ -281,10 +295,12 @@ export default function AdminProductsPage() {
     }
   };
 
-  const getDaysRemaining = (deletedAtStr?: string, updatedAtStr?: string) => {
-    const deletedDate = new Date(deletedAtStr || updatedAtStr || Date.now());
-    const expireDate = new Date(deletedDate.getTime() + 5 * 24 * 60 * 60 * 1000);
-    const diffMs = expireDate.getTime() - Date.now();
+  // Helper: calculate remaining days in 5-day trash
+  const getDaysRemaining = (deletedAt: string | null | undefined, updatedAt: string | undefined) => {
+    const deletedDate = deletedAt ? new Date(deletedAt) : (updatedAt ? new Date(updatedAt) : new Date());
+    const expiryDate = new Date(deletedDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diffMs = expiryDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
@@ -298,9 +314,10 @@ export default function AdminProductsPage() {
     setStock('');
     setSku('');
     setImage('');
+    setImage2('');
     setCategoryId('');
     setStatus('ACTIVE');
-    setShowForm(false);
+    setEditModalProduct(null);
   };
 
   if (!token || !user || user.role !== 'admin') {
@@ -326,7 +343,7 @@ export default function AdminProductsPage() {
       <div>
         <button
           onClick={() => router.push('/admin')}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-900 transition-colors uppercase tracking-wider"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-900 transition-colors uppercase tracking-wider cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Dashboard</span>
@@ -341,15 +358,13 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {!showForm && (
-            <button
-              onClick={() => setShowAddProduct(true)}
-              className="rounded-full bg-zinc-950 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Plus className="h-4 w-4 text-indigo-400" />
-              <span>Add Product</span>
-            </button>
-          )}
+          <button
+            onClick={() => setShowAddProduct(true)}
+            className="rounded-full bg-zinc-950 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          >
+            <Plus className="h-4 w-4 text-indigo-400" />
+            <span>Add Product</span>
+          </button>
         </div>
       </div>
 
@@ -358,21 +373,21 @@ export default function AdminProductsPage() {
         <div className="flex items-center gap-2 bg-zinc-100/80 p-1 rounded-2xl">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'active'
                 ? 'bg-white text-zinc-950 shadow-sm'
                 : 'text-zinc-500 hover:text-zinc-800'
             }`}
           >
             <span>Active Products</span>
-            <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full text-[10px] font-black">
+            <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
               {activeProducts.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('trash')}
-            className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'trash'
                 ? 'bg-red-50 text-red-700 border border-red-200/60 shadow-sm'
                 : 'text-zinc-500 hover:text-zinc-800'
@@ -381,7 +396,7 @@ export default function AdminProductsPage() {
             <Trash2 className="h-3.5 w-3.5" />
             <span>Trash (5-Day Purge)</span>
             {trashedProducts.length > 0 && (
-              <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
+              <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse font-mono">
                 {trashedProducts.length}
               </span>
             )}
@@ -390,8 +405,8 @@ export default function AdminProductsPage() {
 
         {activeTab === 'trash' && trashedProducts.length > 0 && (
           <button
-            onClick={handlePurgeAllTrash}
-            className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/80 px-4 py-2 rounded-xl transition-all border border-red-200/60 flex items-center gap-1.5"
+            onClick={() => setShowPurgeAllModal(true)}
+            className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/80 px-4 py-2 rounded-xl transition-all border border-red-200/60 flex items-center gap-1.5 cursor-pointer"
           >
             <Flame className="h-3.5 w-3.5" />
             <span>Empty All Trash Now</span>
@@ -406,147 +421,10 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {error && (
+      {error && !editModalProduct && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-700 flex items-center gap-2 animate-fadeIn">
           <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
           <span>{error}</span>
-        </div>
-      )}
-
-      {/* Editor Block */}
-      {showForm && (
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col gap-6 relative animate-fadeIn">
-          <button onClick={resetForm} className="absolute right-6 top-6 p-2 text-zinc-400 hover:text-zinc-700">
-            <X className="h-5 w-5" />
-          </button>
-          <h3 className="font-black text-zinc-900 border-b border-zinc-100 pb-4 text-base">
-            {editingId ? 'Edit Product Details' : 'Add New Product'}
-          </h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Product Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (!editingId) setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-                }}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Slug</label>
-              <input
-                type="text"
-                required
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">SKU (Unique ID)</label>
-              <input
-                type="text"
-                required
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Category</label>
-              <select
-                required
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:outline-indigo-600"
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat: any) => (
-                  <React.Fragment key={cat.id}>
-                    <option value={cat.id} className="font-semibold text-zinc-900">{cat.name}</option>
-                    {cat.subcategories?.map((sub: any) => (
-                      <option key={sub.id} value={sub.id} className="text-zinc-600">
-                        &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name}
-                      </option>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Base Price (Tk / $)</label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Discount Price (Tk / $ - Optional)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={discountPrice}
-                onChange={(e) => setDiscountPrice(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Stock Quantity</label>
-              <input
-                type="number"
-                required
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Image URL</label>
-              <input
-                type="text"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-500">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3 text-xs bg-zinc-50 focus:outline-indigo-600"
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-                <option value="OUT_OF_STOCK">OUT_OF_STOCK</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1 sm:col-span-2 md:col-span-3">
-              <button
-                type="submit"
-                className="w-full sm:max-w-max rounded-full bg-zinc-950 px-8 py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-zinc-800 transition-all shadow-md mt-4 self-end"
-              >
-                {editingId ? 'Save Updates' : 'Add Product'}
-              </button>
-            </div>
-          </form>
         </div>
       )}
 
@@ -587,7 +465,7 @@ export default function AdminProductsPage() {
                         {prod.name}
                       </td>
                       <td className="px-6 py-4 font-mono text-[11px] text-zinc-500">{prod.sku}</td>
-                      <td className="px-6 py-4 font-black text-zinc-900">
+                      <td className="px-6 py-4 font-black text-zinc-900 font-mono">
                         {prod.discountPrice !== null ? (
                           <div className="flex items-center gap-1.5">
                             <span>Tk {prod.discountPrice}</span>
@@ -597,7 +475,7 @@ export default function AdminProductsPage() {
                           <span>Tk {prod.price}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 font-bold text-zinc-800">{prod.stock}</td>
+                      <td className="px-6 py-4 font-bold text-zinc-800 font-mono">{prod.stock}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black border ${
                           prod.status === 'ACTIVE'
@@ -613,14 +491,14 @@ export default function AdminProductsPage() {
                         <div className="flex justify-end gap-1.5">
                           <button
                             onClick={() => handleEdit(prod)}
-                            className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                            className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
                             title="Edit Product"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeleteModalProduct(prod)}
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                             title="Delete Product (Choose Soft or Hard)"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -737,6 +615,238 @@ export default function AdminProductsPage() {
         </div>
       )}
 
+      {/* EDIT PRODUCT MODAL */}
+      {editModalProduct && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 flex flex-col gap-6 relative animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto my-auto">
+            
+            {/* Close Button */}
+            <button
+              onClick={resetForm}
+              className="absolute right-6 top-6 p-2 text-zinc-400 hover:text-zinc-700 rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
+              title="Close Modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[11px] font-bold mb-2 border border-indigo-200/60 font-mono">
+                <Edit2 className="h-3.5 w-3.5 text-indigo-600" />
+                <span>Edit Product</span>
+              </div>
+              <h2 className="text-xl font-black text-zinc-950 tracking-tight">
+                {name || 'Edit Product Details'}
+              </h2>
+              <p className="text-xs text-zinc-400 font-mono mt-0.5">
+                SKU: {sku || 'N/A'} • ID: {editingId}
+              </p>
+            </div>
+
+            {/* Error in modal if any */}
+            {error && (
+              <div className="rounded-2xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-700 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Edit Form */}
+            <form onSubmit={handleUpdateProduct} className="flex flex-col gap-5">
+              
+              {/* Image Preview & URLs */}
+              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200/80 flex flex-col sm:flex-row items-center gap-4">
+                <div className="h-20 w-20 rounded-2xl overflow-hidden bg-white border border-zinc-200 shrink-0 flex items-center justify-center shadow-xs">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={name || 'Preview'}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.target as any).src = '/placeholder.svg';
+                      }}
+                    />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-zinc-300" />
+                  )}
+                </div>
+                <div className="flex-1 w-full flex flex-col gap-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-zinc-600 flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3 text-zinc-400" />
+                      <span>Primary Image URL</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
+                      placeholder="https://..."
+                      className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-zinc-600 flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3 text-zinc-400" />
+                      <span>Secondary Image URL (Hover - Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={image2}
+                      onChange={(e) => setImage2(e.target.value)}
+                      placeholder="https://..."
+                      className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Product Name */}
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-zinc-600">Product Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-semibold"
+                  />
+                </div>
+
+                {/* Slug */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600">Slug (URL)</label>
+                  <input
+                    type="text"
+                    required
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono"
+                  />
+                </div>
+
+                {/* SKU */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600">SKU (Unique Identifier)</label>
+                  <input
+                    type="text"
+                    required
+                    value={sku}
+                    onChange={(e) => setSku(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono"
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600 flex items-center gap-1">
+                    <Layers className="h-3 w-3 text-zinc-400" />
+                    <span>Category</span>
+                  </label>
+                  <select
+                    required
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-medium"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat: any) => (
+                      <React.Fragment key={cat.id}>
+                        <option value={cat.id} className="font-bold text-zinc-900">{cat.name}</option>
+                        {cat.subcategories?.map((sub: any) => (
+                          <option key={sub.id} value={sub.id} className="text-zinc-600">
+                            &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name}
+                          </option>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600 flex items-center gap-1">
+                    <Tag className="h-3 w-3 text-zinc-400" />
+                    <span>Status</span>
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as any)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-bold"
+                  >
+                    <option value="ACTIVE">ACTIVE (In Store)</option>
+                    <option value="INACTIVE">INACTIVE (Hidden)</option>
+                    <option value="OUT_OF_STOCK">OUT_OF_STOCK (Sold Out)</option>
+                  </select>
+                </div>
+
+                {/* Base Price */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600">Base Regular Price (Tk)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono font-bold"
+                  />
+                </div>
+
+                {/* Discount Price */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-600">Discount Offer Price (Tk - Optional)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={discountPrice}
+                    onChange={(e) => setDiscountPrice(e.target.value)}
+                    placeholder="Leave blank for regular price"
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono font-bold"
+                  />
+                </div>
+
+                {/* Stock */}
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-zinc-600 flex items-center gap-1">
+                    <Package className="h-3 w-3 text-zinc-400" />
+                    <span>Inventory Stock Quantity</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-5 py-2.5 rounded-full text-xs font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-7 py-2.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
       {/* DUAL DELETE CONFIRMATION MODAL */}
       {deleteModalProduct && (
         <div className="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -801,7 +911,7 @@ export default function AdminProductsPage() {
                 <button
                   disabled={isDeleting}
                   onClick={() => handleSoftDelete(deleteModalProduct.id)}
-                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>Move to Trash (5 Days Recovery)</span>
@@ -824,7 +934,7 @@ export default function AdminProductsPage() {
                 <button
                   disabled={isDeleting}
                   onClick={() => handleHardDelete(deleteModalProduct.id)}
-                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <Flame className="h-3.5 w-3.5" />
                   <span>Permanent Hard Delete</span>
