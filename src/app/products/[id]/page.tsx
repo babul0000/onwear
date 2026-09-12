@@ -1024,6 +1024,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
         categoryName={product.category?.name || ''}
+        productId={product.id}
+        productName={product.name}
+        sizeChartUrl={(product as any).sizeChartUrl || null}
       />
 
       {/* 6. HIGH-CONVERSION STICKY MOBILE BOTTOM BAR */}

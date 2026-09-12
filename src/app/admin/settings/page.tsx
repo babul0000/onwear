@@ -8,8 +8,9 @@ import { API_URL } from '../../../config';
 import { 
   Settings, Save, Globe, Phone, Mail, MapPin, 
   Truck, Upload, Loader2, Sparkles, Image as ImageIcon,
-  Bell, Smartphone, Layers, CheckCircle2
+  Bell, Smartphone, Layers, CheckCircle2, Ruler
 } from 'lucide-react';
+import SizeGuideModal from '../../../components/SizeGuideModal';
 
 export default function AdminSettingsPage() {
   const { token, user } = useAuth();
@@ -71,6 +72,7 @@ export default function AdminSettingsPage() {
   const [uploadingLoginBanner, setUploadingLoginBanner] = useState(false);
   const [uploadingRegisterBanner, setUploadingRegisterBanner] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   // Load current settings into form
   useEffect(() => {
@@ -252,24 +254,36 @@ export default function AdminSettingsPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={saving || uploadingLogo || uploadingLookbook}
-          className="rounded-full bg-zinc-950 hover:bg-zinc-800 text-white font-black text-xs uppercase tracking-wider py-3.5 px-8 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4" />
-              <span>Save All Settings</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setSizeGuideOpen(true)}
+            className="rounded-full bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-300 font-black text-xs uppercase tracking-wider py-3.5 px-6 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+            title="Open Size & Measurement Guide Editor"
+          >
+            <Ruler className="h-4 w-4 text-teal-600" />
+            <span>Size Guide Studio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving || uploadingLogo || uploadingLookbook}
+            className="rounded-full bg-zinc-950 hover:bg-zinc-800 text-white font-black text-xs uppercase tracking-wider py-3.5 px-8 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                <span>Save All Settings</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -934,6 +948,12 @@ export default function AdminSettingsPage() {
         </div>
 
       </form>
+
+      {/* Size Guide Studio Modal */}
+      <SizeGuideModal
+        isOpen={sizeGuideOpen}
+        onClose={() => setSizeGuideOpen(false)}
+      />
     </div>
   );
 }
