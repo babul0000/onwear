@@ -195,7 +195,7 @@ export default function Navbar() {
     <>
       {/* 0. DYNAMIC TOP ANNOUNCEMENT BAR */}
       {settings.announcementEnabled && settings.announcementText && (
-        <div className="w-full bg-zinc-950 text-white text-[11px] font-semibold py-1.5 sm:py-2 px-3 sm:px-4 text-center tracking-wide flex items-center justify-center gap-2 border-b border-zinc-800 z-[70] relative">
+        <div className="w-full bg-[#232323] text-white text-[11px] font-medium py-1.5 sm:py-2 px-3 sm:px-4 text-center tracking-[0.05em] uppercase flex items-center justify-center gap-2 border-b border-zinc-800 z-[70] relative">
           {settings.announcementLink ? (
             <Link
               href={settings.announcementLink}
@@ -507,11 +507,11 @@ export default function Navbar() {
       {/* 2. DESKTOP CATEGORY NAVIGATION ROW (Sticky Desktop Only) */}
       <div className="hidden md:block sticky top-0 z-40 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 h-11 flex items-center justify-center">
-          <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-600 font-semibold h-full">
+          <nav className="flex items-center gap-8 text-xs tracking-[0.06em] uppercase text-[#232323] font-medium h-full">
             <Link
               href="/products"
-              className={`hover:text-zinc-950 transition-colors h-full flex items-center ${
-                pathname === '/products' ? 'text-zinc-950 font-black border-b-2 border-zinc-950' : ''
+              className={`hover:text-zinc-500 transition-colors h-full flex items-center ${
+                pathname === '/products' ? 'text-[#232323] font-semibold border-b-2 border-[#232323]' : ''
               }`}
             >
               All Products
@@ -524,12 +524,12 @@ export default function Navbar() {
                 <div key={cat.id} className="relative group h-full flex items-center">
                   <Link
                     href={`/products?category=${cat.slug}`}
-                    className={`hover:text-zinc-950 transition-colors h-full flex items-center gap-1 ${
-                      isActive ? 'text-zinc-950 font-black' : ''
+                    className={`hover:text-zinc-500 transition-colors h-full flex items-center gap-1 ${
+                      isActive ? 'text-[#232323] font-semibold' : ''
                     }`}
                   >
                     <span>{cat.name}</span>
-                    {subs.length > 0 && <ChevronDown className="h-3 w-3 text-zinc-400 group-hover:rotate-180 transition-transform duration-200" />}
+                    {subs.length > 0 && <ChevronDown className="h-3 w-3 text-[#969696] group-hover:rotate-180 transition-transform duration-200" />}
                   </Link>
 
                   {subs.length > 0 && (

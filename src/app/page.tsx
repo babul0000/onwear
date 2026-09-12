@@ -187,12 +187,12 @@ export default function Home() {
 
       {/* 3. DYNAMIC CATEGORIES GRID */}
       <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-10">
-        <div className="flex items-end justify-between border-b border-zinc-100 pb-3">
+        <div className="flex items-end justify-between border-b border-[#e6e6e6] pb-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-wider text-zinc-950 uppercase">Shop by Category</h2>
-            <p className="text-xs text-zinc-400 mt-0.5 font-medium">Browse our premium departments</p>
+            <h2 className="text-base sm:text-lg font-medium tracking-[0.06em] text-[#232323] uppercase">Shop by Category</h2>
+            <p className="text-[11px] text-[#969696] mt-0.5 font-medium tracking-[0.04em] uppercase">Browse our premium departments</p>
           </div>
-          <Link href="/categories" className="text-xs font-bold uppercase tracking-wider text-teal-650 hover:text-teal-700 flex items-center gap-1">
+          <Link href="/categories" className="text-xs font-semibold uppercase tracking-[0.06em] text-[#232323] hover:text-[#727272] flex items-center gap-1.5 transition-colors">
             <span>View All</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -225,7 +225,7 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
                 </div>
-                <h3 className="font-bold text-xs uppercase tracking-wider text-zinc-800 group-hover:text-teal-650 transition-colors text-center truncate w-full px-1">
+                <h3 className="font-semibold text-xs uppercase tracking-[0.05em] text-[#232323] group-hover:text-zinc-600 transition-colors text-center truncate w-full px-1">
                   {cat.name}
                 </h3>
               </Link>
@@ -237,12 +237,12 @@ export default function Home() {
 
       {/* 5. NEW ARRIVALS GRID */}
       <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-10">
-        <div className="flex items-end justify-between border-b border-zinc-100 pb-3">
+        <div className="flex items-end justify-between border-b border-[#e6e6e6] pb-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-wider text-zinc-950 uppercase">New Arrivals</h2>
-            <p className="text-xs text-zinc-400 mt-0.5 font-medium">Fresh additions to the collection</p>
+            <h2 className="text-base sm:text-lg font-medium tracking-[0.06em] text-[#232323] uppercase">New Arrivals</h2>
+            <p className="text-[11px] text-[#969696] mt-0.5 font-medium tracking-[0.04em] uppercase">Fresh additions to the collection</p>
           </div>
-          <Link href="/products" className="text-xs font-bold uppercase tracking-wider text-teal-650 hover:text-teal-700 flex items-center gap-1">
+          <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.06em] text-[#232323] hover:text-[#727272] flex items-center gap-1.5 transition-colors">
             <span>View All</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -322,30 +322,30 @@ export default function Home() {
                   </div>
 
                   {/* Product metadata */}
-                  <div className="flex flex-col gap-0.5 px-0.5">
-                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider font-mono">
+                  <div className="flex flex-col gap-1 px-0.5 pt-1">
+                    <span className="text-[10px] font-medium uppercase text-[#969696] tracking-[0.06em]">
                       {product.category?.name || 'ONWEAR'}
                     </span>
                     <Link
                       href={`/products/${product.id}`}
-                      className="font-bold text-xs uppercase tracking-tight text-zinc-900 hover:text-teal-650 transition-colors line-clamp-1"
+                      className="text-xs font-medium tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors line-clamp-1"
                     >
                       {product.name}
                     </Link>
                     <div className="flex items-center justify-between mt-0.5">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-xs sm:text-sm font-black text-zinc-950 font-mono">
+                        <span className="text-xs sm:text-sm font-semibold text-[#232323]">
                           {formatPrice(hasDiscount ? product.discountPrice! : product.price)}
                         </span>
                         {hasDiscount && (
-                          <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">
+                          <span className="text-[11px] text-[#969696] line-through font-normal">
                             {formatPrice(product.price)}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-0.5 text-amber-400">
                         <Star className="h-3 w-3 fill-current" />
-                        <span className="text-[10px] font-bold text-zinc-500">4.8</span>
+                        <span className="text-[10px] font-medium text-zinc-400">4.8</span>
                       </div>
                     </div>
                   </div>

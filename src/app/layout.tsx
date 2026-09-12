@@ -69,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://onwear-server.onrender.com" />
       </head>
-      <body className="min-h-full flex flex-col bg-zinc-50 font-sans text-zinc-900">
+      <body className={`${poppins.className} min-h-full flex flex-col bg-white text-[#232323] antialiased`}>
         <SettingsProvider>
           <AuthProvider>
             <CartProvider>

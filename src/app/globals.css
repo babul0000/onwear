@@ -4,21 +4,22 @@
 
 
 :root {
-  --background: #fafafa; /* default project background */
-  --foreground: #09090b; /* default dark text */
+  --background: #fafafa;
+  --foreground: #232323;
 
-  /* ONWEAR Color Palette (Aligned with main clean theme) */
-  --ink: #09090b;       /* primary text, near-black warm */
-  --canvas: #fafafa;    /* page background, warm paper/zinc tone */
-  --panel: #ffffff;     /* card surface, clean white */
-  --line: #e4e4e7;      /* borders/dividers zinc-200 */
-  --indigo: #18181b;    /* primary accent (dye-black brand color) */
-  --ochre: #b45309;     /* secondary accent (warm gold/turmeric) */
-  --thread: #dc2626;    /* destructive actions */
-  --green: #16a34a;     /* success/delivered states */
-  --muted: #71717a;     /* secondary text */
+  /* Yellow-Inspired Luxury Fashion Palette */
+  --ink: #232323;       /* soft warm charcoal text */
+  --canvas: #fafafa;    /* clean warm page background */
+  --panel: #ffffff;     /* crisp white card surface */
+  --line: #e6e6e6;      /* subtle divider lines */
+  --indigo: #232323;    /* brand dark accent */
+  --ochre: #b45309;     /* warm gold accent */
+  --thread: #e95144;    /* sale / discount accent */
+  --green: #16a34a;     /* success state */
+  --muted: #969696;     /* secondary vendor/info text */
 
   /* Fonts */
+  --font-poppins: 'Poppins', sans-serif;
   --font-fraunces: 'Fraunces', serif;
   --font-plex-sans: 'IBM Plex Sans', sans-serif;
   --font-plex-mono: 'IBM Plex Mono', monospace;
@@ -38,15 +39,16 @@
   --color-green: var(--green);
   --color-muted: var(--muted);
 
-  --font-sans: var(--font-plex-sans);
-  --font-display: var(--font-fraunces);
+  --font-sans: 'Poppins', sans-serif;
+  --font-display: 'Poppins', sans-serif;
   --font-mono: var(--font-plex-mono);
 }
 
 body {
-  background: #fafafa;
-  color: #09090b;
-  font-family: var(--font-plex-sans), sans-serif;
+  background: #ffffff;
+  color: #232323;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.02em;
 }
 
 
