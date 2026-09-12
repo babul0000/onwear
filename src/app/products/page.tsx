@@ -43,7 +43,11 @@ function ProductsPageContent() {
   // Filter and Search states
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState(''); // '', 'under-999', '999-1499', '1499-1999', '1999-plus'
+  const [priceRange, setPriceRange] = useState(''); 
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [customMin, setCustomMin] = useState('');
+  const [customMax, setCustomMax] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
@@ -53,6 +57,15 @@ function ProductsPageContent() {
   const [availableColors, setAvailableColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+
+  const PRICE_PRESETS = [
+    { label: 'All Prices', value: '', min: '', max: '' },
+    { label: 'Tk 100 – 1,000', value: '100-1000', min: '100', max: '1000' },
+    { label: 'Tk 1,000 – 3,000', value: '1000-3000', min: '1000', max: '3000' },
+    { label: 'Tk 3,000 – 10,000', value: '3000-10000', min: '3000', max: '10000' },
+    { label: 'Tk 10,000 – 50,000', value: '10000-50000', min: '10000', max: '50000' },
+    { label: 'Tk 50,000 – 4,00,000', value: '50000-400000', min: '50000', max: '400000' }
+  ];
 
   // Parse initial query params on mount/change
   useEffect(() => {
@@ -81,27 +94,13 @@ function ProductsPageContent() {
     async function fetchProducts() {
       setLoading(true);
       try {
-        let minPrice = '';
-        let maxPrice = '';
-        if (priceRange === 'under-999') {
-          maxPrice = '999';
-        } else if (priceRange === '999-1499') {
-          minPrice = '999';
-          maxPrice = '1499';
-        } else if (priceRange === '1499-1999') {
-          minPrice = '1499';
-          maxPrice = '1999';
-        } else if (priceRange === '1999-plus') {
-          minPrice = '1999';
-        }
-
         const params = new URLSearchParams({
           page: page.toString(),
           limit: '12',
           search,
           category: selectedCategory,
-          minPrice,
-          maxPrice,
+          minPrice: minPrice || '',
+          maxPrice: maxPrice || '',
           sortBy,
           sortOrder,
           sizes: selectedSizes.join(','),
@@ -131,13 +130,17 @@ function ProductsPageContent() {
     }, 300); // debounce typing
 
     return () => clearTimeout(timer);
-  }, [search, selectedCategory, priceRange, selectedSizes, selectedColors, sortBy, sortOrder, page]);
+  }, [search, selectedCategory, minPrice, maxPrice, selectedSizes, selectedColors, sortBy, sortOrder, page]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCategory(e.target.value);
     setSelectedSizes([]);
     setSelectedColors([]);
     setPriceRange('');
+    setMinPrice('');
+    setMaxPrice('');
+    setCustomMin('');
+    setCustomMax('');
     setPage(1);
   };
 
@@ -159,6 +162,10 @@ function ProductsPageContent() {
     setSelectedCategory('');
     setSearch('');
     setPriceRange('');
+    setMinPrice('');
+    setMaxPrice('');
+    setCustomMin('');
+    setCustomMax('');
     setSelectedSizes([]);
     setSelectedColors([]);
     setPage(1);
@@ -178,10 +185,10 @@ function ProductsPageContent() {
           </p>
         </div>
 
-        {(selectedCategory || search || priceRange || selectedSizes.length > 0 || selectedColors.length > 0) && (
+        {(selectedCategory || search || minPrice || maxPrice || selectedSizes.length > 0 || selectedColors.length > 0) && (
           <button
             onClick={handleClearFilters}
-            className="text-xs font-bold text-zinc-400 hover:text-zinc-950 underline uppercase tracking-wider transition-colors"
+            className="text-xs font-bold text-zinc-400 hover:text-zinc-950 underline uppercase tracking-wider transition-colors cursor-pointer"
           >
             Clear Filters
           </button>
@@ -214,7 +221,7 @@ function ProductsPageContent() {
             <button
               type="button"
               onClick={() => setShowMobileFilters(false)}
-              className="lg:hidden text-zinc-400 hover:text-zinc-950 text-xs font-bold uppercase"
+              className="lg:hidden text-zinc-400 hover:text-zinc-950 text-xs font-bold uppercase cursor-pointer"
             >
               Close
             </button>
@@ -251,29 +258,104 @@ function ProductsPageContent() {
           </div>
 
           {/* Dynamic Price Range Selector */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Price Range</label>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">
+                Price Range (Tk 100 – 4,00,000)
+              </label>
+              {(minPrice || maxPrice) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPriceRange('');
+                    setMinPrice('');
+                    setMaxPrice('');
+                    setCustomMin('');
+                    setCustomMax('');
+                    setPage(1);
+                  }}
+                  className="text-[10px] font-bold text-teal-650 hover:underline uppercase tracking-wider cursor-pointer"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+
+            {/* Presets List */}
             <div className="flex flex-col gap-2 text-xs font-semibold text-zinc-600">
-              {[
-                { label: 'All Prices', value: '' },
-                { label: 'Under Tk 999', value: 'under-999' },
-                { label: 'Tk 999 – 1,499', value: '999-1499' },
-                { label: 'Tk 1,499 – 1,999', value: '1499-1999' },
-                { label: 'Tk 1,999+', value: '1999-plus' }
-              ].map((bucket) => (
-                <label key={bucket.value} className="flex items-center gap-2 cursor-pointer select-none">
+              {PRICE_PRESETS.map((bucket) => (
+                <label key={bucket.value} className="flex items-center gap-2 cursor-pointer select-none hover:text-zinc-950 transition-colors">
                   <input
                     type="radio"
                     name="priceBucket"
                     value={bucket.value}
                     checked={priceRange === bucket.value}
-                    onChange={() => { setPriceRange(bucket.value); setPage(1); }}
-                    className="text-zinc-950 focus:ring-zinc-950"
+                    onChange={() => {
+                      setPriceRange(bucket.value);
+                      setMinPrice(bucket.min);
+                      setMaxPrice(bucket.max);
+                      setCustomMin(bucket.min);
+                      setCustomMax(bucket.max);
+                      setPage(1);
+                    }}
+                    className="text-zinc-950 focus:ring-zinc-950 cursor-pointer"
                   />
                   <span>{bucket.label}</span>
                 </label>
               ))}
             </div>
+
+            {/* Custom Range Typing Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setPriceRange('custom');
+                setMinPrice(customMin);
+                setMaxPrice(customMax);
+                setPage(1);
+              }}
+              className="pt-3 border-t border-zinc-100 flex flex-col gap-2"
+            >
+              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Custom Price (Tk)</span>
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <span className="absolute left-2.5 top-2 text-[11px] font-bold text-zinc-400">৳</span>
+                  <input
+                    type="number"
+                    min="100"
+                    max="400000"
+                    placeholder="100"
+                    value={customMin}
+                    onChange={(e) => setCustomMin(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 py-1.5 pl-6 pr-1.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-mono font-bold text-zinc-900"
+                  />
+                </div>
+                <span className="text-zinc-400 text-xs font-bold">-</span>
+                <div className="relative flex-1">
+                  <span className="absolute left-2.5 top-2 text-[11px] font-bold text-zinc-400">৳</span>
+                  <input
+                    type="number"
+                    min="100"
+                    max="400000"
+                    placeholder="400,000"
+                    value={customMax}
+                    onChange={(e) => setCustomMax(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 py-1.5 pl-6 pr-1.5 text-xs bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-mono font-bold text-zinc-900"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer uppercase tracking-wider shrink-0"
+                >
+                  Apply
+                </button>
+              </div>
+              {priceRange === 'custom' && (minPrice || maxPrice) && (
+                <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-1 rounded-lg flex items-center justify-between mt-0.5 font-mono">
+                  <span>Active: ৳{minPrice || '100'} – ৳{maxPrice || '4,00,000'}</span>
+                </div>
+              )}
+            </form>
           </div>
 
           {/* Dynamic Sizes Checkbox Filter */}
