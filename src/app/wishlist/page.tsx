@@ -24,8 +24,8 @@ export default function WishlistPage() {
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-950">My Wishlist</h1>
-        <p className="text-xs font-semibold text-zinc-400 mt-1">Products you have saved for later</p>
+        <h1 className="text-xl sm:text-2xl font-medium tracking-[0.06em] text-[#232323] uppercase">My Wishlist</h1>
+        <p className="text-[11px] font-medium text-[#969696] tracking-[0.04em] uppercase mt-1">Products you have saved for later</p>
       </div>
 
       {items.length === 0 ? (
@@ -69,18 +69,18 @@ export default function WishlistPage() {
                 </Link>
 
                 <div className="mt-4 flex flex-col flex-1">
-                  <Link href={`/products/${targetId}`} className="font-bold text-xs uppercase tracking-tight text-zinc-900 group-hover:text-teal-650 transition-colors mt-1 block line-clamp-1">
+                  <Link href={`/products/${targetId}`} className="font-medium text-xs tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors mt-1 block line-clamp-1">
                     {prod.name || 'Product'}
                   </Link>
 
                   <div className="mt-2 flex items-baseline gap-2">
                     {discount ? (
                       <>
-                        <span className="text-xs font-black text-zinc-950 font-mono">{formatPrice(prod.discountPrice)}</span>
-                        <span className="text-[10px] text-zinc-400 line-through font-mono">{formatPrice(prod.price)}</span>
+                        <span className="text-xs sm:text-sm font-semibold text-[#232323]">{formatPrice(prod.discountPrice)}</span>
+                        <span className="text-[11px] text-[#969696] line-through font-normal">{formatPrice(prod.price)}</span>
                       </>
                     ) : (
-                      <span className="text-xs font-black text-zinc-950 font-mono">{formatPrice(prod.price || 0)}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-[#232323]">{formatPrice(prod.price || 0)}</span>
                     )}
                   </div>
 

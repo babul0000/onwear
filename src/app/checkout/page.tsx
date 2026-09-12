@@ -415,8 +415,8 @@ export default function CheckoutPage() {
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8 text-zinc-850">
       <div>
-        <h1 className="text-3xl font-black tracking-tight text-zinc-950 uppercase">Checkout</h1>
-        <p className="text-xs font-semibold text-zinc-400 mt-1">Provide shipping details and place your order</p>
+        <h1 className="text-xl sm:text-2xl font-medium tracking-[0.06em] text-[#232323] uppercase">Checkout</h1>
+        <p className="text-[11px] font-medium text-[#969696] tracking-[0.04em] uppercase mt-1">Provide shipping details and place your order</p>
       </div>
 
       {/* Guest Notice Banner */}

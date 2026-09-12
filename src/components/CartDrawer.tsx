@@ -52,10 +52,10 @@ export default function CartDrawer() {
               <ShoppingBag className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-black uppercase tracking-wider text-zinc-950">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.06em] text-[#232323]">
                 Your Bag
               </h2>
-              <p className="text-[11px] font-semibold text-zinc-400">
+              <p className="text-[11px] font-medium text-[#969696] uppercase tracking-[0.04em]">
                 {items.length} {items.length === 1 ? 'item' : 'items'}
               </p>
             </div>
@@ -164,11 +164,11 @@ export default function CartDrawer() {
                     <div className="flex items-center justify-between mt-2 pt-1 border-t border-zinc-50">
                       {/* Price */}
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-xs font-black text-zinc-950 font-mono">
+                        <span className="text-xs sm:text-sm font-semibold text-[#232323]">
                           {formatPrice(unitPrice * item.quantity)}
                         </span>
                         {hasDiscount && (
-                          <span className="text-[10px] text-zinc-400 line-through font-mono">
+                          <span className="text-[11px] text-[#969696] line-through font-normal">
                             {formatPrice(item.product.price * item.quantity)}
                           </span>
                         )}
@@ -211,10 +211,10 @@ export default function CartDrawer() {
         {items.length > 0 && (
           <div className="border-t border-zinc-100 bg-white p-6 space-y-4">
             <div className="flex justify-between items-baseline">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.05em] text-[#969696]">
                 Subtotal
               </span>
-              <span className="text-lg font-black text-zinc-950 font-mono">
+              <span className="text-base font-semibold text-[#232323]">
                 {formatPrice(subtotal)}
               </span>
             </div>

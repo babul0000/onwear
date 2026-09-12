@@ -27,8 +27,8 @@ export default function CategoriesPage() {
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold text-zinc-950">Categories</h1>
-        <p className="text-sm text-zinc-500 mt-1">Browse products grouped by department</p>
+        <h1 className="text-xl sm:text-2xl font-medium tracking-[0.06em] text-[#232323] uppercase">Categories</h1>
+        <p className="text-[11px] font-medium text-[#969696] tracking-[0.04em] uppercase mt-1">Browse products grouped by department</p>
       </div>
 
       {loading ? (
@@ -60,16 +60,16 @@ export default function CategoriesPage() {
               </div>
               <div className="p-6 flex flex-col justify-between flex-1 gap-4">
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-xl font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="text-sm font-semibold tracking-[0.05em] uppercase text-[#232323] group-hover:text-zinc-600 transition-colors">
                     {cat.name}
                   </h3>
-                  <p className="text-sm text-zinc-500 leading-relaxed line-clamp-2">
+                  <p className="text-xs text-[#969696] leading-relaxed line-clamp-2">
                     {cat.description || 'Quality selection of products from trusted manufacturers.'}
                   </p>
                 </div>
-                <span className="text-sm font-semibold text-indigo-600 group-hover:text-indigo-700 flex items-center gap-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.05em] text-[#232323] group-hover:text-zinc-600 flex items-center gap-1.5">
                   <span>Explore Items</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </div>
             </Link>

@@ -175,12 +175,12 @@ function ProductsPageContent() {
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8 text-zinc-800">
       
       {/* Header and Live Results Count */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-zinc-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-[#e6e6e6] pb-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-zinc-950 uppercase">
+          <h1 className="text-xl sm:text-2xl font-medium tracking-[0.06em] text-[#232323] uppercase">
             {selectedCategory ? `${selectedCategory} Collection` : 'Catalog Products'}
           </h1>
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">
+          <p className="text-[11px] font-medium text-[#969696] uppercase tracking-[0.04em] mt-1">
             {!loading && `${meta.total} product${meta.total !== 1 ? 's' : ''} found`}
           </p>
         </div>
@@ -212,11 +212,11 @@ function ProductsPageContent() {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 xl:grid-cols-5 items-start">
         {/* Filters Sidebar */}
-        <aside className={`${showMobileFilters ? 'flex' : 'hidden lg:flex'} lg:col-span-1 xl:col-span-1 flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm h-fit`}>
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+        <aside className={`${showMobileFilters ? 'flex' : 'hidden lg:flex'} lg:col-span-1 xl:col-span-1 flex-col gap-6 rounded-none border border-[#e6e6e6] bg-white p-6 shadow-none h-fit`}>
+          <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-4">
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4.5 w-4.5 text-zinc-950" />
-              <h2 className="font-extrabold text-zinc-950 text-sm uppercase tracking-wider">Filters & Sorting</h2>
+              <SlidersHorizontal className="h-4 w-4 text-[#232323]" />
+              <h2 className="font-medium text-[#232323] text-xs uppercase tracking-[0.06em]">Filters & Sorting</h2>
             </div>
             <button
               type="button"
@@ -541,38 +541,38 @@ function ProductsPageContent() {
                      </a>
 
                      {/* Info Block */}
-                     <div className="mt-2.5 flex flex-col flex-1 px-0.5">
-                       <div className="flex items-center justify-between">
-                         <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 font-mono truncate">{prod.category?.name || 'ONWEAR'}</span>
-                         {reviewCount > 0 && (
-                           <div className="flex items-center gap-0.5 text-amber-400 text-[10px] font-bold">
-                             <Star className="h-3 w-3 fill-current" />
-                             <span>{averageRating}</span>
-                           </div>
-                         )}
-                       </div>
-                       
-                       <a href={`/products/${prod.id}`} className="font-bold text-xs uppercase tracking-tight text-zinc-900 group-hover:text-teal-650 transition-colors mt-0.5 block line-clamp-1">
-                         {prod.name}
-                       </a>
+                      <div className="mt-2.5 flex flex-col flex-1 px-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-[#969696] truncate">{prod.category?.name || 'ONWEAR'}</span>
+                          {reviewCount > 0 && (
+                            <div className="flex items-center gap-0.5 text-amber-400 text-[10px] font-medium">
+                              <Star className="h-3 w-3 fill-current" />
+                              <span className="text-zinc-400">{averageRating}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <a href={`/products/${prod.id}`} className="font-medium text-xs tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors mt-0.5 block line-clamp-1">
+                          {prod.name}
+                        </a>
 
-                       <div className="mt-1 flex items-baseline gap-1.5">
-                         {discount ? (
-                           <>
-                             <span className={`text-xs sm:text-sm font-black font-mono ${isSoldOut ? 'text-zinc-400' : 'text-zinc-950'}`}>
-                               {formatPrice(prod.discountPrice)}
-                             </span>
-                             <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">
-                               {formatPrice(prod.price)}
-                             </span>
-                           </>
-                         ) : (
-                           <span className={`text-xs sm:text-sm font-black font-mono ${isSoldOut ? 'text-zinc-400 font-medium' : 'text-zinc-950'}`}>
-                             {formatPrice(prod.price)}
-                           </span>
-                         )}
-                       </div>
-                     </div>
+                        <div className="mt-1 flex items-baseline gap-2">
+                          {discount ? (
+                            <>
+                              <span className={`text-xs sm:text-sm font-semibold ${isSoldOut ? 'text-zinc-400' : 'text-[#232323]'}`}>
+                                {formatPrice(prod.discountPrice)}
+                              </span>
+                              <span className="text-[11px] text-[#969696] line-through font-normal">
+                                {formatPrice(prod.price)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className={`text-xs sm:text-sm font-semibold ${isSoldOut ? 'text-zinc-400 font-normal' : 'text-[#232323]'}`}>
+                              {formatPrice(prod.price)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                    </div>
                  );
                })}

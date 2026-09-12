@@ -6,22 +6,22 @@ export default function Footer() {
   const { settings } = useSettings();
 
   return (
-    <footer className="border-t border-zinc-100 bg-white py-12 text-zinc-500 text-sm">
+    <footer className="border-t border-[#e6e6e6] bg-white py-12 text-[#969696] text-xs">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Brand Description */}
-        <div className="flex flex-col gap-4">
-          <span className="text-lg font-black tracking-[0.2em] text-zinc-950 uppercase">{settings.storeName}</span>
-          <p className="text-zinc-400 text-xs max-w-xs leading-relaxed">
+        <div className="flex flex-col gap-3">
+          <span className="text-base font-semibold tracking-[0.16em] text-[#232323] uppercase">{settings.storeName}</span>
+          <p className="text-[#969696] text-xs max-w-xs leading-relaxed">
             {settings.tagline}
           </p>
         </div>
 
         {/* Center: Contact Info & Quick Links */}
-        <div className="flex flex-col gap-4">
-          <h4 className="text-xs font-bold tracking-widest text-zinc-900 uppercase">Customer Care</h4>
-          <ul className="flex flex-col gap-2 text-xs text-zinc-400 font-medium">
+        <div className="flex flex-col gap-3">
+          <h4 className="text-xs font-semibold tracking-[0.06em] text-[#232323] uppercase">Customer Care</h4>
+          <ul className="flex flex-col gap-2 text-xs text-[#969696] font-medium">
             <li>
-              <Link href="/orders/track" className="hover:text-zinc-950 transition-colors font-bold text-zinc-800">
+              <Link href="/orders/track" className="hover:text-[#232323] transition-colors text-[#232323] font-medium">
                 📦 Track Your Order
               </Link>
             </li>
@@ -32,15 +32,15 @@ export default function Footer() {
         </div>
 
         {/* Right: Social Media Links */}
-        <div className="flex flex-col gap-4">
-          <h4 className="text-xs font-bold tracking-widest text-zinc-900 uppercase">Follow Us</h4>
-          <div className="flex gap-4 text-xs font-semibold">
+        <div className="flex flex-col gap-3">
+          <h4 className="text-xs font-semibold tracking-[0.06em] text-[#232323] uppercase">Follow Us</h4>
+          <div className="flex gap-4 text-xs font-medium">
             {settings.facebookUrl && (
               <a
                 href={settings.facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-zinc-950 transition-colors"
+                className="text-[#969696] hover:text-[#232323] transition-colors"
               >
                 Facebook
               </a>
@@ -50,7 +50,7 @@ export default function Footer() {
                 href={settings.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-zinc-950 transition-colors"
+                className="text-[#969696] hover:text-[#232323] transition-colors"
               >
                 Instagram
               </a>
@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 border-t border-zinc-50 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 border-t border-[#e6e6e6] mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#969696]">
         <p>&copy; {new Date().getFullYear()} {settings.storeName}. All rights reserved.</p>
       </div>
     </footer>
