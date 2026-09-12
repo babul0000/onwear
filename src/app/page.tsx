@@ -11,6 +11,7 @@ import { ArrowRight, ShoppingBag, Star, Flame } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import { getOptimizedImageUrl } from '../utils/image';
 import EcommerceHero from '../components/Hero/EcommerceHero';
+import ExperienceHub from '../components/ExperienceHub';
 
 interface Category {
   id: string;
@@ -354,6 +355,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* 6. INTERACTIVE EXPERIENCE HUB & TRUST STUDIO */}
+      <ExperienceHub />
     </div>
   );
 }
