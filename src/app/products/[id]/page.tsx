@@ -359,7 +359,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       {/* 1. BREADCRUMBS ROW (Yellow Minimalist Style) */}
       <div className="border-b border-[#e6e6e6] bg-[#fafafa]">
         <div className="w-full px-4 py-3 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
-          <nav className="flex items-center gap-2 text-[11px] font-medium tracking-[0.05em] uppercase text-[#969696] overflow-x-auto no-scrollbar">
+          <nav className="flex items-center gap-2 text-[11px] font-normal tracking-[0.05em] uppercase text-[#969696] overflow-x-auto no-scrollbar">
             <Link href="/" className="hover:text-black transition-colors shrink-0">Home</Link>
             <ChevronRight className="h-3 w-3 shrink-0 text-zinc-400" />
             <Link href="/products" className="hover:text-black transition-colors shrink-0">Shop</Link>
@@ -375,7 +375,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               </>
             )}
             <ChevronRight className="h-3 w-3 shrink-0 text-zinc-400" />
-            <span className="text-[#232323] truncate font-semibold">{product.name}</span>
+            <span className="text-[#232323] truncate font-normal">{product.name}</span>
           </nav>
         </div>
       </div>
@@ -421,15 +421,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               {/* Product Badges */}
               <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 pointer-events-none">
                 {isSoldOut ? (
-                  <span className="bg-[#232323] text-white text-[10px] font-medium tracking-[0.08em] uppercase px-2.5 py-1">
+                  <span className="bg-[#232323] text-white text-[10px] font-normal tracking-[0.08em] uppercase px-2.5 py-1">
                     Sold Out
                   </span>
                 ) : discount ? (
-                  <span className="bg-[#e95144] text-white text-[10px] font-semibold tracking-[0.08em] uppercase px-2.5 py-1">
+                  <span className="bg-[#e95144] text-white text-[10px] font-normal tracking-[0.08em] uppercase px-2.5 py-1">
                     -{discountPercent}% OFF
                   </span>
                 ) : (
-                  <span className="bg-[#232323] text-white text-[10px] font-medium tracking-[0.08em] uppercase px-2.5 py-1">
+                  <span className="bg-[#232323] text-white text-[10px] font-normal tracking-[0.08em] uppercase px-2.5 py-1">
                     New
                   </span>
                 )}
@@ -459,13 +459,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             
             {/* Brand / Category Subtitle */}
             {product.category && (
-              <span className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#969696]">
+              <span className="text-[11px] font-normal tracking-[0.1em] uppercase text-[#969696]">
                 {meta.brand || product.category.name}
               </span>
             )}
 
             {/* Product Title */}
-            <h1 className="text-xl sm:text-2xl lg:text-[26px] font-semibold tracking-[0.03em] uppercase text-[#232323] leading-snug">
+            <h1 className="text-xl sm:text-2xl lg:text-[24px] font-normal tracking-[0.04em] uppercase text-[#232323] leading-snug">
               {product.name}
             </h1>
 
@@ -481,26 +481,26 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   />
                 ))}
               </div>
-              <span className="text-[11px] font-medium text-[#727272] tracking-[0.02em]">
+              <span className="text-[11px] font-normal text-[#727272] tracking-[0.02em]">
                 {reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'}
               </span>
               <span className="text-zinc-300">|</span>
-              <a href="#customer-reviews" className="text-[11px] font-medium underline text-[#232323] hover:text-zinc-600 uppercase tracking-wider">
+              <a href="#customer-reviews" className="text-[11px] font-normal underline text-[#232323] hover:text-zinc-600 uppercase tracking-wider">
                 Write a Review
               </a>
             </div>
 
             {/* Price Box */}
             <div className="flex items-baseline gap-3 pt-1 border-b border-[#e6e6e6] pb-4">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#232323]">
+              <span className="text-xl sm:text-2xl font-medium tracking-tight text-[#232323]">
                 {formatPrice(currentPrice)}
               </span>
               {discount && (
                 <>
-                  <span className="text-sm sm:text-base font-normal text-[#969696] line-through">
+                  <span className="text-xs sm:text-sm font-normal text-[#969696] line-through">
                     {formatPrice(originalPrice)}
                   </span>
-                  <span className="text-[11px] font-semibold text-[#e95144] tracking-wider uppercase">
+                  <span className="text-[11px] font-normal text-[#e95144] tracking-wider uppercase">
                     Save {formatPrice(originalPrice - currentPrice)} ({discountPercent}% OFF)
                   </span>
                 </>
@@ -508,14 +508,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Stock & SKU Meta Row */}
-            <div className="flex items-center justify-between text-[11px] tracking-[0.04em] text-[#727272] py-1 border-b border-[#e6e6e6]">
+            <div className="flex items-center justify-between text-[11px] tracking-[0.04em] text-[#727272] py-1.5 border-b border-[#e6e6e6]">
               <div className="flex items-center gap-2">
-                <span className="font-semibold uppercase text-[#232323]">SKU:</span>
-                <span className="font-mono text-[#232323] font-medium">{product.sku}</span>
+                <span className="font-normal uppercase text-[#727272]">SKU:</span>
+                <span className="font-normal text-[#232323]">{product.sku}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold uppercase text-[#232323]">Availability:</span>
-                <span className={`font-semibold ${product.stock > 0 ? 'text-emerald-700' : 'text-[#e95144]'}`}>
+                <span className="font-normal uppercase text-[#727272]">Availability:</span>
+                <span className={`font-normal ${product.stock > 0 ? 'text-emerald-700' : 'text-[#e95144]'}`}>
                   {product.stock > 0 ? `In Stock (${product.stock} items)` : 'Out of Stock'}
                 </span>
               </div>
@@ -527,7 +527,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               {/* Color Swatches */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold tracking-[0.06em] uppercase text-[#232323]">
+                  <label className="text-[11px] font-normal tracking-[0.06em] uppercase text-[#232323]">
                     Color: <span className="font-normal text-[#727272] capitalize">{selectedColor || availableColors[0] || 'Default'}</span>
                   </label>
                 </div>
@@ -555,13 +555,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               {/* Size Selectors (Yellow Minimalist Rectangular Pills) */}
               <div className="flex flex-col gap-2 pt-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold tracking-[0.06em] uppercase text-[#232323]">
+                  <label className="text-[11px] font-normal tracking-[0.06em] uppercase text-[#232323]">
                     Size: <span className="font-normal text-[#727272]">{selectedSize || 'Select Size'}</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsSizeGuideOpen(true)}
-                    className="text-[11px] font-medium text-[#232323] hover:underline flex items-center gap-1 uppercase tracking-[0.04em] cursor-pointer"
+                    className="text-[11px] font-normal text-[#727272] hover:text-[#232323] hover:underline flex items-center gap-1 uppercase tracking-[0.04em] cursor-pointer"
                   >
                     <Ruler className="h-3.5 w-3.5" />
                     <span>Size Guide</span>
@@ -576,10 +576,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                         key={idx}
                         type="button"
                         onClick={() => setSelectedSize(isSelected ? '' : sz)}
-                        className={`min-w-[48px] h-10 px-3 text-xs font-semibold uppercase tracking-[0.05em] transition-all cursor-pointer border flex items-center justify-center ${
+                        className={`min-w-[48px] h-9 px-3 text-xs uppercase tracking-[0.05em] transition-all cursor-pointer border flex items-center justify-center ${
                           isSelected
-                            ? 'bg-[#232323] text-white border-[#232323]'
-                            : 'bg-white text-[#232323] border-[#e6e6e6] hover:border-[#232323]'
+                            ? 'bg-[#232323] text-white border-[#232323] font-medium'
+                            : 'bg-white text-[#232323] border-[#e6e6e6] hover:border-[#232323] font-normal'
                         }`}
                       >
                         {sz}
@@ -591,21 +591,21 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
               {/* Quantity Stepper */}
               <div className="flex items-center gap-4 pt-2">
-                <label className="text-[11px] font-semibold tracking-[0.06em] uppercase text-[#232323]">Quantity:</label>
-                <div className="flex items-center border border-[#e6e6e6] h-10 w-32 bg-white">
+                <label className="text-[11px] font-normal tracking-[0.06em] uppercase text-[#232323]">Quantity:</label>
+                <div className="flex items-center border border-[#e6e6e6] h-9 w-28 bg-white">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-full flex items-center justify-center text-[#232323] hover:bg-zinc-100 font-bold transition-colors cursor-pointer text-sm"
+                    className="w-9 h-full flex items-center justify-center text-[#232323] hover:bg-[#fafafa] font-light transition-colors cursor-pointer text-base"
                   >
                     -
                   </button>
-                  <span className="flex-1 text-center text-xs font-bold text-[#232323]">{quantity}</span>
+                  <span className="flex-1 text-center text-xs font-normal text-[#232323]">{quantity}</span>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
                     disabled={quantity >= product.stock}
-                    className="w-10 h-full flex items-center justify-center text-[#232323] hover:bg-zinc-100 font-bold transition-colors cursor-pointer text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-9 h-full flex items-center justify-center text-[#232323] hover:bg-[#fafafa] font-light transition-colors cursor-pointer text-base disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     +
                   </button>
@@ -615,7 +615,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   <button 
                     type="button"
                     onClick={handleClearSelection}
-                    className="text-[10px] font-medium text-[#969696] hover:text-[#232323] underline uppercase tracking-wider cursor-pointer ml-auto"
+                    className="text-[10px] font-normal text-[#969696] hover:text-[#232323] underline uppercase tracking-wider cursor-pointer ml-auto"
                   >
                     Clear Choice
                   </button>
@@ -624,13 +624,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* ACTION BUTTONS (Yellow High-Contrast Row) */}
-            <div className="flex flex-col gap-3 pt-3">
+            <div className="flex flex-col gap-2.5 pt-2">
               {/* Add to Cart Button */}
               <button
                 type="button"
                 onClick={handleAddToCart}
                 disabled={isSoldOut}
-                className="w-full bg-[#232323] text-white py-3.5 px-6 text-xs font-semibold tracking-[0.08em] uppercase hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
+                className="w-full bg-[#232323] text-white py-3 px-6 text-xs font-medium tracking-[0.1em] uppercase hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="h-4 w-4" />
                 <span>{isSoldOut ? 'Sold Out' : 'Add to Bag'}</span>
@@ -641,7 +641,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="w-full bg-white text-[#232323] border border-[#232323] py-3.5 px-6 text-xs font-semibold tracking-[0.08em] uppercase hover:bg-[#232323] hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-white text-[#232323] border border-[#232323] py-3 px-6 text-xs font-medium tracking-[0.1em] uppercase hover:bg-[#232323] hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Buy It Now</span>
@@ -652,16 +652,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             {/* VALUE PROPOSITIONS & TRUST (Yellow Clean Badges) */}
             <div className="grid grid-cols-3 gap-2 border-y border-[#e6e6e6] py-4 mt-2 text-[10px] tracking-[0.02em] text-[#727272]">
               <div className="flex flex-col items-center text-center gap-1.5 px-1">
-                <Truck className="h-4 w-4 text-[#232323]" />
-                <span className="font-medium">Fast Shipping in BD</span>
+                <Truck className="h-4 w-4 text-[#232323] stroke-[1.5]" />
+                <span className="font-normal">Fast Shipping in BD</span>
               </div>
               <div className="flex flex-col items-center text-center gap-1.5 px-1 border-x border-[#e6e6e6]">
-                <ShieldCheck className="h-4 w-4 text-[#232323]" />
-                <span className="font-medium">100% Authentic Quality</span>
+                <ShieldCheck className="h-4 w-4 text-[#232323] stroke-[1.5]" />
+                <span className="font-normal">100% Authentic Quality</span>
               </div>
               <div className="flex flex-col items-center text-center gap-1.5 px-1">
-                <RotateCcw className="h-4 w-4 text-[#232323]" />
-                <span className="font-medium">Easy 7-Day Exchange</span>
+                <RotateCcw className="h-4 w-4 text-[#232323] stroke-[1.5]" />
+                <span className="font-normal">Easy 7-Day Exchange</span>
               </div>
             </div>
 
@@ -673,7 +673,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => toggleAccordion('desc')}
-                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-semibold tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
+                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-normal tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
                 >
                   <span>Product Details & Specifications</span>
                   {openAccordion === 'desc' ? <ChevronUp className="h-4 w-4 text-[#727272]" /> : <ChevronDown className="h-4 w-4 text-[#727272]" />}
@@ -682,10 +682,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   <div className="pb-4 text-xs text-[#727272] leading-relaxed flex flex-col gap-2.5">
                     <p>{meta.cleanDesc || product.description || 'Crafted with premium selected textiles designed for maximum comfort, durability, and standard modern fitting.'}</p>
                     <ul className="list-disc list-inside flex flex-col gap-1 text-[11px] text-[#555]">
-                      {meta.brand && <li><strong className="text-[#232323]">Brand:</strong> {meta.brand}</li>}
-                      <li><strong className="text-[#232323]">Category:</strong> {product.category?.name || 'Apparel'}</li>
-                      <li><strong className="text-[#232323]">Fit:</strong> Regular Comfort Standard Fit</li>
-                      <li><strong className="text-[#232323]">Country of Origin:</strong> Bangladesh</li>
+                      {meta.brand && <li><span className="text-[#232323] font-medium">Brand:</span> {meta.brand}</li>}
+                      <li><span className="text-[#232323] font-medium">Category:</span> {product.category?.name || 'Apparel'}</li>
+                      <li><span className="text-[#232323] font-medium">Fit:</span> Regular Comfort Standard Fit</li>
+                      <li><span className="text-[#232323] font-medium">Country of Origin:</span> Bangladesh</li>
                     </ul>
                   </div>
                 )}
@@ -696,7 +696,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => toggleAccordion('care')}
-                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-semibold tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
+                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-normal tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
                 >
                   <span>Material & Wash Care</span>
                   {openAccordion === 'care' ? <ChevronUp className="h-4 w-4 text-[#727272]" /> : <ChevronDown className="h-4 w-4 text-[#727272]" />}
@@ -719,7 +719,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => toggleAccordion('shipping')}
-                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-semibold tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
+                  className="w-full py-3.5 flex items-center justify-between text-left text-xs font-normal tracking-[0.06em] uppercase text-[#232323] hover:text-zinc-600 transition-colors cursor-pointer"
                 >
                   <span>Shipping & Return Policy</span>
                   {openAccordion === 'shipping' ? <ChevronUp className="h-4 w-4 text-[#727272]" /> : <ChevronDown className="h-4 w-4 text-[#727272]" />}
@@ -737,11 +737,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Share link button */}
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] font-semibold tracking-[0.05em] uppercase text-[#969696]">Share Product:</span>
+              <span className="text-[11px] font-normal tracking-[0.05em] uppercase text-[#969696]">Share Product:</span>
               <button
                 type="button"
                 onClick={handleShare}
-                className="flex items-center gap-1.5 text-xs text-[#232323] hover:text-zinc-600 font-medium cursor-pointer"
+                className="flex items-center gap-1.5 text-xs text-[#232323] hover:text-zinc-600 font-normal cursor-pointer"
               >
                 {copiedLink ? (
                   <>
@@ -767,13 +767,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           
           {/* Section Header */}
           <div className="flex flex-col items-center text-center mb-10">
-            <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#969696]">
+            <span className="text-[11px] font-normal tracking-[0.1em] uppercase text-[#969696]">
               Explore More from {product.category?.name || 'Collection'}
             </span>
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-[0.06em] uppercase text-[#232323] mt-1.5">
+            <h2 className="text-lg sm:text-xl font-normal tracking-[0.08em] uppercase text-[#232323] mt-1.5">
               Related Products
             </h2>
-            <div className="w-12 h-0.5 bg-[#232323] mt-3" />
+            <div className="w-10 h-px bg-[#232323] mt-3" />
           </div>
 
           {/* Related Products Grid */}
@@ -788,7 +788,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               ))}
             </div>
           ) : relatedProducts.length === 0 ? (
-            <div className="text-center py-10 text-xs font-medium uppercase tracking-widest text-[#969696]">
+            <div className="text-center py-10 text-xs font-normal uppercase tracking-widest text-[#969696]">
               No other products currently available in this category.
             </div>
           ) : (
@@ -802,7 +802,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 return (
                   <div
                     key={relProd.id}
-                    className="group relative flex flex-col bg-white border border-[#e6e6e6] transition-all duration-300 hover:shadow-md"
+                    className="group relative flex flex-col bg-white border border-[#e6e6e6] transition-all duration-300 hover:shadow-xs"
                   >
                     {/* Wishlist Button */}
                     <button
@@ -842,11 +842,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
                       {/* Sale / Sold Out Badge */}
                       {relSoldOut ? (
-                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#232323] px-2 py-0.5 text-[8px] font-medium text-white tracking-widest uppercase">
+                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#232323] px-2 py-0.5 text-[8px] font-normal text-white tracking-widest uppercase">
                           Sold Out
                         </span>
                       ) : relDiscount ? (
-                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#e95144] text-white text-[8px] font-semibold tracking-wider uppercase px-2 py-0.5">
+                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#e95144] text-white text-[8px] font-normal tracking-wider uppercase px-2 py-0.5">
                           Sale
                         </span>
                       ) : null}
@@ -854,20 +854,20 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
                     {/* Product Details info in Poppins */}
                     <div className="p-3.5 flex flex-col gap-1.5">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-[#969696]">
+                      <span className="text-[10px] font-normal uppercase tracking-[0.06em] text-[#969696]">
                         {relProd.category?.name || 'OnWear'}
                       </span>
                       
                       <Link 
                         href={`/products/${relProd.id}`}
-                        className="text-xs font-semibold tracking-[0.02em] uppercase text-[#232323] hover:text-zinc-600 transition-colors line-clamp-1"
+                        className="text-xs font-normal tracking-[0.02em] uppercase text-[#232323] hover:text-zinc-600 transition-colors line-clamp-1"
                         title={relProd.name}
                       >
                         {relProd.name}
                       </Link>
 
                       <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-xs sm:text-sm font-bold text-[#232323]">
+                        <span className="text-xs sm:text-sm font-medium text-[#232323]">
                           {formatPrice(relCurrentPrice)}
                         </span>
                         {relDiscount && (
@@ -894,33 +894,33 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             
             {/* Left: Write a Review Form */}
             <div className="lg:col-span-1 flex flex-col gap-5">
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.05em] text-[#232323]">
+              <h3 className="text-base sm:text-lg font-normal uppercase tracking-[0.08em] text-[#232323]">
                 Customer Reviews
               </h3>
 
               {user ? (
                 hasReviewed ? (
-                  <div className="border border-[#e6e6e6] bg-[#fafafa] p-5 text-xs font-medium text-[#727272] uppercase tracking-wider">
+                  <div className="border border-[#e6e6e6] bg-[#fafafa] p-5 text-xs font-normal text-[#727272] uppercase tracking-wider">
                     You have already reviewed this product.
                   </div>
                 ) : (
                   <form onSubmit={handleAddReview} className="flex flex-col gap-4 border border-[#e6e6e6] p-5 bg-[#fafafa]">
-                    <span className="text-xs font-semibold uppercase tracking-[0.05em] text-[#232323]">
+                    <span className="text-xs font-normal uppercase tracking-[0.06em] text-[#232323]">
                       Write a Review
                     </span>
 
                     {reviewError && (
-                      <div className="bg-red-50 border border-red-200 p-2.5 text-xs text-red-600 font-medium">
+                      <div className="bg-red-50 border border-red-200 p-2.5 text-xs text-red-600 font-normal">
                         {reviewError}
                       </div>
                     )}
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#727272]">Rating</label>
+                      <label className="text-[10px] font-normal uppercase tracking-[0.05em] text-[#727272]">Rating</label>
                       <select
                         value={rating}
                         onChange={(e) => setRating(Number(e.target.value))}
-                        className="border border-[#e6e6e6] p-2.5 text-xs bg-white font-semibold text-amber-500 cursor-pointer focus:outline-none focus:border-[#232323]"
+                        className="border border-[#e6e6e6] p-2.5 text-xs bg-white font-medium text-amber-500 cursor-pointer focus:outline-none focus:border-[#232323]"
                       >
                         <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
                         <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
@@ -931,7 +931,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#727272]">Review Details</label>
+                      <label className="text-[10px] font-normal uppercase tracking-[0.05em] text-[#727272]">Review Details</label>
                       <textarea
                         rows={4}
                         placeholder="Tell others what you think about this product..."
@@ -945,27 +945,27 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     <button
                       type="submit"
                       disabled={reviewSubmitting}
-                      className="bg-[#232323] text-white py-2.5 text-xs font-semibold uppercase tracking-[0.08em] hover:bg-black transition-colors cursor-pointer disabled:opacity-50"
+                      className="bg-[#232323] text-white py-2.5 text-xs font-medium uppercase tracking-[0.1em] hover:bg-black transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
                     </button>
                   </form>
                 )
               ) : (
-                <div className="border border-[#e6e6e6] bg-[#fafafa] p-5 text-xs font-medium text-[#727272]">
-                  Please <Link href="/login" className="font-semibold text-[#232323] underline">login</Link> to leave a review.
+                <div className="border border-[#e6e6e6] bg-[#fafafa] p-5 text-xs font-normal text-[#727272]">
+                  Please <Link href="/login" className="font-medium text-[#232323] underline">login</Link> to leave a review.
                 </div>
               )}
             </div>
 
             {/* Right: Review List */}
             <div className="lg:col-span-2 flex flex-col gap-5">
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.05em] text-[#232323]">
+              <h3 className="text-base sm:text-lg font-normal uppercase tracking-[0.08em] text-[#232323]">
                 Reviews ({reviews.length})
               </h3>
 
               {reviews.length === 0 ? (
-                <div className="border border-dashed border-[#e6e6e6] bg-[#fafafa] p-10 text-center text-xs font-medium uppercase tracking-widest text-[#969696]">
+                <div className="border border-dashed border-[#e6e6e6] bg-[#fafafa] p-10 text-center text-xs font-normal uppercase tracking-widest text-[#969696]">
                   No reviews for this product yet. Be the first to share your experience!
                 </div>
               ) : (
@@ -974,8 +974,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     <div key={rev.id} className="border border-[#e6e6e6] bg-white p-5 flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-semibold text-xs text-[#232323] uppercase">{rev.user?.name || 'Customer'}</h4>
-                          <span className="text-[10px] text-[#969696] font-medium">
+                          <h4 className="font-medium text-xs text-[#232323] uppercase">{rev.user?.name || 'Customer'}</h4>
+                          <span className="text-[10px] text-[#969696] font-normal">
                             {new Date(rev.createdAt).toLocaleDateString(undefined, {
                               year: 'numeric',
                               month: 'short',
@@ -1000,14 +1000,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className="h-3 w-3"
+                            className="h-3.5 w-3.5"
                             fill={i < rev.rating ? 'currentColor' : 'none'}
                             stroke="currentColor"
                           />
                         ))}
                       </div>
 
-                      <p className="text-xs text-[#555] leading-relaxed">{rev.comment}</p>
+                      <p className="text-xs text-[#555] leading-relaxed font-normal">{rev.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -1032,8 +1032,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       {/* 6. HIGH-CONVERSION STICKY MOBILE BOTTOM BAR */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e6e6e6] p-3 flex items-center justify-between gap-3 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <div className="flex flex-col min-w-0 pr-1">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.06em] text-[#969696]">Total Price</span>
-          <span className="text-sm font-bold text-[#232323] leading-tight truncate">
+          <span className="text-[9px] font-normal uppercase tracking-[0.06em] text-[#969696]">Total Price</span>
+          <span className="text-sm font-medium text-[#232323] leading-tight truncate">
             {formatPrice(currentPrice * quantity)}
           </span>
         </div>
@@ -1043,7 +1043,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             type="button"
             onClick={handleAddToCart}
             disabled={isSoldOut}
-            className="flex-1 py-2.5 px-3 bg-[#232323] text-white font-semibold text-[11px] uppercase tracking-[0.06em] flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer"
+            className="flex-1 py-2.5 px-3 bg-[#232323] text-white font-medium text-[11px] uppercase tracking-[0.08em] flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
             <span>Bag</span>
@@ -1053,7 +1053,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             <button
               type="button"
               onClick={handleBuyNow}
-              className="flex-1 py-2.5 px-3 bg-white text-[#232323] border border-[#232323] font-semibold text-[11px] uppercase tracking-[0.06em] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
+              className="flex-1 py-2.5 px-3 bg-white text-[#232323] border border-[#232323] font-medium text-[11px] uppercase tracking-[0.08em] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
             >
               <span>Buy Now</span>
             </button>
