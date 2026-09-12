@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Brand Description */}
         <div className="flex flex-col gap-3">
-          <span className="text-lg font-normal tracking-[0.38em] text-[#000000] uppercase pl-[0.38em]">{settings.storeName || 'ONWEAR'}</span>
+          <span className="text-lg font-semibold tracking-[0.22em] text-[#000000] uppercase pl-[0.22em]">{settings.storeName || 'ONWEAR'}</span>
           <p className="text-[#969696] text-xs max-w-xs leading-relaxed">
             {settings.tagline}
           </p>
