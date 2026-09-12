@@ -246,8 +246,8 @@ export default function Navbar() {
                   className="h-7 sm:h-9 md:h-11 w-auto object-contain max-w-[140px] sm:max-w-[180px]"
                 />
               ) : (
-                <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-[0.14em] text-zinc-950 uppercase">
-                  {settings.storeName || 'ONWEAR'}
+                <span className="text-xl sm:text-2xl md:text-3xl font-normal tracking-[0.38em] text-[#000000] uppercase pl-[0.38em] select-none">
+                  ONWEAR
                 </span>
               )}
             </Link>
@@ -571,9 +571,9 @@ export default function Navbar() {
               <Link
                 href="/"
                 onClick={() => setShowMobileDrawer(false)}
-                className="text-lg font-black tracking-widest text-zinc-950 uppercase"
+                className="text-base font-normal tracking-[0.35em] text-[#000000] uppercase pl-[0.35em]"
               >
-                {settings.storeName || 'ONWEAR'}
+                ONWEAR
               </Link>
               <button
                 onClick={() => setShowMobileDrawer(false)}

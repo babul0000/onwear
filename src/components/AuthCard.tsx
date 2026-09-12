@@ -182,13 +182,10 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center gap-2">
-          <Link href="/" className="inline-flex items-center gap-2.5 text-xl font-black tracking-[0.25em] text-zinc-950 uppercase group">
-            <div className="h-9 w-9 rounded-2xl bg-zinc-950 text-white flex items-center justify-center shadow-md group-hover:bg-zinc-800 transition-colors">
-              <Store className="h-4.5 w-4.5" />
-            </div>
-            <span>ONWEAR</span>
+          <Link href="/" className="inline-flex items-center text-2xl font-normal tracking-[0.38em] text-zinc-950 uppercase pl-[0.38em] hover:opacity-80 transition-opacity">
+            ONWEAR
           </Link>
-          <p className="text-xs text-zinc-400 font-mono tracking-wider font-semibold uppercase">
+          <p className="text-xs text-zinc-400 font-medium tracking-wider uppercase">
             Signature Clothing & Apparel
           </p>
         </div>
