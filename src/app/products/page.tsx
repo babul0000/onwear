@@ -541,25 +541,19 @@ function ProductsPageContent() {
                      </a>
 
                      {/* Info Block */}
-                      <div className="mt-2.5 flex flex-col flex-1 px-0.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-[#969696] truncate">{prod.category?.name || 'ONWEAR'}</span>
-                          {reviewCount > 0 && (
-                            <div className="flex items-center gap-0.5 text-amber-400 text-[10px] font-medium">
-                              <Star className="h-3 w-3 fill-current" />
-                              <span className="text-zinc-400">{averageRating}</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <a href={`/products/${prod.id}`} className="font-medium text-xs tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors mt-0.5 block line-clamp-1">
+                      <div className="mt-2.5 flex flex-col flex-1 px-0.5 gap-1">
+                        <a 
+                          href={`/products/${prod.id}`} 
+                          className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors block truncate"
+                          title={prod.name}
+                        >
                           {prod.name}
                         </a>
 
-                        <div className="mt-1 flex items-baseline gap-2">
+                        <div className="flex items-baseline gap-2">
                           {discount ? (
                             <>
-                              <span className={`text-xs sm:text-sm font-semibold ${isSoldOut ? 'text-zinc-400' : 'text-[#232323]'}`}>
+                              <span className={`text-xs sm:text-sm font-medium ${isSoldOut ? 'text-zinc-400' : 'text-[#232323]'}`}>
                                 {formatPrice(prod.discountPrice)}
                               </span>
                               <span className="text-[11px] text-[#969696] line-through font-normal">
@@ -567,7 +561,7 @@ function ProductsPageContent() {
                               </span>
                             </>
                           ) : (
-                            <span className={`text-xs sm:text-sm font-semibold ${isSoldOut ? 'text-zinc-400 font-normal' : 'text-[#232323]'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${isSoldOut ? 'text-zinc-400 font-normal' : 'text-[#232323]'}`}>
                               {formatPrice(prod.price)}
                             </span>
                           )}

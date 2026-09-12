@@ -853,20 +853,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     </Link>
 
                     {/* Product Details info in Poppins */}
-                    <div className="p-3.5 flex flex-col gap-1.5">
-                      <span className="text-[10px] font-normal uppercase tracking-[0.06em] text-[#969696]">
-                        {relProd.category?.name || 'OnWear'}
-                      </span>
-                      
+                    <div className="p-3.5 flex flex-col gap-1">
                       <Link 
                         href={`/products/${relProd.id}`}
-                        className="text-xs font-normal tracking-[0.02em] uppercase text-[#232323] hover:text-zinc-600 transition-colors line-clamp-1"
+                        className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-zinc-600 transition-colors truncate block"
                         title={relProd.name}
                       >
                         {relProd.name}
                       </Link>
 
-                      <div className="flex items-baseline gap-2 pt-1">
+                      <div className="flex items-baseline gap-2">
                         <span className="text-xs sm:text-sm font-medium text-[#232323]">
                           {formatPrice(relCurrentPrice)}
                         </span>

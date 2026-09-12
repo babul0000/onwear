@@ -322,31 +322,23 @@ export default function Home() {
                   </div>
 
                   {/* Product metadata */}
-                  <div className="flex flex-col gap-1 px-0.5 pt-1">
-                    <span className="text-[10px] font-medium uppercase text-[#969696] tracking-[0.06em]">
-                      {product.category?.name || 'ONWEAR'}
-                    </span>
+                  <div className="flex flex-col gap-1 px-0.5 pt-2">
                     <Link
                       href={`/products/${product.id}`}
-                      className="text-xs font-medium tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors line-clamp-1"
+                      className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors truncate block"
+                      title={product.name}
                     >
                       {product.name}
                     </Link>
-                    <div className="flex items-center justify-between mt-0.5">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xs sm:text-sm font-semibold text-[#232323]">
-                          {formatPrice(hasDiscount ? product.discountPrice! : product.price)}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xs sm:text-sm font-medium text-[#232323]">
+                        {formatPrice(hasDiscount ? product.discountPrice! : product.price)}
+                      </span>
+                      {hasDiscount && (
+                        <span className="text-[11px] text-[#969696] line-through font-normal">
+                          {formatPrice(product.price)}
                         </span>
-                        {hasDiscount && (
-                          <span className="text-[11px] text-[#969696] line-through font-normal">
-                            {formatPrice(product.price)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-0.5 text-amber-400">
-                        <Star className="h-3 w-3 fill-current" />
-                        <span className="text-[10px] font-medium text-zinc-400">4.8</span>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>

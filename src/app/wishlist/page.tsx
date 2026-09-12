@@ -68,19 +68,23 @@ export default function WishlistPage() {
                   />
                 </Link>
 
-                <div className="mt-4 flex flex-col flex-1">
-                  <Link href={`/products/${targetId}`} className="font-medium text-xs tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors mt-1 block line-clamp-1">
+                <div className="mt-3 flex flex-col flex-1 gap-1">
+                  <Link 
+                    href={`/products/${targetId}`} 
+                    className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors block truncate"
+                    title={prod.name || 'Product'}
+                  >
                     {prod.name || 'Product'}
                   </Link>
 
-                  <div className="mt-2 flex items-baseline gap-2">
+                  <div className="flex items-baseline gap-2">
                     {discount ? (
                       <>
-                        <span className="text-xs sm:text-sm font-semibold text-[#232323]">{formatPrice(prod.discountPrice)}</span>
+                        <span className="text-xs sm:text-sm font-medium text-[#232323]">{formatPrice(prod.discountPrice)}</span>
                         <span className="text-[11px] text-[#969696] line-through font-normal">{formatPrice(prod.price)}</span>
                       </>
                     ) : (
-                      <span className="text-xs sm:text-sm font-semibold text-[#232323]">{formatPrice(prod.price || 0)}</span>
+                      <span className="text-xs sm:text-sm font-medium text-[#232323]">{formatPrice(prod.price || 0)}</span>
                     )}
                   </div>
 
