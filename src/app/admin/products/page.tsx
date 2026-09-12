@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
@@ -21,7 +21,11 @@ import {
   Image as ImageIcon,
   Tag,
   Layers,
-  Package
+  Package,
+  UploadCloud,
+  RefreshCw,
+  Eye,
+  Link2
 } from 'lucide-react';
 import AddProduct from '../../../components/AddProduct';
 import ConfirmModal from '../../../components/ConfirmModal';
@@ -75,8 +79,20 @@ export default function AdminProductsPage() {
   const [sku, setSku] = useState('');
   const [image, setImage] = useState('');
   const [image2, setImage2] = useState('');
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'>('ACTIVE');
+  const [showManualUrl, setShowManualUrl] = useState(false);
+
+  // Image Uploading States
+  const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
+  const [isUploadingSecondary, setIsUploadingSecondary] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
+  // File Input Refs
+  const primaryFileInputRef = useRef<HTMLInputElement>(null);
+  const secondaryFileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -135,9 +151,153 @@ export default function AdminProductsPage() {
     setSku(prod.sku || '');
     setImage(prod.image || '');
     setImage2(prod.image2 || '');
+    
+    // Extract gallery images safely
+    let existingGallery: string[] = [];
+    if (Array.isArray(prod.images) && prod.images.length > 0) {
+      existingGallery = prod.images;
+    } else {
+      if (prod.image) existingGallery.push(prod.image);
+      if (prod.image2 && prod.image2 !== prod.image) existingGallery.push(prod.image2);
+    }
+    setGalleryImages(existingGallery);
+
     setCategoryId(prod.categoryId || '');
     setStatus(prod.status || 'ACTIVE');
+    setShowManualUrl(false);
     setEditModalProduct(prod);
+  };
+
+  // Upload helper with Cloudinary primary and ImgBB fallback
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', 'onwear/products');
+
+    try {
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.data?.url) {
+        return data.data.url;
+      }
+    } catch (err) {
+      console.warn('Backend upload failed, attempting fallback...', err);
+    }
+
+    // Fallback to ImgBB
+    const apiKey = '42fdb6623317f99b22cc6bbb8ce01fc2';
+    const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body: formData
+    });
+    const imgbbData = await imgbbRes.json();
+    if (imgbbData.success && imgbbData.data?.url) {
+      return imgbbData.data.url;
+    }
+
+    throw new Error('Image upload failed. Please verify the image file format and try again.');
+  };
+
+  // Upload Primary Image
+  const handlePrimaryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPrimary(true);
+    setError('');
+    try {
+      const uploadedUrl = await uploadFile(file);
+      setImage(uploadedUrl);
+      if (!galleryImages.includes(uploadedUrl)) {
+        setGalleryImages([uploadedUrl, ...galleryImages.filter(img => img !== image)]);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload primary image');
+    } finally {
+      setIsUploadingPrimary(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload Secondary Image
+  const handleSecondaryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingSecondary(true);
+    setError('');
+    try {
+      const uploadedUrl = await uploadFile(file);
+      setImage2(uploadedUrl);
+      if (!galleryImages.includes(uploadedUrl)) {
+        setGalleryImages([...galleryImages, uploadedUrl]);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload secondary image');
+    } finally {
+      setIsUploadingSecondary(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload Multiple Gallery Images
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingGallery(true);
+    setError('');
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const uploadedUrl = await uploadFile(files[i]);
+        newUrls.push(uploadedUrl);
+      }
+      const updated = [...galleryImages, ...newUrls];
+      setGalleryImages(updated);
+      if (!image && updated.length > 0) {
+        setImage(updated[0]);
+      }
+      if (!image2 && updated.length > 1) {
+        setImage2(updated[1]);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload gallery images');
+    } finally {
+      setIsUploadingGallery(false);
+      e.target.value = '';
+    }
+  };
+
+  // Delete Primary Image
+  const handleDeletePrimaryImage = () => {
+    const oldImg = image;
+    setImage('');
+    setGalleryImages(galleryImages.filter(img => img !== oldImg));
+  };
+
+  // Delete Secondary Image
+  const handleDeleteSecondaryImage = () => {
+    const oldImg = image2;
+    setImage2('');
+    setGalleryImages(galleryImages.filter(img => img !== oldImg));
+  };
+
+  // Delete specific Gallery Image
+  const handleDeleteGalleryImage = (indexToRemove: number) => {
+    const targetImg = galleryImages[indexToRemove];
+    const updated = galleryImages.filter((_, i) => i !== indexToRemove);
+    setGalleryImages(updated);
+    if (image === targetImg) {
+      setImage(updated[0] || '');
+    }
+    if (image2 === targetImg) {
+      setImage2(updated[1] || '');
+    }
   };
 
   const handleUpdateProduct = async (e: React.FormEvent) => {
@@ -157,6 +317,7 @@ export default function AdminProductsPage() {
       sku,
       image: image || null,
       image2: image2 || null,
+      images: galleryImages,
       categoryId,
       status
     };
@@ -173,7 +334,7 @@ export default function AdminProductsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setSuccess('Product updated successfully!');
+        setSuccess('Product updated successfully with new images!');
         resetForm();
         fetchProducts();
       } else {
@@ -315,8 +476,10 @@ export default function AdminProductsPage() {
     setSku('');
     setImage('');
     setImage2('');
+    setGalleryImages([]);
     setCategoryId('');
     setStatus('ACTIVE');
+    setShowManualUrl(false);
     setEditModalProduct(null);
   };
 
@@ -615,11 +778,35 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* EDIT PRODUCT MODAL */}
+      {/* EDIT PRODUCT MODAL (WITH COMPLETE IMAGE UPLOAD & REMOVE SYSTEM) */}
       {editModalProduct && (
         <div className="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 flex flex-col gap-6 relative animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto my-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 flex flex-col gap-6 relative animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto my-auto">
             
+            {/* Hidden File Inputs */}
+            <input 
+              type="file" 
+              ref={primaryFileInputRef} 
+              onChange={handlePrimaryImageUpload} 
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif" 
+              className="hidden" 
+            />
+            <input 
+              type="file" 
+              ref={secondaryFileInputRef} 
+              onChange={handleSecondaryImageUpload} 
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif" 
+              className="hidden" 
+            />
+            <input 
+              type="file" 
+              ref={galleryFileInputRef} 
+              onChange={handleGalleryUpload} 
+              multiple 
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif" 
+              className="hidden" 
+            />
+
             {/* Close Button */}
             <button
               onClick={resetForm}
@@ -633,10 +820,10 @@ export default function AdminProductsPage() {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[11px] font-bold mb-2 border border-indigo-200/60 font-mono">
                 <Edit2 className="h-3.5 w-3.5 text-indigo-600" />
-                <span>Edit Product</span>
+                <span>Edit Product Details</span>
               </div>
               <h2 className="text-xl font-black text-zinc-950 tracking-tight">
-                {name || 'Edit Product Details'}
+                {name || 'Edit Product'}
               </h2>
               <p className="text-xs text-zinc-400 font-mono mt-0.5">
                 SKU: {sku || 'N/A'} • ID: {editingId}
@@ -652,55 +839,232 @@ export default function AdminProductsPage() {
             )}
 
             {/* Edit Form */}
-            <form onSubmit={handleUpdateProduct} className="flex flex-col gap-5">
+            <form onSubmit={handleUpdateProduct} className="flex flex-col gap-6">
               
-              {/* Image Preview & URLs */}
-              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200/80 flex flex-col sm:flex-row items-center gap-4">
-                <div className="h-20 w-20 rounded-2xl overflow-hidden bg-white border border-zinc-200 shrink-0 flex items-center justify-center shadow-xs">
-                  {image ? (
-                    <img
-                      src={image}
-                      alt={name || 'Preview'}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        (e.target as any).src = '/placeholder.svg';
-                      }}
-                    />
-                  ) : (
-                    <ImageIcon className="h-8 w-8 text-zinc-300" />
+              {/* ORGANIZED PRODUCT IMAGES SECTION */}
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 sm:p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-indigo-600" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-800">
+                      Product Media & Photos
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualUrl(!showManualUrl)}
+                    className="text-[11px] font-bold text-zinc-500 hover:text-indigo-600 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Link2 className="h-3 w-3" />
+                    <span>{showManualUrl ? 'Hide Direct URL Inputs' : 'Edit Direct URLs'}</span>
+                  </button>
+                </div>
+
+                {/* Primary and Hover Image Slots Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* Slot 1: Primary Cover Image */}
+                  <div className="bg-white rounded-2xl p-4 border border-zinc-200 flex flex-col justify-between gap-3 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-zinc-700 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <span>Primary Cover Image</span>
+                      </span>
+                      {image && (
+                        <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono">
+                          Main View
+                        </span>
+                      )}
+                    </div>
+
+                    {image ? (
+                      <div className="relative group rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50 aspect-4/3 flex items-center justify-center">
+                        <img
+                          src={image}
+                          alt="Primary"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as any).src = '/placeholder.svg';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2 backdrop-blur-xs">
+                          <button
+                            type="button"
+                            disabled={isUploadingPrimary}
+                            onClick={() => primaryFileInputRef.current?.click()}
+                            className="px-3 py-1.5 bg-white text-zinc-900 rounded-xl text-xs font-bold shadow-md hover:bg-zinc-100 transition-transform hover:scale-105 flex items-center gap-1 cursor-pointer"
+                            title="Upload New Image"
+                          >
+                            <UploadCloud className="h-3.5 w-3.5 text-indigo-600" />
+                            <span>Replace</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDeletePrimaryImage}
+                            className="p-2 bg-red-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition-transform hover:scale-105 cursor-pointer"
+                            title="Delete Image"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => primaryFileInputRef.current?.click()}
+                        className="rounded-xl border-2 border-dashed border-zinc-300 hover:border-indigo-500 bg-zinc-50/50 hover:bg-indigo-50/30 p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all aspect-4/3 text-center"
+                      >
+                        {isUploadingPrimary ? (
+                          <div className="flex flex-col items-center gap-2 text-indigo-600">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <span className="text-xs font-bold">Uploading Cover...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                              <UploadCloud className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-bold text-zinc-800">Upload Cover Image</span>
+                            <span className="text-[10px] text-zinc-400">Click to choose image file</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Slot 2: Hover / Secondary Image */}
+                  <div className="bg-white rounded-2xl p-4 border border-zinc-200 flex flex-col justify-between gap-3 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-zinc-700 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                        <span>Secondary / Hover Image</span>
+                      </span>
+                      {image2 && (
+                        <span className="text-[9px] font-black uppercase text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-mono">
+                          Hover View
+                        </span>
+                      )}
+                    </div>
+
+                    {image2 ? (
+                      <div className="relative group rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50 aspect-4/3 flex items-center justify-center">
+                        <img
+                          src={image2}
+                          alt="Secondary Hover"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as any).src = '/placeholder.svg';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2 backdrop-blur-xs">
+                          <button
+                            type="button"
+                            disabled={isUploadingSecondary}
+                            onClick={() => secondaryFileInputRef.current?.click()}
+                            className="px-3 py-1.5 bg-white text-zinc-900 rounded-xl text-xs font-bold shadow-md hover:bg-zinc-100 transition-transform hover:scale-105 flex items-center gap-1 cursor-pointer"
+                            title="Upload New Image"
+                          >
+                            <UploadCloud className="h-3.5 w-3.5 text-indigo-600" />
+                            <span>Replace</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDeleteSecondaryImage}
+                            className="p-2 bg-red-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-red-700 transition-transform hover:scale-105 cursor-pointer"
+                            title="Delete Image"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => secondaryFileInputRef.current?.click()}
+                        className="rounded-xl border-2 border-dashed border-zinc-300 hover:border-blue-500 bg-zinc-50/50 hover:bg-blue-50/30 p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all aspect-4/3 text-center"
+                      >
+                        {isUploadingSecondary ? (
+                          <div className="flex flex-col items-center gap-2 text-blue-600">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <span className="text-xs font-bold">Uploading Hover...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                              <UploadCloud className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-bold text-zinc-800">Upload Hover Image</span>
+                            <span className="text-[10px] text-zinc-400">Optional back or zoom angle</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Additional Gallery Photos */}
+                <div className="pt-2 border-t border-zinc-200/80 flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-700">
+                      Product Gallery Photos ({galleryImages.length})
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isUploadingGallery}
+                      onClick={() => galleryFileInputRef.current?.click()}
+                      className="px-3 py-1 bg-zinc-950 hover:bg-zinc-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+                    >
+                      {isUploadingGallery ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                      <span>Add Photos</span>
+                    </button>
+                  </div>
+
+                  {galleryImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5">
+                      {galleryImages.map((imgUrl, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-zinc-200 bg-white aspect-square">
+                          <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteGalleryImage(idx)}
+                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 cursor-pointer shadow-md"
+                            title="Remove Photo"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <div className="flex-1 w-full flex flex-col gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-600 flex items-center gap-1">
-                      <ImageIcon className="h-3 w-3 text-zinc-400" />
-                      <span>Primary Image URL</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={image}
-                      onChange={(e) => setImage(e.target.value)}
-                      placeholder="https://..."
-                      className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full"
-                    />
+
+                {/* Collapsible Direct URL Inputs */}
+                {showManualUrl && (
+                  <div className="pt-3 border-t border-zinc-200/80 flex flex-col gap-3 animate-in fade-in">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-600">Cover Image URL</label>
+                      <input
+                        type="text"
+                        value={image}
+                        onChange={(e) => setImage(e.target.value)}
+                        placeholder="https://..."
+                        className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full font-mono"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-600">Hover Image URL</label>
+                      <input
+                        type="text"
+                        value={image2}
+                        onChange={(e) => setImage2(e.target.value)}
+                        placeholder="https://..."
+                        className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full font-mono"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-600 flex items-center gap-1">
-                      <ImageIcon className="h-3 w-3 text-zinc-400" />
-                      <span>Secondary Image URL (Hover - Optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={image2}
-                      onChange={(e) => setImage2(e.target.value)}
-                      placeholder="https://..."
-                      className="rounded-xl border border-zinc-200 px-3 py-2 text-xs bg-white focus:outline-indigo-600 w-full"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Grid Inputs */}
+              {/* PRODUCT DETAILS GRID */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Product Name */}
                 <div className="flex flex-col gap-1 sm:col-span-2">
@@ -834,7 +1198,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSaving}
+                  disabled={isSaving || isUploadingPrimary || isUploadingSecondary || isUploadingGallery}
                   className="px-7 py-2.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
