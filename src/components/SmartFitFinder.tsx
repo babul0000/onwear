@@ -13,11 +13,8 @@ import {
   Check, 
   ArrowRight, 
   ShieldCheck, 
-  ShoppingBag, 
   RefreshCw,
-  HelpCircle,
-  Shirt,
-  Sparkle
+  Shirt
 } from 'lucide-react';
 
 interface ProductItem {
@@ -75,7 +72,7 @@ export default function SmartFitFinder() {
       const catSlug = p.category?.slug?.toLowerCase() || '';
       const catName = p.category?.name?.toLowerCase() || '';
       if (apparel === 'shirt') {
-        return catSlug === 'shirt' || catName.includes('shirt') && !catName.includes('t-shirt');
+        return catSlug === 'shirt' || (catName.includes('shirt') && !catName.includes('t-shirt'));
       }
       if (apparel === 't-shirt') {
         return catSlug === 't-shirt' || catName.includes('t-shirt') || catName.includes('tee');
@@ -117,7 +114,6 @@ export default function SmartFitFinder() {
     }
 
     // Upper wear sizing (Shirt / T-Shirt)
-    // Base score based on BMI estimation
     let baseScore = (weightKg * 1.3) + (totalHeightInches * 0.4);
 
     let size = 'M';
@@ -154,10 +150,10 @@ export default function SmartFitFinder() {
 
     // Adjust for Fit Preference
     if (fitPreference === 'oversized' && size !== 'XXL') {
-      if (size === 'S') size = 'M (Oversized Vibe)';
-      else if (size === 'M') size = 'L (Oversized Vibe)';
-      else if (size === 'L') size = 'XL (Oversized Vibe)';
-      else if (size === 'XL') size = 'XXL (Oversized Vibe)';
+      if (size === 'S') size = 'M (OVERSIZED VIBE)';
+      else if (size === 'M') size = 'L (OVERSIZED VIBE)';
+      else if (size === 'L') size = 'XL (OVERSIZED VIBE)';
+      else if (size === 'XL') size = 'XXL (OVERSIZED VIBE)';
     }
 
     return {
@@ -184,12 +180,12 @@ export default function SmartFitFinder() {
           <h2 className="text-xl sm:text-2xl font-black tracking-wider text-zinc-950 uppercase">
             Smart Size & Fit Finder
           </h2>
-          <p className="text-xs text-zinc-400 mt-0.5 font-medium">
+          <p className="text-xs text-zinc-500 mt-0.5 font-medium">
             Find your exact tailored size in seconds with zero guesswork and a 100% doorstep exchange guarantee.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 font-mono self-start md:self-auto">
+        <div className="flex items-center gap-2 text-xs font-bold text-zinc-600 font-mono self-start md:self-auto">
           <ShieldCheck className="h-4 w-4 text-emerald-600" />
           <span>Doorstep Size Swap Guarantee</span>
         </div>
@@ -199,21 +195,21 @@ export default function SmartFitFinder() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* LEFT COLUMN: INTERACTIVE INPUT CONTROLS */}
-        <div className="lg:col-span-7 bg-zinc-50 border border-zinc-200/80 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xs">
+        <div className="lg:col-span-7 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-xs">
           
           {/* 1. Category Switcher */}
           <div>
-            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono block mb-2">
+            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono block mb-2">
               1. Select Clothing Category
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => setApparel('shirt')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-3 px-3 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   apparel === 'shirt'
-                    ? 'bg-zinc-950 text-white shadow-xs font-black'
-                    : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-200'
+                    ? 'bg-zinc-950 text-white shadow-sm font-black'
+                    : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 font-bold'
                 }`}
               >
                 <Shirt className="h-3.5 w-3.5" />
@@ -223,10 +219,10 @@ export default function SmartFitFinder() {
               <button
                 type="button"
                 onClick={() => setApparel('t-shirt')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-3 px-3 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   apparel === 't-shirt'
-                    ? 'bg-zinc-950 text-white shadow-xs font-black'
-                    : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-200'
+                    ? 'bg-zinc-950 text-white shadow-sm font-black'
+                    : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 font-bold'
                 }`}
               >
                 <Shirt className="h-3.5 w-3.5" />
@@ -236,10 +232,10 @@ export default function SmartFitFinder() {
               <button
                 type="button"
                 onClick={() => setApparel('pant')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-3 px-3 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   apparel === 'pant'
-                    ? 'bg-zinc-950 text-white shadow-xs font-black'
-                    : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-200'
+                    ? 'bg-zinc-950 text-white shadow-sm font-black'
+                    : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 font-bold'
                 }`}
               >
                 <span>Pants & Chinos</span>
@@ -250,21 +246,21 @@ export default function SmartFitFinder() {
           {/* 2. Height Input */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
+              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono">
                 2. Your Height
               </label>
-              <span className="text-xs font-black text-zinc-950 font-mono bg-white px-2.5 py-0.5 rounded-lg border border-zinc-200">
+              <span className="text-xs font-black text-zinc-950 font-mono bg-zinc-50 px-2.5 py-1 rounded-lg border border-zinc-200">
                 {heightFeet} ft {heightInches} in ({Math.round((heightFeet * 12 + heightInches) * 2.54)} cm)
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-[9px] font-mono text-zinc-400 block mb-1">Feet</span>
+                <span className="text-[9px] font-mono text-zinc-500 block mb-1">Feet</span>
                 <select
                   value={heightFeet}
                   onChange={(e) => setHeightFeet(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:outline-none focus:border-zinc-950 cursor-pointer"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-900 focus:outline-none focus:border-zinc-950 cursor-pointer"
                 >
                   <option value={4}>4 Feet</option>
                   <option value={5}>5 Feet</option>
@@ -274,11 +270,11 @@ export default function SmartFitFinder() {
               </div>
 
               <div>
-                <span className="text-[9px] font-mono text-zinc-400 block mb-1">Inches</span>
+                <span className="text-[9px] font-mono text-zinc-500 block mb-1">Inches</span>
                 <select
                   value={heightInches}
                   onChange={(e) => setHeightInches(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:outline-none focus:border-zinc-950 cursor-pointer"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-900 focus:outline-none focus:border-zinc-950 cursor-pointer"
                 >
                   {[...Array(12)].map((_, i) => (
                     <option key={i} value={i}>
@@ -293,10 +289,10 @@ export default function SmartFitFinder() {
           {/* 3. Weight Slider */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono">
+              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono">
                 3. Your Weight
               </label>
-              <span className="text-xs font-black text-zinc-950 font-mono bg-white px-2.5 py-0.5 rounded-lg border border-zinc-200">
+              <span className="text-xs font-black text-zinc-950 font-mono bg-zinc-50 px-2.5 py-1 rounded-lg border border-zinc-200">
                 {weightKg} kg ({Math.round(weightKg * 2.20462)} lbs)
               </span>
             </div>
@@ -308,9 +304,9 @@ export default function SmartFitFinder() {
               step={1}
               value={weightKg}
               onChange={(e) => setWeightKg(Number(e.target.value))}
-              className="w-full accent-zinc-950 cursor-pointer"
+              className="w-full accent-zinc-950 cursor-pointer h-2 bg-zinc-200 rounded-lg"
             />
-            <div className="flex justify-between text-[9px] text-zinc-400 font-mono mt-1">
+            <div className="flex justify-between text-[9px] text-zinc-500 font-mono mt-1 font-semibold">
               <span>45 kg</span>
               <span>75 kg</span>
               <span>110 kg</span>
@@ -319,10 +315,10 @@ export default function SmartFitFinder() {
 
           {/* 4. Fit Preference */}
           <div>
-            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono block mb-2">
+            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono block mb-2">
               4. Preferred Fitting Style
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2.5">
               {[
                 { id: 'slim', label: 'Slim Fit', desc: 'Snug & Tailored' },
                 { id: 'regular', label: 'Regular Fit', desc: 'Standard Comfort' },
@@ -332,14 +328,14 @@ export default function SmartFitFinder() {
                   key={item.id}
                   type="button"
                   onClick={() => setFitPreference(item.id as FitPreference)}
-                  className={`p-2.5 rounded-xl text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                  className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
                     fitPreference === item.id
-                      ? 'bg-zinc-950 text-white shadow-xs'
-                      : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-200'
+                      ? 'bg-zinc-950 text-white shadow-sm'
+                      : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200'
                   }`}
                 >
                   <span className="text-xs font-black uppercase">{item.label}</span>
-                  <span className={`text-[9px] ${fitPreference === item.id ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                  <span className={`text-[9px] font-medium ${fitPreference === item.id ? 'text-zinc-300' : 'text-zinc-500'}`}>
                     {item.desc}
                   </span>
                 </button>
@@ -349,56 +345,54 @@ export default function SmartFitFinder() {
 
         </div>
 
-        {/* RIGHT COLUMN: RECOMMENDED SIZE & LIVE PRODUCT MATCHES */}
+        {/* RIGHT COLUMN: RECOMMENDED SIZE (CLEAN WHITE THEME) & LIVE PRODUCT MATCHES */}
         <div className="lg:col-span-5 flex flex-col justify-between gap-5">
           
-          {/* Result Highlight Card */}
-          <div className="bg-zinc-950 text-white rounded-2xl p-6 sm:p-7 border border-zinc-900 shadow-md flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black uppercase tracking-widest text-teal-400 font-mono bg-teal-950 px-2.5 py-0.5 rounded-full border border-teal-800/60">
+          {/* Result Highlight Card - 100% Clean White Theme with Crisp Black Text */}
+          <div className="bg-white text-zinc-950 rounded-2xl p-6 sm:p-7 border border-zinc-200 shadow-xs flex flex-col gap-4 relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-teal-700 font-mono bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
                 Recommended Fit
               </span>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 font-mono">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 font-mono">
                 <Check className="h-3.5 w-3.5" />
                 <span>{fitResult.confidence}% Accuracy Match</span>
               </div>
             </div>
 
             <div>
-              <span className="text-xs text-zinc-400 font-mono block">Your Optimal Selection</span>
-              <div className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase font-sans mt-0.5">
+              <span className="text-xs text-zinc-500 font-mono font-medium block">Your Optimal Selection</span>
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 uppercase font-sans mt-0.5">
                 {fitResult.size}
               </div>
-              <p className="text-xs text-zinc-300 font-medium mt-1 leading-relaxed">
+              <p className="text-xs text-zinc-600 font-medium mt-1 leading-relaxed">
                 {fitResult.fitNote}
               </p>
             </div>
 
-            {/* Dimension Breakdown Metrics */}
-            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-zinc-800">
-              <div className="bg-zinc-900/90 rounded-xl p-2.5 border border-zinc-800 text-center">
-                <span className="text-[9px] text-zinc-400 font-mono uppercase block">
+            {/* Dimension Breakdown Metrics (Clean White/Zinc Panels) */}
+            <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-zinc-100">
+              <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 text-center">
+                <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold">
                   {apparel === 'pant' ? 'Waist' : 'Chest'}
                 </span>
-                <span className="text-sm font-black text-white font-mono mt-0.5 block">
+                <span className="text-sm font-black text-zinc-950 font-mono mt-0.5 block">
                   {fitResult.chestOrWaist}
                 </span>
               </div>
 
-              <div className="bg-zinc-900/90 rounded-xl p-2.5 border border-zinc-800 text-center">
-                <span className="text-[9px] text-zinc-400 font-mono uppercase block">Length</span>
-                <span className="text-sm font-black text-white font-mono mt-0.5 block">
+              <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 text-center">
+                <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold">Length</span>
+                <span className="text-sm font-black text-zinc-950 font-mono mt-0.5 block">
                   {fitResult.length}
                 </span>
               </div>
 
-              <div className="bg-zinc-900/90 rounded-xl p-2.5 border border-zinc-800 text-center">
-                <span className="text-[9px] text-zinc-400 font-mono uppercase block">
+              <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 text-center">
+                <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold">
                   {apparel === 'pant' ? 'Hip' : 'Shoulder'}
                 </span>
-                <span className="text-sm font-black text-white font-mono mt-0.5 block">
+                <span className="text-sm font-black text-zinc-950 font-mono mt-0.5 block">
                   {apparel === 'pant' ? fitResult.hip : fitResult.shoulder}
                 </span>
               </div>
@@ -407,9 +401,9 @@ export default function SmartFitFinder() {
           </div>
 
           {/* Real Products Available in this category */}
-          <div className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+          <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 font-mono">
+              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 font-mono">
                 Available in {apparel === 'shirt' ? 'Shirts' : apparel === 't-shirt' ? 'T-Shirts' : 'Pants'}
               </span>
               <Link
@@ -430,9 +424,9 @@ export default function SmartFitFinder() {
                   <div
                     key={prod.id}
                     onClick={() => router.push(`/products/${prod.id}`)}
-                    className="bg-white border border-zinc-200 rounded-xl p-2 flex flex-col gap-1.5 cursor-pointer hover:border-zinc-400 transition-all group shadow-2xs"
+                    className="bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-1.5 cursor-pointer hover:border-zinc-400 transition-all group"
                   >
-                    <div className="relative aspect-[3/4] w-full bg-zinc-100 rounded-lg overflow-hidden">
+                    <div className="relative aspect-[3/4] w-full bg-white rounded-lg overflow-hidden border border-zinc-100">
                       <Image
                         src={getOptimizedImageUrl(prod.image) || '/placeholder.svg'}
                         alt={prod.name}
@@ -457,14 +451,14 @@ export default function SmartFitFinder() {
       </div>
 
       {/* BOTTOM TRUST GUARANTEE STRIP */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-3 text-center sm:text-left">
           <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl shrink-0 border border-emerald-100">
             <RefreshCw className="h-4 w-4" />
           </div>
           <div>
             <h4 className="text-xs font-black uppercase text-zinc-950">100% Doorstep Fit & Size Guarantee</h4>
-            <p className="text-[11px] text-zinc-400 font-medium">
+            <p className="text-[11px] text-zinc-500 font-medium">
               If the delivered garment does not fit exactly how you like, our team will exchange it directly to your address within 7 days.
             </p>
           </div>
