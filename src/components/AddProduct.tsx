@@ -456,7 +456,7 @@ Free Shipping: ${freeShipping ? 'Yes' : 'No'}
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8 animate-fadeIn bg-zinc-50 min-h-screen pb-32">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 flex flex-col gap-8 animate-fadeIn bg-zinc-50 min-h-screen pb-32">
       {/* Top Header Row */}
       <div className="flex flex-col gap-2">
         {!isInline && (

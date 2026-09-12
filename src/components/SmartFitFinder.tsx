@@ -168,7 +168,7 @@ export default function SmartFitFinder() {
   }, [apparel, heightFeet, heightInches, weightKg, fitPreference]);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-8">
+    <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8">
       
       {/* SECTION HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-100 pb-4">

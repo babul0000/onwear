@@ -85,7 +85,7 @@ export default function OrdersHistoryPage() {
 
   if (!token || !user) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+      <div className="w-full px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Access Denied</h2>
         <p className="text-zinc-500 text-sm mt-2">Please log in to view your order history.</p>
         <button onClick={() => router.push('/login')} className="mt-4 rounded-full bg-indigo-600 px-6 py-2 text-white">
@@ -96,7 +96,7 @@ export default function OrdersHistoryPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8">
       <div>
         <h1 className="text-3xl font-bold text-zinc-950">My Orders</h1>
         <p className="text-sm text-zinc-500 mt-1">View and track your previous purchase history</p>

@@ -112,7 +112,7 @@ export default function Home() {
       try {
         const [catsRes, prodsRes, campsRes] = await Promise.all([
           fetch(`${API_URL}/categories`).catch(() => null),
-          fetch(`${API_URL}/products?limit=9`).catch(() => null),
+          fetch(`${API_URL}/products?limit=12`).catch(() => null),
           fetch(`${API_URL}/campaigns`).catch(() => null)
         ]);
         const catsData = catsRes ? await catsRes.json() : null;
@@ -156,7 +156,7 @@ export default function Home() {
 
       {/* 1.5. ACTIVE FLASH SALE / CAMPAIGN BANNER (IF ACTIVE) */}
       {activeCampaign && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+        <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4 text-center sm:text-left">
               <div className="rounded-2xl bg-white/20 p-4 backdrop-blur-md shrink-0">
@@ -186,7 +186,7 @@ export default function Home() {
 
 
       {/* 3. DYNAMIC CATEGORIES GRID */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-6 sm:gap-10">
+      <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-10">
         <div className="flex items-end justify-between border-b border-zinc-100 pb-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-wider text-zinc-950 uppercase">Shop by Category</h2>
@@ -236,7 +236,7 @@ export default function Home() {
 
 
       {/* 5. NEW ARRIVALS GRID */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col gap-6 sm:gap-10">
+      <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-10">
         <div className="flex items-end justify-between border-b border-zinc-100 pb-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-wider text-zinc-950 uppercase">New Arrivals</h2>
@@ -249,8 +249,8 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-2">
                 <div className="aspect-[3/4] w-full bg-zinc-100"></div>
                 <div className="h-4 w-2/3 bg-zinc-100"></div>
@@ -259,8 +259,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-10 sm:grid-cols-3 lg:grid-cols-3">
-            {products.slice(0, 9).map((product) => {
+          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
+            {products.slice(0, 12).map((product) => {
               const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null;
               const hasTwoImages = !!product.image2;
               

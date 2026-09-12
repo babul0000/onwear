@@ -212,7 +212,7 @@ export default function Navbar() {
 
       {/* 1. MAIN HEADER ROW */}
       <header className="w-full bg-white relative py-2.5 sm:py-3.5 border-b border-zinc-100 z-[60]">
-        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between relative">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 h-12 sm:h-14 flex items-center justify-between relative">
           
           {/* LEFT: Mobile Menu Drawer Toggle + Search Button */}
           <div className="flex items-center gap-1 sm:gap-2">
@@ -506,7 +506,7 @@ export default function Navbar() {
 
       {/* 2. DESKTOP CATEGORY NAVIGATION ROW (Sticky Desktop Only) */}
       <div className="hidden md:block sticky top-0 z-40 w-full bg-white border-b border-zinc-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-11 flex items-center justify-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 h-11 flex items-center justify-center">
           <nav className="flex items-center gap-8 text-xs tracking-wider text-zinc-600 font-semibold h-full">
             <Link
               href="/products"

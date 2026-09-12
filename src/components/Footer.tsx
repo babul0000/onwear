@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-zinc-100 bg-white py-12 text-zinc-500 text-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Brand Description */}
         <div className="flex flex-col gap-4">
           <span className="text-lg font-black tracking-[0.2em] text-zinc-950 uppercase">{settings.storeName}</span>
@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-zinc-50 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 border-t border-zinc-50 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
         <p>&copy; {new Date().getFullYear()} {settings.storeName}. All rights reserved.</p>
       </div>
     </footer>

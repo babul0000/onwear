@@ -97,7 +97,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
   if (!token || !user) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+      <div className="w-full px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Access Denied</h2>
         <p className="text-zinc-500 text-sm">Please log in to view this order details.</p>
       </div>
@@ -106,7 +106,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 flex justify-center">
+      <div className="w-full px-4 py-20 flex justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-950"></div>
       </div>
     );
@@ -114,7 +114,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
   if (!order) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+      <div className="w-full px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-zinc-800">Order not found</h2>
         <button onClick={() => router.push('/orders')} className="mt-4 rounded-full bg-zinc-950 px-6 py-2 text-white cursor-pointer">
           Back to Orders

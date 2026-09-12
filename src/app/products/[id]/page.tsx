@@ -307,7 +307,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-24 flex justify-center items-center font-['Poppins',sans-serif]">
+      <div className="w-full px-4 py-24 flex justify-center items-center font-['Poppins',sans-serif]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900"></div>
           <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-400">Loading Product...</span>
@@ -318,7 +318,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-24 text-center font-['Poppins',sans-serif]">
+      <div className="w-full px-4 py-24 text-center font-['Poppins',sans-serif]">
         <h2 className="text-xl font-medium tracking-wide text-zinc-900 uppercase">Product Not Found</h2>
         <p className="mt-2 text-xs text-zinc-500 tracking-wide">The product you are looking for might have been moved or removed.</p>
         <Link href="/products" className="mt-6 inline-block rounded-none bg-zinc-950 px-8 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-white hover:bg-zinc-800 transition-colors">
@@ -358,7 +358,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       
       {/* 1. BREADCRUMBS ROW (Yellow Minimalist Style) */}
       <div className="border-b border-[#e6e6e6] bg-[#fafafa]">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-3 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <nav className="flex items-center gap-2 text-[11px] font-medium tracking-[0.05em] uppercase text-[#969696] overflow-x-auto no-scrollbar">
             <Link href="/" className="hover:text-black transition-colors shrink-0">Home</Link>
             <ChevronRight className="h-3 w-3 shrink-0 text-zinc-400" />
@@ -381,7 +381,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* 2. MAIN PRODUCT DETAILS SECTION */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 lg:py-12">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14 items-start">
           
           {/* LEFT SIDE: PRODUCT GALLERY (Yellow Clean Image Display) */}
@@ -763,7 +763,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       {/* 3. RELATED PRODUCTS SECTION (Yellow Clothing Style Grid) */}
       <section className="border-t border-[#e6e6e6] bg-[#fafafa] py-14 sm:py-18">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           
           {/* Section Header */}
           <div className="flex flex-col items-center text-center mb-10">
@@ -888,7 +888,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       {/* 4. CUSTOMER REVIEWS SECTION */}
       <section id="customer-reviews" className="border-t border-[#e6e6e6] bg-white py-14 sm:py-18">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
             

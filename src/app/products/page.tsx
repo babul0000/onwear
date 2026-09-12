@@ -172,7 +172,7 @@ function ProductsPageContent() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-8 text-zinc-800">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-8 text-zinc-800">
       
       {/* Header and Live Results Count */}
       <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-zinc-100 pb-4">
@@ -210,9 +210,9 @@ function ProductsPageContent() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 items-start">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 xl:grid-cols-5 items-start">
         {/* Filters Sidebar */}
-        <aside className={`${showMobileFilters ? 'flex' : 'hidden lg:flex'} flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm h-fit`}>
+        <aside className={`${showMobileFilters ? 'flex' : 'hidden lg:flex'} lg:col-span-1 xl:col-span-1 flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm h-fit`}>
           <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-4.5 w-4.5 text-zinc-950" />
@@ -439,9 +439,9 @@ function ProductsPageContent() {
         </aside>
 
         {/* Product Grid Panel */}
-        <main className="lg:col-span-3 flex flex-col gap-6 sm:gap-8">
+        <main className="lg:col-span-3 xl:col-span-4 flex flex-col gap-6 sm:gap-8">
           {loading ? (
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse flex flex-col gap-2.5 bg-white border border-zinc-100 p-2">
                   <div className="aspect-[3/4] w-full bg-zinc-100"></div>
@@ -461,7 +461,7 @@ function ProductsPageContent() {
               </button>
             </div>
           ) : (
-             <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-3">
+             <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
                {products.map((prod) => {
                  const discount = prod.discountPrice !== null && prod.discountPrice !== undefined;
                  const isWished = isInWishlist(prod.id);

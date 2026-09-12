@@ -117,7 +117,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto text-zinc-700">
+    <div className="flex flex-col gap-6 w-full text-zinc-700">
       
       {/* 1. GROWTH MARKETING BANNER (Premium light-gradient visual) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-indigo-500/10">
