@@ -10,7 +10,7 @@ import { formatPrice } from '../../utils/format';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
-  const { token, user } = useAuth();
+  const { token, user, setAuthSession } = useAuth();
   const { cart, clearCart, fetchCart } = useCart();
   const router = useRouter();
 
@@ -31,6 +31,7 @@ export default function CheckoutPage() {
   // Store payment numbers
   const [bkashNumber, setBkashNumber] = useState('01603742963');
   const [nagadNumber, setNagadNumber] = useState('01603742963');
+  const [whatsappNumber, setWhatsappNumber] = useState('8801603742963');
 
   // Dynamic Shipping Rates States
   const [shippingCost, setShippingCost] = useState(80);
@@ -55,6 +56,8 @@ export default function CheckoutPage() {
     totalAmount: number;
     autoAccountCreated: boolean;
     customerEmail: string;
+    customerName?: string;
+    customerPhone?: string;
     paymentMethod?: string;
     trxId?: string;
   } | null>(null);
@@ -90,6 +93,7 @@ export default function CheckoutPage() {
         if (settingsData.success && settingsData.data) {
           if (settingsData.data.bkashNumber) setBkashNumber(settingsData.data.bkashNumber);
           if (settingsData.data.nagadNumber) setNagadNumber(settingsData.data.nagadNumber);
+          if (settingsData.data.whatsappNumber) setWhatsappNumber(settingsData.data.whatsappNumber.replace(/[^0-9]/g, ''));
           if (settingsData.data.freeShippingMinAmount) setFreeShippingMinAmount(settingsData.data.freeShippingMinAmount);
         }
       } catch (err) {
@@ -121,6 +125,12 @@ export default function CheckoutPage() {
 
   // If order was just placed, render celebratory success card
   if (orderSuccessData) {
+    const cleanWaNumber = whatsappNumber.replace(/[^0-9]/g, '');
+    const waText = encodeURIComponent(
+      `Hello ONWEAR! I just placed order #${orderSuccessData.orderId.substring(0, 8)} for ${formatPrice(orderSuccessData.totalAmount)}. Name: ${orderSuccessData.customerName || name}, Phone: ${orderSuccessData.customerPhone || phone}. Please confirm my order.`
+    );
+    const whatsappUrl = `https://wa.me/${cleanWaNumber}?text=${waText}`;
+
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
         <div className="rounded-3xl border border-zinc-200 bg-white p-8 sm:p-12 shadow-sm flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
@@ -154,19 +164,42 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {/* WhatsApp Direct Confirmation Banner */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/40 rounded-2xl p-4 flex items-center justify-between gap-3 text-left transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#25D366] text-white rounded-xl shadow-xs shrink-0">
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-xs font-black text-zinc-950 block">Instant WhatsApp Order Confirmation</span>
+                <span className="text-[11px] text-zinc-500 font-medium">Click to notify our team on WhatsApp for fastest delivery</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-emerald-700 bg-white px-3 py-1.5 rounded-xl border border-emerald-200 shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+              Chat Now ➔
+            </span>
+          </a>
+
           {orderSuccessData.autoAccountCreated ? (
             <div className="w-full bg-gradient-to-br from-teal-50/80 via-white to-zinc-50 border border-teal-200/80 rounded-2xl p-6 text-left flex flex-col gap-3 shadow-sm">
               <div className="flex items-center gap-2 text-teal-900 font-bold text-sm">
                 <ShieldCheck className="h-5 w-5 text-teal-600 shrink-0" />
-                <span>Account Created Automatically for You!</span>
+                <span>Account Created & Logged In Automatically!</span>
               </div>
               <p className="text-xs text-zinc-600 leading-relaxed">
-                We've created an account for <strong className="text-zinc-900">{orderSuccessData.customerEmail}</strong> so you can track this shipment and view your order history anytime.
+                We've activated an account for <strong className="text-zinc-900">{orderSuccessData.customerEmail}</strong> so you can track this shipment and manage orders anytime.
               </p>
               <div className="rounded-xl bg-white border border-teal-100 p-3.5 flex items-center gap-3">
                 <Mail className="h-5 w-5 text-teal-600 shrink-0" />
                 <span className="text-xs font-medium text-zinc-700">
-                  Check your inbox for a secure link to set your password and access your orders.
+                  You are now automatically signed in. You can track this order or set a password in your profile anytime.
                 </span>
               </div>
             </div>
@@ -353,13 +386,19 @@ export default function CheckoutPage() {
         await clearCart();
         await fetchCart();
 
+        // If guest checkout auto-generated a user & JWT token, automatically authenticate them
+        if (data.data?.token && data.data?.user) {
+          setAuthSession(data.data.user, data.data.token);
+        }
+
         if (paymentMethod === 'ONLINE') {
           // Initiate online payment via SSLCommerz
           try {
             const payHeaders: Record<string, string> = {
               'Content-Type': 'application/json'
             };
-            if (token) payHeaders['Authorization'] = `Bearer ${token}`;
+            const currentToken = data.data?.token || token;
+            if (currentToken) payHeaders['Authorization'] = `Bearer ${currentToken}`;
 
             const payRes = await fetch(`${API_URL}/payments/sslcommerz/initiate/${data.data.id}`, {
               method: 'POST',
@@ -375,6 +414,8 @@ export default function CheckoutPage() {
                 totalAmount: data.data.totalAmount,
                 autoAccountCreated: data.data.autoAccountCreated,
                 customerEmail: data.data.customerEmail || email,
+                customerName: name.trim(),
+                customerPhone: phone.trim(),
                 paymentMethod,
                 trxId: trxId.trim().toUpperCase()
               });
@@ -386,6 +427,8 @@ export default function CheckoutPage() {
               totalAmount: data.data.totalAmount,
               autoAccountCreated: data.data.autoAccountCreated,
               customerEmail: data.data.customerEmail || email,
+              customerName: name.trim(),
+              customerPhone: phone.trim(),
               paymentMethod,
               trxId: trxId.trim().toUpperCase()
             });
@@ -397,6 +440,8 @@ export default function CheckoutPage() {
             totalAmount: data.data.totalAmount,
             autoAccountCreated: data.data.autoAccountCreated,
             customerEmail: data.data.customerEmail || email,
+            customerName: name.trim(),
+            customerPhone: phone.trim(),
             paymentMethod,
             trxId: trxId.trim().toUpperCase()
           });
