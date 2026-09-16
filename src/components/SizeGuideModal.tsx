@@ -27,7 +27,7 @@ export interface SizeRow {
 
 export interface SizeCategory {
   title: string;
-  headers: string[]; // e.g. ['Size', 'Chest', 'Length', 'Sleeve']
+  headers: string[]; // e.g. ['Size', 'Chest', 'Length'] or ['Waist', 'Length', 'Leg Opening', 'Weight (Denim)']
   rows: {
     in: SizeRow[];
     cm: SizeRow[];
@@ -37,6 +37,42 @@ export interface SizeCategory {
 export type SizeDataMap = Record<string, SizeCategory>;
 
 const DEFAULT_SIZE_DATA: SizeDataMap = {
+  boxy_shirt: {
+    title: 'Boxy Full Sleeve Shirts',
+    headers: ['Size', 'Chest', 'Length'],
+    rows: {
+      in: [
+        { size: 'M', chest: '43"', length: '26.5"' },
+        { size: 'L', chest: '45"', length: '27.5"' },
+        { size: 'XL', chest: '47"', length: '28.5"' },
+      ],
+      cm: [
+        { size: 'M', chest: '109.2', length: '67.3' },
+        { size: 'L', chest: '114.3', length: '69.9' },
+        { size: 'XL', chest: '119.4', length: '72.4' },
+      ],
+    }
+  },
+  baggy_denim: {
+    title: 'StraightFit Baggy Denim Pants',
+    headers: ['Waist', 'Length', 'Leg Opening', 'Weight (Denim)'],
+    rows: {
+      in: [
+        { size: '28', 'length': '38/39.5"', 'leg opening': '14/15"', 'weight (denim)': '13 oz' },
+        { size: '30', 'length': '39.5/41"', 'leg opening': '15"', 'weight (denim)': '13 oz' },
+        { size: '32', 'length': '40/41"', 'leg opening': '16"', 'weight (denim)': '13 oz' },
+        { size: '34', 'length': '40/41"', 'leg opening': '17/18"', 'weight (denim)': '13 oz' },
+        { size: '36', 'length': '40/41"', 'leg opening': '18"', 'weight (denim)': '13 oz' },
+      ],
+      cm: [
+        { size: '28', 'length': '96.5 / 100.3', 'leg opening': '35.6 / 38.1', 'weight (denim)': '13 oz' },
+        { size: '30', 'length': '100.3 / 104.1', 'leg opening': '38.1', 'weight (denim)': '13 oz' },
+        { size: '32', 'length': '101.6 / 104.1', 'leg opening': '40.6', 'weight (denim)': '13 oz' },
+        { size: '34', 'length': '101.6 / 104.1', 'leg opening': '43.2 / 45.7', 'weight (denim)': '13 oz' },
+        { size: '36', 'length': '101.6 / 104.1', 'leg opening': '45.7', 'weight (denim)': '13 oz' },
+      ],
+    }
+  },
   tshirt: {
     title: 'T-Shirt / Polo',
     headers: ['Size', 'Chest', 'Length', 'Sleeve'],
@@ -54,46 +90,6 @@ const DEFAULT_SIZE_DATA: SizeDataMap = {
         { size: 'L', chest: '106 – 111', length: '73.6', sleeve: '22.8' },
         { size: 'XL', chest: '114 – 119', length: '76.2', sleeve: '24.1' },
         { size: 'XXL', chest: '121 – 127', length: '78.7', sleeve: '25.4' },
-      ],
-    }
-  },
-  shirt: {
-    title: 'Shirts',
-    headers: ['Size', 'Chest', 'Length', 'Shoulder', 'Sleeve'],
-    rows: {
-      in: [
-        { size: 'S (38)', chest: '38.0', length: '28.5', shoulder: '17.5', sleeve: '24.5' },
-        { size: 'M (40)', chest: '40.0', length: '29.5', shoulder: '18.0', sleeve: '25.0' },
-        { size: 'L (42)', chest: '42.0', length: '30.5', shoulder: '18.5', sleeve: '25.5' },
-        { size: 'XL (44)', chest: '44.0', length: '31.5', shoulder: '19.2', sleeve: '26.0' },
-        { size: 'XXL (46)', chest: '46.0', length: '32.0', shoulder: '20.0', sleeve: '26.5' },
-      ],
-      cm: [
-        { size: 'S (38)', chest: '96.5', length: '72.4', shoulder: '44.5', sleeve: '62.2' },
-        { size: 'M (40)', chest: '101.6', length: '74.9', shoulder: '45.7', sleeve: '63.5' },
-        { size: 'L (42)', chest: '106.7', length: '77.5', shoulder: '47.0', sleeve: '64.8' },
-        { size: 'XL (44)', chest: '111.8', length: '80.0', shoulder: '48.8', sleeve: '66.0' },
-        { size: 'XXL (46)', chest: '116.8', length: '81.3', shoulder: '50.8', sleeve: '67.3' },
-      ],
-    }
-  },
-  pants: {
-    title: 'Denim / Pants',
-    headers: ['Size', 'Waist', 'Hip', 'Length', 'Inseam'],
-    rows: {
-      in: [
-        { size: '30', waist: '30.0', hip: '37.0', length: '39.5', inseam: '30.0' },
-        { size: '32', waist: '32.0', hip: '39.0', length: '40.0', inseam: '30.5' },
-        { size: '34', waist: '34.0', hip: '41.0', length: '40.5', inseam: '31.0' },
-        { size: '36', waist: '36.0', hip: '43.0', length: '41.0', inseam: '31.5' },
-        { size: '38', waist: '38.0', hip: '45.0', length: '41.5', inseam: '32.0' },
-      ],
-      cm: [
-        { size: '30', waist: '76.2', hip: '94.0', length: '100.3', inseam: '76.2' },
-        { size: '32', waist: '81.3', hip: '99.0', length: '101.6', inseam: '77.5' },
-        { size: '34', waist: '86.4', hip: '104.1', length: '102.9', inseam: '78.7' },
-        { size: '36', waist: '91.4', hip: '109.2', length: '104.1', inseam: '80.0' },
-        { size: '38', waist: '96.5', hip: '114.3', length: '105.4', inseam: '81.3' },
       ],
     }
   },
@@ -118,7 +114,7 @@ const DEFAULT_SIZE_DATA: SizeDataMap = {
 };
 
 const COMMON_PRESET_COLUMNS = [
-  'Chest', 'Length', 'Sleeve', 'Shoulder', 'Waist', 'Hip', 'Inseam', 'Thigh', 'Collar', 'Armhole', 'Bottom'
+  'Chest', 'Length', 'Leg Opening', 'Weight (Denim)', 'Sleeve', 'Shoulder', 'Waist', 'Hip', 'Inseam', 'Thigh', 'Collar', 'Armhole'
 ];
 
 export default function SizeGuideModal({
@@ -136,16 +132,19 @@ export default function SizeGuideModal({
   // Determine initial active category key
   const getInitialCategoryKey = () => {
     const lower = (categoryName || '').toLowerCase();
-    if (lower.includes('pant') || lower.includes('denim') || lower.includes('chino') || lower.includes('trouser')) {
-      return 'pants';
+    if (lower.includes('pant') || lower.includes('denim') || lower.includes('chino') || lower.includes('trouser') || lower.includes('baggy') || lower.includes('straight')) {
+      return 'baggy_denim';
     }
     if (lower.includes('panjabi') || lower.includes('kurta') || lower.includes('traditional')) {
       return 'panjabi';
     }
-    if (lower.includes('shirt') && !lower.includes('t-shirt') && !lower.includes('polo')) {
-      return 'shirt';
+    if (lower.includes('t-shirt') || lower.includes('polo') || lower.includes('tee')) {
+      return 'tshirt';
     }
-    return 'tshirt';
+    if (lower.includes('boxy') || lower.includes('shirt')) {
+      return 'boxy_shirt';
+    }
+    return 'boxy_shirt';
   };
 
   const [activeType, setActiveType] = useState<string>('tshirt');
@@ -390,13 +389,20 @@ export default function SizeGuideModal({
           return;
         }
 
-        // Handle ranges like "36 – 38" or single numbers like "27.5"
-        if (val.includes('–') || val.includes('-')) {
-          const parts = val.split(/[–-]/).map((p) => parseFloat(p.trim()));
+        // Leave weight or non-measurement units intact
+        if (val.toLowerCase().includes('oz') || val.toLowerCase().includes('gsm') || val.toLowerCase().includes('kg')) {
+          newRow[key] = val;
+          return;
+        }
+
+        // Handle ranges like "38/39.5" or "14/15" or "36 – 38"
+        if (val.includes('/') || val.includes('–') || val.includes('-')) {
+          const delimiter = val.includes('/') ? ' / ' : ' – ';
+          const parts = val.split(/[\/–-]/).map((p) => parseFloat(p.trim()));
           if (!isNaN(parts[0]) && !isNaN(parts[1])) {
             const c1 = (parts[0] * multiplier).toFixed(1);
             const c2 = (parts[1] * multiplier).toFixed(1);
-            newRow[key] = `${c1} – ${c2}`;
+            newRow[key] = `${c1}${delimiter}${c2}`;
             return;
           }
         }
@@ -878,25 +884,28 @@ export default function SizeGuideModal({
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-zinc-100 border-b border-zinc-200">
-                  {headers.map((header, colIdx) => (
-                    <th key={colIdx} className="p-3 text-[11px] font-black uppercase tracking-wider text-zinc-900 font-mono">
-                      <div className="flex items-center justify-between gap-2">
-                        <span>
-                          {header} {colIdx > 0 ? `(${unit})` : ''}
-                        </span>
-                        {isEditing && colIdx > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteColumn(header)}
-                            className="text-zinc-400 hover:text-rose-600 p-0.5 transition-colors"
-                            title={`Remove ${header} column`}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                    </th>
-                  ))}
+                  {headers.map((header, colIdx) => {
+                    const isWeight = header.toLowerCase().includes('weight');
+                    return (
+                      <th key={colIdx} className="p-3 text-[11px] font-black uppercase tracking-wider text-zinc-900 font-mono">
+                        <div className="flex items-center justify-between gap-2">
+                          <span>
+                            {header} {colIdx > 0 && !isWeight ? `(${unit})` : ''}
+                          </span>
+                          {isEditing && colIdx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteColumn(header)}
+                              className="text-zinc-400 hover:text-rose-600 p-0.5 transition-colors"
+                              title={`Remove ${header} column`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   {isEditing && (
                     <th className="p-3 text-[11px] font-black uppercase tracking-wider text-zinc-500 font-mono text-center w-12">
                       Action
@@ -960,6 +969,18 @@ export default function SizeGuideModal({
                 ))}
               </tbody>
             </table>
+
+            {/* Brand Emblem Footer inside table */}
+            {!isEditing && (
+              <div className="py-3 px-4 bg-zinc-50 border-t border-zinc-200 flex flex-col items-center justify-center gap-0.5 text-center">
+                <span className="text-xs font-black tracking-widest text-zinc-950 uppercase font-sans">
+                  ON WEAR.
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">
+                  UNIQUE WAY OF ELEGANCE • ESTD. 2025
+                </span>
+              </div>
+            )}
 
             {/* Add Size Row Button in Edit Mode */}
             {isEditing && (

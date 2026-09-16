@@ -86,34 +86,99 @@ export default function SmartFitFinder() {
     return filtered.length > 0 ? filtered.slice(0, 3) : products.slice(0, 3);
   }, [products, apparel]);
 
-  // Size calculation algorithm calibrated for Bangladesh standard apparel sizing
+  // Size calculation algorithm calibrated for OnWear standard apparel sizing
   const fitResult = useMemo(() => {
     const totalHeightInches = heightFeet * 12 + heightInches;
 
     if (apparel === 'pant') {
-      // Waist calculation for pants
+      // Waist calculation for StraightFit Baggy Denim
       let waist = 30;
-      if (weightKg < 55) waist = 28;
-      else if (weightKg <= 63) waist = 30;
-      else if (weightKg <= 72) waist = 32;
-      else if (weightKg <= 82) waist = 34;
-      else if (weightKg <= 92) waist = 36;
-      else waist = 38;
+      let length = '39.5/41"';
+      let legOpening = '15"';
 
-      let length = totalHeightInches >= 70 ? 40 : totalHeightInches <= 65 ? 37 : 39;
+      if (weightKg < 55) {
+        waist = 28;
+        length = '38/39.5"';
+        legOpening = '14/15"';
+      } else if (weightKg <= 63) {
+        waist = 30;
+        length = '39.5/41"';
+        legOpening = '15"';
+      } else if (weightKg <= 72) {
+        waist = 32;
+        length = '40/41"';
+        legOpening = '16"';
+      } else if (weightKg <= 82) {
+        waist = 34;
+        length = '40/41"';
+        legOpening = '17/18"';
+      } else {
+        waist = 36;
+        length = '40/41"';
+        legOpening = '18"';
+      }
 
       return {
         size: `${waist}`,
-        sizeLabel: `Waist ${waist}" (Length ${length}")`,
+        sizeLabel: `Waist ${waist}" (Length ${length})`,
         chestOrWaist: `${waist}"`,
-        length: `${length}"`,
-        hip: `${waist + 8}"`,
-        confidence: 97,
-        fitNote: fitPreference === 'slim' ? 'Snug modern tapered fit' : fitPreference === 'oversized' ? 'Relaxed straight leg fit' : 'Classic comfortable regular fit'
+        length,
+        hip: legOpening,
+        confidence: 98,
+        fitNote: fitPreference === 'slim' ? 'Clean straight silhouette (13 oz Denim)' : fitPreference === 'oversized' ? 'Streetwear relaxed baggy drape (13 oz Denim)' : 'Signature StraightFit Baggy fit (13 oz Denim)'
       };
     }
 
-    // Upper wear sizing (Shirt / T-Shirt)
+    if (apparel === 'shirt') {
+      // Boxy Full Sleeve Shirt Sizing (M, L, XL)
+      let baseScore = (weightKg * 1.3) + (totalHeightInches * 0.4);
+
+      let size = 'M';
+      let chest = '43"';
+      let length = '26.5"';
+      let shoulder = '18.0"';
+
+      if (baseScore <= 122) {
+        size = 'M';
+        chest = '43"';
+        length = '26.5"';
+        shoulder = '18.0"';
+      } else if (baseScore <= 140) {
+        size = 'L';
+        chest = '45"';
+        length = '27.5"';
+        shoulder = '19.0"';
+      } else {
+        size = 'XL';
+        chest = '47"';
+        length = '28.5"';
+        shoulder = '20.0"';
+      }
+
+      if (fitPreference === 'oversized' && size !== 'XL') {
+        if (size === 'M') {
+          size = 'L (BOXY OVERSIZED)';
+          chest = '45"';
+          length = '27.5"';
+        } else if (size === 'L') {
+          size = 'XL (BOXY OVERSIZED)';
+          chest = '47"';
+          length = '28.5"';
+        }
+      }
+
+      return {
+        size,
+        sizeLabel: `Size ${size}`,
+        chestOrWaist: chest,
+        length,
+        shoulder,
+        confidence: 97,
+        fitNote: fitPreference === 'slim' ? 'Neat boxy cut with natural drape' : fitPreference === 'oversized' ? 'Modern relaxed drop-shoulder boxy silhouette' : 'Signature Boxy Full Sleeve structured fit'
+      };
+    }
+
+    // T-Shirt sizing
     let baseScore = (weightKg * 1.3) + (totalHeightInches * 0.4);
 
     let size = 'M';
