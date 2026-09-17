@@ -165,32 +165,16 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
 
   const defaultSlides: SlideData[] = [
     {
-      id: 'default-1',
-      title: 'Hero Slide 1',
-      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789142084/onwear/hero_slides/gzm6j166gp64fcxcv0se.webp',
-      linkUrl: '/products?category=shirt',
-      positionX: 50,
-      positionY: 50,
-    },
-    {
-      id: 'default-2',
+      id: '3733f754-de61-475d-950d-03ae81e6733a',
       title: 'Hero Slide 2',
-      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789142108/onwear/hero_slides/k1wzl2izqkjqlkuur1y3.webp',
+      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789660522/onwear/hero_slides/mmv4vk4xjbyuvw7wh5kq.webp',
       linkUrl: '/products?category=denim',
-      positionX: 50,
-      positionY: 50,
-    },
-    {
-      id: 'default-3',
-      title: 'Hero Slide 3',
-      imageUrl: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?q=80&w=1600',
-      linkUrl: '/products?category=winter-collection',
-      positionX: 50,
-      positionY: 50,
+      positionX: 75,
+      positionY: 41,
     }
   ];
 
-  // Slides State
+  // Slides State - Initialized safely with defaultSlides to match SSR
   const [slides, setSlides] = useState<SlideData[]>(defaultSlides);
   const [editSlides, setEditSlides] = useState<SlideData[]>([]);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
@@ -218,7 +202,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch Hero Slides and load from localStorage cache
+  // Fetch Hero Slides and sync with localStorage cache
   useEffect(() => {
     try {
       const cached = localStorage.getItem('onwear_hero_slides');
@@ -228,9 +212,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
           setSlides(parsed);
         }
       }
-    } catch (e) {
-      console.error('Error reading slides cache:', e);
-    }
+    } catch (e) {}
 
     async function loadSlides() {
       try {

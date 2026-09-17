@@ -29,74 +29,36 @@ import { formatPrice } from '../utils/format';
 
 const DEFAULT_NAV_CATEGORIES = [
   {
-    id: 'shirt',
-    name: 'Shirt',
-    slug: 'shirt',
+    id: '03d9c0c8-b06d-4363-9625-5bca126c04ac',
+    name: 'Shirts',
+    slug: 'shirts',
     subcategories: [
-      { name: 'Half Sleeve Shirts', slug: 'half-sleeve-shirts' },
-      { name: 'Full Sleeve Shirts', slug: 'full-sleeve-shirts' },
-      { name: 'Classy Fit Shirts', slug: 'classy-fit-shirts' },
-      { name: 'Check Shirts', slug: 'check-shirts' },
-      { name: 'Boxy Fit Full Sleeve Shirts', slug: 'boxy-fit-full-sleeve-shirts' },
-      { name: 'Boxy Fit Half Sleeve Shirts', slug: 'boxy-fit-half-sleeve-shirts' }
+      { name: 'Check Shirt', slug: 'check-shirt' },
+      { name: 'Classic Boxy Fit Full Slave', slug: 'premium-cotton-boxy-fit-shirt' }
     ]
   },
   {
-    id: 't-shirt',
+    id: '9938e717-15df-40b0-87cf-cdb7460cd8c8',
     name: 'T-Shirt',
     slug: 't-shirt',
     subcategories: [
-      { name: 'Half Sleeve T-Shirts', slug: 'half-sleeve-t-shirts' },
-      { name: 'Drop Shoulder T-Shirts', slug: 'drop-shoulder-t-shirts' }
+      { name: 'Printed Drop Shoulder Tee', slug: 'printed-drop-shoulder-tee' }
     ]
   },
   {
-    id: 'pant',
-    name: 'Pant',
-    slug: 'pant',
+    id: '3cad7560-f1e0-41e3-bee9-b4375d9ade32',
+    name: 'Pants',
+    slug: 'pants',
     subcategories: [
-      { name: 'Denim', slug: 'denim' },
-      { name: 'Chino', slug: 'chino' },
-      { name: 'Cargo', slug: 'cargo' }
+      { name: 'Straight Fit Baggy Jeans', slug: 'straight-fit-baggy-jeans' },
+      { name: 'Straightcut Joggers', slug: 'straightcut-joggers' }
     ]
   },
   {
-    id: 'sandal',
-    name: 'Sandal',
-    slug: 'sandal',
-    subcategories: [
-      { name: 'Genuine Leather Slides', slug: 'genuine-leather-slides' },
-      { name: 'Everyday Slides', slug: 'everyday-slides' }
-    ]
-  },
-  {
-    id: 'cap',
+    id: '7500397b-6aa2-4c02-93bb-58f93b524fe3',
     name: 'Cap',
     slug: 'cap',
-    subcategories: [
-      { name: 'Baseball Caps', slug: 'baseball-caps' },
-      { name: 'Dad Hats', slug: 'dad-hats' }
-    ]
-  },
-  {
-    id: 'winter-collection',
-    name: 'Winter Collection',
-    slug: 'winter-collection',
-    subcategories: [
-      { name: 'Full Sleeve Polo', slug: 'full-sleeve-polo' },
-      { name: 'Full Sleeve T-Shirts', slug: 'full-sleeve-t-shirts' },
-      { name: 'Winter Essentials', slug: 'winter-essentials' }
-    ]
-  },
-  {
-    id: 'trending',
-    name: 'Trending',
-    slug: 'trending',
-    subcategories: [
-      { name: 'Best Sellers', slug: 'best-sellers' },
-      { name: 'Customer Favorites', slug: 'customer-favorites' },
-      { name: 'Most Popular', slug: 'most-popular' }
-    ]
+    subcategories: []
   }
 ];
 
@@ -149,8 +111,27 @@ export default function Navbar() {
     return () => clearTimeout(timeout);
   }, [searchQuery]);
 
-  // Fetch categories dynamically from database
+  // Fetch categories dynamically from database and sync with cache (clean hydration)
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('onwear_categories_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const dynamicCats = parsed.map((cat: any) => ({
+            id: cat.id,
+            name: (cat.name || '').replace(/\s+/g, ' ').trim(),
+            slug: cat.slug,
+            subcategories: (cat.subcategories || []).map((sub: any) => ({
+              name: (sub.name || '').replace(/\s+/g, ' ').trim(),
+              slug: sub.slug
+            }))
+          }));
+          setCategories(dynamicCats);
+        }
+      }
+    } catch (e) {}
+
     async function loadCategories() {
       try {
         const res = await fetch(`${API_URL}/categories`);
@@ -158,14 +139,17 @@ export default function Navbar() {
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           const dynamicCats = data.data.map((cat: any) => ({
             id: cat.id,
-            name: cat.name,
+            name: (cat.name || '').replace(/\s+/g, ' ').trim(),
             slug: cat.slug,
             subcategories: (cat.subcategories || []).map((sub: any) => ({
-              name: sub.name,
+              name: (sub.name || '').replace(/\s+/g, ' ').trim(),
               slug: sub.slug
             }))
           }));
           setCategories(dynamicCats);
+          try {
+            localStorage.setItem('onwear_categories_cache', JSON.stringify(data.data));
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Error fetching navbar categories:', err);

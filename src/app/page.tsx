@@ -35,49 +35,81 @@ interface Product {
 
 const DEFAULT_HOME_CATEGORIES: Category[] = [
   {
-    id: '7266fa89-2e18-4e5c-b386-dda933c8fb96',
-    name: 'Shirt',
-    slug: 'shirt',
-    image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=400'
+    id: '03d9c0c8-b06d-4363-9625-5bca126c04ac',
+    name: 'Shirts',
+    slug: 'shirts',
+    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789574760/onwear/categories/fgcoq9lgnetckbm1cv7x.webp'
   },
   {
-    id: '393c88a9-d40d-4a5d-966d-d8a44ea401d2',
+    id: '9938e717-15df-40b0-87cf-cdb7460cd8c8',
     name: 'T-Shirt',
     slug: 't-shirt',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400'
+    image: 'https://i.ibb.co/N6TPhhdL/file-00000000960081f5b5af98dfcee00762.png'
   },
   {
-    id: '3c8497fc-f3fe-45ae-bcde-6e3a1163d67f',
-    name: 'Pant',
-    slug: 'pant',
-    image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=400'
+    id: '3cad7560-f1e0-41e3-bee9-b4375d9ade32',
+    name: 'Pants',
+    slug: 'pants',
+    image: 'https://i.ibb.co/CpnHnk19/d5506d9faabca527bcb56c0636dba360-jpg.jpg'
   },
   {
-    id: 'f22ed804-44cf-4de9-a93e-34b0bccb4600',
-    name: 'Sandal',
-    slug: 'sandal',
-    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=400'
-  },
-  {
-    id: 'a87fdb21-2c07-4d5f-8d51-c619c89829dc',
-    name: 'Winter Collection',
-    slug: 'winter-collection',
-    image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=400'
-  },
-  {
-    id: '779fd8ec-c953-4e52-a23b-d022785cdbf0',
+    id: '7500397b-6aa2-4c02-93bb-58f93b524fe3',
     name: 'Cap',
     slug: 'cap',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400'
+    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789269528/onwear/categories/ztwftipbdq0ognlufzwu.webp'
   }
 ];
+
+function balanceProductsByCategory(items: Product[], maxTotal: number = 12): Product[] {
+  if (!items || items.length === 0) return [];
+
+  const groups: { [catKey: string]: Product[] } = {};
+  items.forEach((p) => {
+    const key = (p.category?.slug || p.category?.name || 'other').toLowerCase();
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  const result: Product[] = [];
+  const groupKeys = Object.keys(groups);
+  let index = 0;
+  let hasMore = true;
+
+  while (hasMore && result.length < maxTotal) {
+    hasMore = false;
+    for (const key of groupKeys) {
+      if (index < groups[key].length) {
+        result.push(groups[key][index]);
+        hasMore = true;
+        if (result.length >= maxTotal) break;
+      }
+    }
+    index++;
+  }
+
+  if (result.length < maxTotal) {
+    const addedIds = new Set(result.map((p) => p.id));
+    for (const item of items) {
+      if (!addedIds.has(item.id)) {
+        result.push(item);
+        if (result.length >= maxTotal) break;
+      }
+    }
+  }
+
+  return result;
+}
 
 export default function Home() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>(DEFAULT_HOME_CATEGORIES);
   const [products, setProducts] = useState<Product[]>([]);
+  const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [categoryProductsMap, setCategoryProductsMap] = useState<Record<string, Product[]>>({});
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const { addToCart } = useCart();
   const { token, user } = useAuth();
 
@@ -91,11 +123,21 @@ export default function Home() {
         }
       }
 
+      const cachedRaw = localStorage.getItem('onwear_raw_products_cache');
+      if (cachedRaw) {
+        const parsedRaw = JSON.parse(cachedRaw);
+        if (Array.isArray(parsedRaw) && parsedRaw.length > 0) {
+          setRawProducts(parsedRaw);
+        }
+      }
+
       const cachedProds = localStorage.getItem('onwear_home_products_cache');
       if (cachedProds) {
         const parsed = JSON.parse(cachedProds);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
+          const balanced = balanceProductsByCategory(parsed, 12);
+          setProducts(balanced);
+          setCategoryProductsMap((prev) => ({ ...prev, all: balanced }));
         }
       }
 
@@ -112,7 +154,7 @@ export default function Home() {
       try {
         const [catsRes, prodsRes, campsRes] = await Promise.all([
           fetch(`${API_URL}/categories`).catch(() => null),
-          fetch(`${API_URL}/products?limit=12`).catch(() => null),
+          fetch(`${API_URL}/products?limit=36`).catch(() => null),
           fetch(`${API_URL}/campaigns`).catch(() => null)
         ]);
         const catsData = catsRes ? await catsRes.json() : null;
@@ -126,9 +168,13 @@ export default function Home() {
           } catch (e) {}
         }
         if (prodsData && prodsData.success && Array.isArray(prodsData.data) && prodsData.data.length > 0) {
-          setProducts(prodsData.data);
+          setRawProducts(prodsData.data);
+          const balanced = balanceProductsByCategory(prodsData.data, 12);
+          setProducts(balanced);
+          setCategoryProductsMap((prev) => ({ ...prev, all: balanced }));
           try {
-            localStorage.setItem('onwear_home_products_cache', JSON.stringify(prodsData.data));
+            localStorage.setItem('onwear_raw_products_cache', JSON.stringify(prodsData.data));
+            localStorage.setItem('onwear_home_products_cache', JSON.stringify(balanced));
           } catch (e) {}
         }
         if (campsData && campsData.success && Array.isArray(campsData.data)) {
@@ -146,6 +192,56 @@ export default function Home() {
     }
     loadData();
   }, []);
+
+  const handleSelectCategory = async (slug: string) => {
+    setSelectedCategory(slug);
+    if (slug === 'all') return;
+    if (categoryProductsMap[slug] && categoryProductsMap[slug].length > 0) return;
+
+    // Instantly filter from raw products if available
+    const localFiltered = rawProducts.filter(
+      (p) =>
+        p.category?.slug?.toLowerCase() === slug.toLowerCase() ||
+        p.category?.name?.toLowerCase() === slug.toLowerCase() ||
+        (slug === 'shirts' && p.category?.slug?.toLowerCase() === 'shirt') ||
+        (slug === 'pants' && p.category?.slug?.toLowerCase() === 'pant')
+    );
+
+    if (localFiltered.length > 0) {
+      setCategoryProductsMap((prev) => ({
+        ...prev,
+        [slug]: localFiltered
+      }));
+    } else {
+      setCategoryLoading(true);
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/products?limit=12&category=${encodeURIComponent(slug)}`);
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+        setCategoryProductsMap((prev) => ({
+          ...prev,
+          [slug]: data.data
+        }));
+      } else if (localFiltered.length === 0) {
+        setCategoryProductsMap((prev) => ({
+          ...prev,
+          [slug]: []
+        }));
+      }
+    } catch (err) {
+      console.error(`Error fetching products for category ${slug}:`, err);
+    } finally {
+      setCategoryLoading(false);
+    }
+  };
+
+  const currentProducts = selectedCategory === 'all'
+    ? products
+    : (categoryProductsMap[selectedCategory] || []);
+
+  const isProductsLoading = loading || (selectedCategory !== 'all' && categoryLoading && !categoryProductsMap[selectedCategory]);
 
   const activeCampaign = campaigns.length > 0 ? campaigns[0] : null;
 
@@ -236,19 +332,56 @@ export default function Home() {
 
 
       {/* 5. NEW ARRIVALS GRID */}
-      <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-10">
-        <div className="flex items-end justify-between border-b border-[#e6e6e6] pb-3">
-          <div>
-            <h2 className="text-base sm:text-lg font-medium tracking-[0.06em] text-[#232323] uppercase">New Arrivals</h2>
-            <p className="text-[11px] text-[#969696] mt-0.5 font-medium tracking-[0.04em] uppercase">Fresh additions to the collection</p>
+      <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-5 border-b border-[#e6e6e6] pb-4">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-base sm:text-lg font-medium tracking-[0.06em] text-[#232323] uppercase">New Arrivals</h2>
+              <p className="text-[11px] text-[#969696] mt-0.5 font-medium tracking-[0.04em] uppercase">Fresh additions to the collection</p>
+            </div>
+            <Link 
+              href={selectedCategory === 'all' ? '/products' : `/products?category=${selectedCategory}`} 
+              className="text-xs font-semibold uppercase tracking-[0.06em] text-[#232323] hover:text-[#727272] flex items-center gap-1.5 transition-colors"
+            >
+              <span>View All</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.06em] text-[#232323] hover:text-[#727272] flex items-center gap-1.5 transition-colors">
-            <span>View All</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1">
+            <button
+              type="button"
+              onClick={() => handleSelectCategory('all')}
+              className={`text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] px-4 py-2 rounded-full transition-all duration-200 shrink-0 cursor-pointer ${
+                selectedCategory === 'all'
+                  ? 'bg-[#232323] text-white shadow-xs'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950'
+              }`}
+            >
+              All Items
+            </button>
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.slug;
+              return (
+                <button
+                  key={cat.id || cat.slug}
+                  type="button"
+                  onClick={() => handleSelectCategory(cat.slug)}
+                  className={`text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] px-4 py-2 rounded-full transition-all duration-200 shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#232323] text-white shadow-xs'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {loading ? (
+        {isProductsLoading ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col gap-2">
@@ -258,9 +391,22 @@ export default function Home() {
               </div>
             ))}
           </div>
+        ) : currentProducts.length === 0 ? (
+          <div className="py-16 text-center flex flex-col items-center justify-center gap-3 border border-dashed border-zinc-200 rounded-2xl bg-zinc-50/50">
+            <p className="text-xs sm:text-sm font-medium text-zinc-500 uppercase tracking-wider">
+              No products found in this category yet
+            </p>
+            <button
+              type="button"
+              onClick={() => handleSelectCategory('all')}
+              className="text-xs font-semibold uppercase tracking-wider px-5 py-2.5 bg-zinc-950 text-white hover:bg-zinc-800 transition-colors rounded-full cursor-pointer"
+            >
+              View All Products
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
-            {products.slice(0, 12).map((product) => {
+            {currentProducts.slice(0, 12).map((product) => {
               const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null;
               const hasTwoImages = !!product.image2;
               
