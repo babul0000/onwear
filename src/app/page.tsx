@@ -29,7 +29,9 @@ interface Product {
   image2?: string;
   stock: number;
   category?: {
+    id?: string;
     name: string;
+    slug?: string;
   };
 }
 

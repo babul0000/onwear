@@ -468,6 +468,17 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
               </button>
             </div>
 
+            {/* Quality Guidance */}
+            <div className="bg-indigo-50/80 border border-indigo-200/80 rounded-2xl p-3.5 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-indigo-950">
+                <span className="font-bold text-[10px] uppercase tracking-wider block mb-0.5">সেরা কোয়ালিটির ব্যানার রাখার নিয়ম (16:9 Aspect Ratio)</span>
+                <p className="text-[11px] text-indigo-800 leading-relaxed">
+                  ব্যানার যেন স্পষ্ট ও হাই-কোয়ালিটি থাকে, সেজন্য <strong>1920×1080 (Full HD)</strong> বা <strong>2560×1440 (2K)</strong> অনুপাতের ল্যান্ডস্কেপ ইমেজ আপলোড করুন। খাড়া মোবাইল ছবি জুম হয়ে ঝাপসা দেখায়।
+                </p>
+              </div>
+            </div>
+
             {/* Slide List */}
             <div className="flex flex-col gap-6 pt-1">
               {editSlides.map((slide, idx) => (

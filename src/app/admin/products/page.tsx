@@ -25,7 +25,8 @@ import {
   UploadCloud,
   RefreshCw,
   Eye,
-  Link2
+  Link2,
+  Sliders
 } from 'lucide-react';
 import AddProduct from '../../../components/AddProduct';
 import ConfirmModal from '../../../components/ConfirmModal';
@@ -83,6 +84,9 @@ export default function AdminProductsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'>('ACTIVE');
   const [showManualUrl, setShowManualUrl] = useState(false);
+  const [editSizes, setEditSizes] = useState<string[]>([]);
+  const [editSizeStock, setEditSizeStock] = useState<Record<string, string>>({});
+  const [productDescription, setProductDescription] = useState<string>('');
 
   // Image Uploading States
   const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
@@ -165,6 +169,38 @@ export default function AdminProductsPage() {
     setCategoryId(prod.categoryId || '');
     setStatus(prod.status || 'ACTIVE');
     setShowManualUrl(false);
+    setProductDescription(prod.description || '');
+
+    // Parse sizes from product description
+    let parsedSizes: string[] = [];
+    const sizesMatch = (prod.description || '').match(/Sizes:\s*([^\n\r]+)/i);
+    if (sizesMatch && sizesMatch[1]) {
+      parsedSizes = sizesMatch[1].split(',').map((s: string) => s.trim().replace(/\(.*?\)/g, '')).filter(Boolean);
+    }
+    if (parsedSizes.length === 0) {
+      parsedSizes = ['S', 'M', 'L', 'XL'];
+    }
+    setEditSizes(parsedSizes);
+
+    // Parse existing SizeStock from description
+    const stockMap: Record<string, string> = {};
+    const stockMatch = (prod.description || '').match(/(?:SizeStock|VariantStock):\s*([^\n\r]+)/i);
+    if (stockMatch && stockMatch[1]) {
+      const tokens = stockMatch[1].split(/[,;\n]+/).map((t: string) => t.trim()).filter(Boolean);
+      for (const token of tokens) {
+        const m = token.match(/^([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+        if (m) {
+          stockMap[m[1].trim().toUpperCase()] = m[2];
+        }
+      }
+    }
+    parsedSizes.forEach(sz => {
+      if (stockMap[sz.toUpperCase()] === undefined) {
+        stockMap[sz.toUpperCase()] = prod.stock !== undefined ? Math.max(0, Math.floor(prod.stock / parsedSizes.length)).toString() : '10';
+      }
+    });
+    setEditSizeStock(stockMap);
+
     setEditModalProduct(prod);
   };
 
@@ -308,9 +344,24 @@ export default function AdminProductsPage() {
     setError('');
     setSuccess('');
 
+    // Reconstruct description with updated SizeStock
+    let updatedDesc = productDescription;
+    const sizeStockStr = editSizes.map(sz => `${sz.toUpperCase()}:${parseInt(editSizeStock[sz.toUpperCase()] || '0')}`).join(', ');
+    
+    if (/SizeStock:\s*[^\n\r]+/i.test(updatedDesc)) {
+      updatedDesc = updatedDesc.replace(/SizeStock:\s*[^\n\r]+/i, `SizeStock: ${sizeStockStr}`);
+    } else if (/Sizes:\s*[^\n\r]+/i.test(updatedDesc)) {
+      updatedDesc = updatedDesc.replace(/(Sizes:\s*[^\n\r]+)/i, `$1\nSizeStock: ${sizeStockStr}`);
+    } else if (updatedDesc.includes('---')) {
+      updatedDesc = updatedDesc.replace(/---/, `---\nSizes: ${editSizes.join(', ')}\nSizeStock: ${sizeStockStr}`);
+    } else {
+      updatedDesc = `${updatedDesc}\n\n---\nSizes: ${editSizes.join(', ')}\nSizeStock: ${sizeStockStr}`;
+    }
+
     const body: any = {
       name,
       slug,
+      description: updatedDesc,
       price: parseFloat(price),
       discountPrice: discountPrice !== '' ? parseFloat(discountPrice) : null,
       stock: parseInt(stock),
@@ -480,6 +531,9 @@ export default function AdminProductsPage() {
     setCategoryId('');
     setStatus('ACTIVE');
     setShowManualUrl(false);
+    setEditSizes([]);
+    setEditSizeStock({});
+    setProductDescription('');
     setEditModalProduct(null);
   };
 
@@ -1184,6 +1238,74 @@ export default function AdminProductsPage() {
                     onChange={(e) => setStock(e.target.value)}
                     className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-mono font-bold"
                   />
+                </div>
+
+                {/* Size Variant Stock Controls */}
+                <div className="flex flex-col gap-2.5 sm:col-span-2 bg-zinc-50 border border-zinc-200 rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-zinc-800 flex items-center gap-1.5">
+                      <Sliders className="h-3.5 w-3.5 text-indigo-600" />
+                      <span>Size Variant Stock (Set 0 to mark Out of Stock / Crossed Out with ✕)</span>
+                    </label>
+                    <span className="text-[10px] text-zinc-400 font-mono">
+                      0 stock = ✕ Crossed
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    {editSizes.map((sz) => {
+                      const currentVal = editSizeStock[sz.toUpperCase()] ?? '0';
+                      const isZero = parseInt(currentVal) === 0;
+                      return (
+                        <div
+                          key={sz}
+                          className={`flex flex-col gap-1.5 p-3 rounded-xl border transition-all ${
+                            isZero
+                              ? 'bg-red-50/60 border-red-200'
+                              : 'bg-white border-zinc-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-zinc-800">{sz}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const nextVal = isZero ? '10' : '0';
+                                setEditSizeStock(prev => ({
+                                  ...prev,
+                                  [sz.toUpperCase()]: nextVal
+                                }));
+                              }}
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
+                                isZero
+                                  ? 'bg-red-200 text-red-800 hover:bg-red-300'
+                                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                              }`}
+                            >
+                              {isZero ? '✕ 0 Stock' : 'Set 0'}
+                            </button>
+                          </div>
+                          <input
+                            type="number"
+                            min="0"
+                            value={currentVal}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setEditSizeStock(prev => ({
+                                ...prev,
+                                [sz.toUpperCase()]: val
+                              }));
+                            }}
+                            className={`w-full text-xs font-mono font-bold p-1.5 rounded-lg border outline-none ${
+                              isZero
+                                ? 'bg-white border-red-300 text-red-600'
+                                : 'bg-zinc-50 border-zinc-200 text-zinc-900 focus:bg-white focus:border-indigo-500'
+                            }`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

@@ -384,6 +384,21 @@ export default function AdminPromotionsPage() {
         </div>
       )}
 
+      {/* Best Resolution Guidance */}
+      <div className="mb-6 p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 flex items-start gap-3">
+        <Sparkles className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-indigo-950">
+          <p className="font-bold uppercase tracking-wider text-[11px] mb-1">
+            ব্যানার হাই-কোয়ালিটি রাখার নিয়মাবলী (Recommended Banner Size)
+          </p>
+          <p className="text-indigo-800 leading-relaxed text-[11px]">
+            • <strong>সঠিক রেজুলেশন:</strong> সর্বোচ্চ ক্রিস্টাল-ক্লিয়ার কোয়ালিটির জন্য <strong>1920 × 1080 (Full HD)</strong> অথবা <strong>2560 × 1440 (2K)</strong> অনুপাতের ল্যান্ডস্কেপ (16:9) ছবি আপলোড করুন।<br />
+            • <strong>মোবাইল ছবি এড়িয়ে চলুন:</strong> মোবাইলে খাড়াভাবে (Vertical / 9:16) তোলা ছবি ব্যানারে দিলে তা জুম হয়ে ফেটে যাবে বা ব্লার হবে। সবসময় আড়াআড়ি (Landscape) ছবি ব্যবহার করুন।<br />
+            • <strong>ফরম্যাট:</strong> PNG অথবা হাই-রেজুলেশন JPG/WebP ব্যানার আপলোড করুন।
+          </p>
+        </div>
+      </div>
+
       <form onSubmit={handleSaveAll} className="space-y-6">
         
         {/* Slide List */}

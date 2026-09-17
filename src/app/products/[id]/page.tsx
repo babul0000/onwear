@@ -74,6 +74,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
+  const [sizeWarning, setSizeWarning] = useState(false);
 
   // Review form states
   const [rating, setRating] = useState(5);
@@ -126,7 +127,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   // Helper to parse description metadata
   const parseProductMetadata = (desc: string | null) => {
-    if (!desc) return { cleanDesc: '', brand: '', sizes: [], colors: [], fabric: '', care: '' };
+    if (!desc) return { cleanDesc: '', brand: '', sizes: [], colors: [], fabric: '', care: '', sizeStock: {} as Record<string, number> };
     const parts = desc.split('---');
     const cleanDesc = parts[0]?.trim() || '';
     
@@ -135,6 +136,33 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     let colors: string[] = [];
     let fabric = '';
     let care = '';
+    const sizeStock: Record<string, number> = {};
+
+    const fullText = desc;
+
+    // Helper to parse stock tokens (e.g. S:10, M:0 or S(10), M(0))
+    const parseStockTokens = (raw: string) => {
+      const tokens = raw.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+      for (const token of tokens) {
+        const colonMatch = token.match(/^([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+        if (colonMatch) {
+          const sz = colonMatch[1].trim().toUpperCase();
+          sizeStock[sz] = parseInt(colonMatch[2], 10);
+          continue;
+        }
+        const parenMatch = token.match(/^([A-Za-z0-9]+)\s*\(\s*(\d+)\s*\)$/);
+        if (parenMatch) {
+          const sz = parenMatch[1].trim().toUpperCase();
+          sizeStock[sz] = parseInt(parenMatch[2], 10);
+        }
+      }
+    };
+
+    // Check SizeStock: or VariantStock: anywhere in text
+    const sizeStockMatch = fullText.match(/(?:SizeStock|VariantStock):\s*([^\n\r]+)/i);
+    if (sizeStockMatch && sizeStockMatch[1]) {
+      parseStockTokens(sizeStockMatch[1]);
+    }
 
     if (parts.length > 1) {
       const meta = parts[1];
@@ -143,7 +171,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       const sizesMatch = meta.match(/Sizes:\s*([^\n\r]+)/i);
       if (sizesMatch && sizesMatch[1]) {
-        sizes = sizesMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+        const rawSizes = sizesMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+        sizes = rawSizes.map(s => {
+          const m = s.match(/^([A-Za-z0-9]+)\s*(?:\((\d+)\)|:\s*(\d+))$/);
+          if (m) {
+            const szName = m[1].trim();
+            const qty = parseInt(m[2] || m[3], 10);
+            sizeStock[szName.toUpperCase()] = qty;
+            return szName;
+          }
+          return s;
+        });
       }
 
       const colorsMatch = meta.match(/Colors:\s*([^\n\r]+)/i);
@@ -156,9 +194,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       const careMatch = meta.match(/Care:\s*([^\n\r]+)/i);
       if (careMatch && careMatch[1]) care = careMatch[1].trim();
+    } else {
+      const sizesMatch = fullText.match(/Sizes:\s*([^\n\r]+)/i);
+      if (sizesMatch && sizesMatch[1]) {
+        sizes = sizesMatch[1].split(',').map(s => s.trim().replace(/\(.*?\)/g, '')).filter(Boolean);
+      }
     }
 
-    return { cleanDesc, brand, sizes, colors, fabric, care };
+    return { cleanDesc, brand, sizes, colors, fabric, care, sizeStock };
   };
 
   const fetchProductDetails = async () => {
@@ -273,20 +316,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const handleAddToCart = async () => {
-    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
-    if (res.success) {
-      openCartDrawer();
-    }
-  };
-
-  const handleBuyNow = async () => {
-    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
-    if (res.success) {
-      router.push('/checkout');
-    }
-  };
-
+  // Selection clear
   const handleClearSelection = () => {
     setSelectedColor('');
     setSelectedSize('');
@@ -352,6 +382,48 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const meta = parseProductMetadata(product.description);
   const availableColors = meta.colors.length > 0 ? meta.colors : ['Black', 'White', 'Beige', 'Navy'];
   const availableSizes = meta.sizes.length > 0 ? meta.sizes : ['S', 'M', 'L', 'XL', 'XXL'];
+
+  const isSizeOutOfStock = (sz: string) => {
+    if (!product || product.stock === 0) return true;
+    const normalizedSz = sz.trim().toUpperCase();
+    const directStock = meta.sizeStock[sz];
+    const upperStock = meta.sizeStock[normalizedSz];
+    if (directStock !== undefined) return directStock <= 0;
+    if (upperStock !== undefined) return upperStock <= 0;
+    return false;
+  };
+
+  const isSelectedSizeOutOfStock = selectedSize ? isSizeOutOfStock(selectedSize) : false;
+
+  const handleAddToCart = async () => {
+    if (availableSizes.length > 0 && !selectedSize) {
+      setSizeWarning(true);
+      setTimeout(() => setSizeWarning(false), 3000);
+      return;
+    }
+    if (isSelectedSizeOutOfStock || isSoldOut) {
+      return;
+    }
+    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
+    if (res.success) {
+      openCartDrawer();
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (availableSizes.length > 0 && !selectedSize) {
+      setSizeWarning(true);
+      setTimeout(() => setSizeWarning(false), 3000);
+      return;
+    }
+    if (isSelectedSizeOutOfStock || isSoldOut) {
+      return;
+    }
+    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
+    if (res.success) {
+      router.push('/checkout');
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen text-[#232323] font-['Poppins',sans-serif] tracking-[0.02em] selection:bg-zinc-950 selection:text-white">
@@ -571,22 +643,79 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <div className="flex flex-wrap gap-2">
                   {availableSizes.map((sz, idx) => {
                     const isSelected = selectedSize === sz;
+                    const isOutOfStock = isSizeOutOfStock(sz);
                     return (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => setSelectedSize(isSelected ? '' : sz)}
-                        className={`min-w-[48px] h-9 px-3 text-xs uppercase tracking-[0.05em] transition-all cursor-pointer border flex items-center justify-center ${
-                          isSelected
+                        className={`relative min-w-[48px] h-9 px-3 text-xs uppercase tracking-[0.05em] transition-all border flex items-center justify-center overflow-hidden cursor-pointer ${
+                          isOutOfStock
+                            ? isSelected
+                              ? 'bg-zinc-100 text-zinc-500 border-red-300 font-medium'
+                              : 'bg-[#fafafa] text-zinc-300 border-[#e6e6e6] hover:border-zinc-300 font-normal'
+                            : isSelected
                             ? 'bg-[#232323] text-white border-[#232323] font-medium'
                             : 'bg-white text-[#232323] border-[#e6e6e6] hover:border-[#232323] font-normal'
                         }`}
+                        title={isOutOfStock ? `${sz} is Out of Stock` : `Size ${sz}`}
                       >
-                        {sz}
+                        <span className={isOutOfStock ? 'opacity-35 select-none' : ''}>{sz}</span>
+                        {isOutOfStock && (
+                          <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none text-zinc-400"
+                            preserveAspectRatio="none"
+                            viewBox="0 0 100 100"
+                          >
+                            <line
+                              x1="0"
+                              y1="0"
+                              x2="100"
+                              y2="100"
+                              stroke="currentColor"
+                              strokeWidth="1.25"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                            <line
+                              x1="0"
+                              y1="100"
+                              x2="100"
+                              y2="0"
+                              stroke="currentColor"
+                              strokeWidth="1.25"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                          </svg>
+                        )}
                       </button>
                     );
                   })}
                 </div>
+
+                {/* Variant Stock Status Indicator (User Spec: STATUS: PLEASE SELECT A VARIANT / IN STOCK / OUT OF STOCK) */}
+                <div className="flex items-center gap-1.5 pt-1 text-[11px] font-bold tracking-[0.06em] uppercase">
+                  <span className="text-[#232323]">STATUS:</span>
+                  {product.stock === 0 ? (
+                    <span className="text-red-600 font-bold">OUT OF STOCK</span>
+                  ) : !selectedSize ? (
+                    <span className="text-emerald-600 font-bold">PLEASE SELECT A VARIANT</span>
+                  ) : isSelectedSizeOutOfStock ? (
+                    <span className="text-red-600 font-bold">OUT OF STOCK ({selectedSize})</span>
+                  ) : (
+                    <span className="text-emerald-600 font-bold">
+                      IN STOCK
+                      {meta.sizeStock[selectedSize] !== undefined
+                        ? ` (${meta.sizeStock[selectedSize]} Available)`
+                        : ''}
+                    </span>
+                  )}
+                </div>
+
+                {sizeWarning && (
+                  <p className="text-[11px] text-red-600 font-medium tracking-wide animate-pulse">
+                    Please select an available size variant before adding to bag.
+                  </p>
+                )}
               </div>
 
               {/* Quantity Stepper */}
@@ -629,15 +758,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={isSoldOut}
+                disabled={isSoldOut || isSelectedSizeOutOfStock}
                 className="w-full bg-[#232323] text-white py-3 px-6 text-xs font-medium tracking-[0.1em] uppercase hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="h-4 w-4" />
-                <span>{isSoldOut ? 'Sold Out' : 'Add to Bag'}</span>
+                <span>{isSoldOut || isSelectedSizeOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
               </button>
 
               {/* Buy Now Button (Instant Checkout) */}
-              {!isSoldOut && (
+              {!isSoldOut && !isSelectedSizeOutOfStock && (
                 <button
                   type="button"
                   onClick={handleBuyNow}
@@ -1038,14 +1167,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={isSoldOut}
+            disabled={isSoldOut || isSelectedSizeOutOfStock}
             className="flex-1 py-2.5 px-3 bg-[#232323] text-white font-medium text-[11px] uppercase tracking-[0.08em] flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:bg-zinc-200 disabled:text-zinc-400 cursor-pointer"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            <span>Bag</span>
+            <span>{isSoldOut || isSelectedSizeOutOfStock ? 'Sold Out' : 'Bag'}</span>
           </button>
 
-          {!isSoldOut && (
+          {!isSoldOut && !isSelectedSizeOutOfStock && (
             <button
               type="button"
               onClick={handleBuyNow}

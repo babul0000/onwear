@@ -77,11 +77,12 @@ export default function HeroSlide({
           alt={title}
           fill
           priority={priority}
+          unoptimized
           sizes="100vw"
           style={{
             objectPosition: `${posX}% ${posY}%`,
           }}
-          className="object-cover"
+          className="object-cover pointer-events-none"
         />
       </motion.div>
 

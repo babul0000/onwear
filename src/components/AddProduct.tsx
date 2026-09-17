@@ -376,6 +376,22 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     const primaryImage = gallery.length > 0 ? gallery[0] : null;
     const secondaryImage = gallery.length > 1 ? gallery[1] : null;
 
+    // Extract stock per size from variantEdits
+    const sizeStockMap: Record<string, number> = {};
+    for (const s of sizes) {
+      for (const [key, val] of Object.entries(variantEdits)) {
+        if (key.endsWith(`-${s}`) || key === s) {
+          const parsed = parseInt(val.stock);
+          if (!isNaN(parsed)) {
+            sizeStockMap[s] = parsed;
+          }
+        }
+      }
+    }
+    const sizeStockLine = Object.keys(sizeStockMap).length > 0
+      ? `SizeStock: ${Object.entries(sizeStockMap).map(([sz, stk]) => `${sz}:${stk}`).join(', ')}`
+      : '';
+
     // Serialize metadata details in product description
     const finalDescription = `
 ${description}
@@ -384,7 +400,7 @@ ${description}
 Brand: ${brand}
 Short Description: ${shortDescription}
 Sizes: ${sizes.join(', ')}
-Colors: ${colors.map(c => c.name).join(', ')}
+${sizeStockLine ? sizeStockLine + '\n' : ''}Colors: ${colors.map(c => c.name).join(', ')}
 Images: ${gallery.join(', ')}
 Tags: ${tags.join(', ')}
 Weight: ${weight} kg
