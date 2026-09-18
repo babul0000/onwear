@@ -28,6 +28,70 @@ const COLOR_MAP: Record<string, string> = {
   olive: 'bg-[#808000] border-[#808000]'
 };
 
+// Helper: Determine product category priority for default All Products sorting
+// Priority 1: Shirts -> Priority 2: T-Shirts -> Priority 3: Pants -> Priority 4: Caps -> Priority 5: Others
+function getProductCategoryPriority(p: any): number {
+  const catSlug = (p.category?.slug || '').toLowerCase();
+  const catName = (p.category?.name || '').toLowerCase();
+  const parentSlug = (p.category?.parent?.slug || '').toLowerCase();
+  const parentName = (p.category?.parent?.name || '').toLowerCase();
+  const prodName = (p.name || '').toLowerCase();
+
+  // 1. Cap / Hats (Priority 4)
+  if (
+    catSlug === 'cap' || 
+    catSlug === 'caps' || 
+    parentSlug === 'cap' ||
+    parentName === 'cap' ||
+    catName.includes('cap') ||
+    /\b(cap|caps|hat|snapback)\b/i.test(prodName)
+  ) {
+    return 4;
+  }
+
+  // 2. T-Shirt / Polo / Tee (Priority 2)
+  if (
+    catSlug === 't-shirt' ||
+    catSlug === 'tshirt' ||
+    parentSlug === 't-shirt' ||
+    parentSlug === 'tshirt' ||
+    /\b(t-shirt|tshirt|tee|polos?)\b/i.test(catSlug) ||
+    /\b(t-shirt|tshirt|tee|polos?)\b/i.test(catName) ||
+    /\b(t-shirt|tshirt|tee|polos?)\b/i.test(prodName)
+  ) {
+    return 2;
+  }
+
+  // 3. Shirts / Kurta / Katua / Boxy Fit (Priority 1)
+  if (
+    catSlug === 'shirts' ||
+    catSlug === 'shirt' ||
+    parentSlug === 'shirts' ||
+    parentSlug === 'shirt' ||
+    catSlug.includes('shirt') ||
+    catName.includes('shirt') ||
+    /\b(shirts?|kurta|katua|boxy fit)\b/i.test(prodName) ||
+    /\b(shirts?|kurta|katua|boxy fit)\b/i.test(catName)
+  ) {
+    return 1;
+  }
+
+  // 4. Pants / Jeans / Joggers / Chino / Cargo (Priority 3)
+  if (
+    catSlug === 'pants' ||
+    catSlug === 'pant' ||
+    parentSlug === 'pants' ||
+    parentSlug === 'pant' ||
+    /\b(pants?|jeans|joggers?|chino|cargo|trousers?)\b/i.test(catSlug) ||
+    /\b(pants?|jeans|joggers?|chino|cargo|trousers?)\b/i.test(catName) ||
+    /\b(pants?|jeans|joggers?|chino|cargo|trousers?)\b/i.test(prodName)
+  ) {
+    return 3;
+  }
+
+  return 5;
+}
+
 function ProductsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -94,9 +158,12 @@ function ProductsPageContent() {
     async function fetchProducts() {
       setLoading(true);
       try {
+        const isAllProductsDefault = !selectedCategory && (!sortBy || sortBy === 'createdAt');
+        const fetchLimit = isAllProductsDefault ? '100' : '12';
+
         const params = new URLSearchParams({
-          page: page.toString(),
-          limit: '12',
+          page: isAllProductsDefault ? '1' : page.toString(),
+          limit: fetchLimit,
           search,
           category: selectedCategory,
           minPrice: minPrice || '',
@@ -110,10 +177,36 @@ function ProductsPageContent() {
         const res = await fetch(`${API_URL}/products?${params.toString()}`);
         const data = await res.json();
         if (data.success) {
-          setProducts(data.data);
-          setMeta(data.meta);
+          if (isAllProductsDefault && Array.isArray(data.data)) {
+            const sortedItems = [...data.data].sort((a, b) => {
+              const rankA = getProductCategoryPriority(a);
+              const rankB = getProductCategoryPriority(b);
+              if (rankA !== rankB) return rankA - rankB;
+              const timeA = new Date(a.createdAt).getTime();
+              const timeB = new Date(b.createdAt).getTime();
+              return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+            });
+
+            const itemsPerPage = 12;
+            const total = sortedItems.length;
+            const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
+            const paginated = sortedItems.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+            setProducts(paginated);
+            setMeta({
+              page,
+              limit: itemsPerPage,
+              total,
+              totalPages,
+              filters: data.meta?.filters || meta.filters
+            });
+          } else {
+            setProducts(data.data);
+            setMeta(data.meta);
+          }
+
           // Pull available sizes/colors from backend filters metadata
-          if (data.meta.filters) {
+          if (data.meta?.filters) {
             setAvailableSizes(data.meta.filters.sizes || []);
             setAvailableColors(data.meta.filters.colors || []);
           }
