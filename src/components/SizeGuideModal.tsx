@@ -18,104 +18,17 @@ interface SizeGuideModalProps {
   onSaveSuccess?: () => void;
 }
 
-type Unit = 'in' | 'cm';
-
-export interface SizeRow {
-  size: string;
-  [key: string]: string;
-}
-
-export interface SizeCategory {
-  title: string;
-  headers: string[]; // e.g. ['Size', 'Chest', 'Length'] or ['Waist', 'Length', 'Leg Opening', 'Weight (Denim)']
-  rows: {
-    in: SizeRow[];
-    cm: SizeRow[];
-  };
-}
-
-export type SizeDataMap = Record<string, SizeCategory>;
-
-const DEFAULT_SIZE_DATA: SizeDataMap = {
-  boxy_shirt: {
-    title: 'Boxy Full Sleeve Shirts',
-    headers: ['Size', 'Chest', 'Length'],
-    rows: {
-      in: [
-        { size: 'M', chest: '43"', length: '26.5"' },
-        { size: 'L', chest: '45"', length: '27.5"' },
-        { size: 'XL', chest: '47"', length: '28.5"' },
-      ],
-      cm: [
-        { size: 'M', chest: '109.2', length: '67.3' },
-        { size: 'L', chest: '114.3', length: '69.9' },
-        { size: 'XL', chest: '119.4', length: '72.4' },
-      ],
-    }
-  },
-  baggy_denim: {
-    title: 'StraightFit Baggy Denim Pants',
-    headers: ['Waist', 'Length', 'Leg Opening', 'Weight (Denim)'],
-    rows: {
-      in: [
-        { size: '28', 'length': '38/39.5"', 'leg opening': '14/15"', 'weight (denim)': '13 oz' },
-        { size: '30', 'length': '39.5/41"', 'leg opening': '15"', 'weight (denim)': '13 oz' },
-        { size: '32', 'length': '40/41"', 'leg opening': '16"', 'weight (denim)': '13 oz' },
-        { size: '34', 'length': '40/41"', 'leg opening': '17/18"', 'weight (denim)': '13 oz' },
-        { size: '36', 'length': '40/41"', 'leg opening': '18"', 'weight (denim)': '13 oz' },
-      ],
-      cm: [
-        { size: '28', 'length': '96.5 / 100.3', 'leg opening': '35.6 / 38.1', 'weight (denim)': '13 oz' },
-        { size: '30', 'length': '100.3 / 104.1', 'leg opening': '38.1', 'weight (denim)': '13 oz' },
-        { size: '32', 'length': '101.6 / 104.1', 'leg opening': '40.6', 'weight (denim)': '13 oz' },
-        { size: '34', 'length': '101.6 / 104.1', 'leg opening': '43.2 / 45.7', 'weight (denim)': '13 oz' },
-        { size: '36', 'length': '101.6 / 104.1', 'leg opening': '45.7', 'weight (denim)': '13 oz' },
-      ],
-    }
-  },
-  tshirt: {
-    title: 'T-Shirt / Polo',
-    headers: ['Size', 'Chest', 'Length', 'Sleeve'],
-    rows: {
-      in: [
-        { size: 'S', chest: '36 – 38', length: '27.0', sleeve: '8.0' },
-        { size: 'M', chest: '39 – 41', length: '28.0', sleeve: '8.5' },
-        { size: 'L', chest: '42 – 44', length: '29.0', sleeve: '9.0' },
-        { size: 'XL', chest: '45 – 47', length: '30.0', sleeve: '9.5' },
-        { size: 'XXL', chest: '48 – 50', length: '31.0', sleeve: '10.0' },
-      ],
-      cm: [
-        { size: 'S', chest: '91 – 96', length: '68.5', sleeve: '20.3' },
-        { size: 'M', chest: '99 – 104', length: '71.1', sleeve: '21.5' },
-        { size: 'L', chest: '106 – 111', length: '73.6', sleeve: '22.8' },
-        { size: 'XL', chest: '114 – 119', length: '76.2', sleeve: '24.1' },
-        { size: 'XXL', chest: '121 – 127', length: '78.7', sleeve: '25.4' },
-      ],
-    }
-  },
-  panjabi: {
-    title: 'Panjabi',
-    headers: ['Size', 'Chest', 'Length', 'Shoulder', 'Sleeve'],
-    rows: {
-      in: [
-        { size: '38 (S)', chest: '38.0', length: '40.0', shoulder: '17.5', sleeve: '24.0' },
-        { size: '40 (M)', chest: '40.0', length: '42.0', shoulder: '18.0', sleeve: '24.5' },
-        { size: '42 (L)', chest: '42.0', length: '44.0', shoulder: '18.5', sleeve: '25.0' },
-        { size: '44 (XL)', chest: '44.0', length: '45.0', shoulder: '19.0', sleeve: '25.5' },
-      ],
-      cm: [
-        { size: '38 (S)', chest: '96.5', length: '101.6', shoulder: '44.5', sleeve: '61.0' },
-        { size: '40 (M)', chest: '101.6', length: '106.7', shoulder: '45.7', sleeve: '62.2' },
-        { size: '42 (L)', chest: '106.7', length: '111.8', shoulder: '47.0', sleeve: '63.5' },
-        { size: '44 (XL)', chest: '111.8', length: '114.3', shoulder: '48.3', sleeve: '64.8' },
-      ],
-    }
-  }
-};
-
-const COMMON_PRESET_COLUMNS = [
-  'Chest', 'Length', 'Leg Opening', 'Weight (Denim)', 'Sleeve', 'Shoulder', 'Waist', 'Hip', 'Inseam', 'Thigh', 'Collar', 'Armhole'
-];
+export type { Unit, SizeRow, SizeCategory, SizeDataMap } from '../config/size-guide.config';
+import { 
+  Unit, 
+  SizeRow, 
+  SizeCategory, 
+  SizeDataMap, 
+  DEFAULT_SIZE_DATA, 
+  COMMON_PRESET_COLUMNS, 
+  SIZE_GUIDE_UPDATE_EVENT 
+} from '../config/size-guide.config';
+export { DEFAULT_SIZE_DATA, COMMON_PRESET_COLUMNS };
 
 export default function SizeGuideModal({
   isOpen,
@@ -534,6 +447,9 @@ export default function SizeGuideModal({
         text: 'Size chart updated & saved successfully!'
       });
       setIsEditing(false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(SIZE_GUIDE_UPDATE_EVENT));
+      }
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {
       console.error('Save size chart error:', err);
@@ -559,6 +475,9 @@ export default function SizeGuideModal({
         type: 'success',
         text: 'Reset to standard factory default sizes.'
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(SIZE_GUIDE_UPDATE_EVENT));
+      }
       setTimeout(() => setToastMessage(null), 3000);
     }
   };
