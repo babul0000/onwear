@@ -92,6 +92,76 @@ function getProductCategoryPriority(p: any): number {
   return 5;
 }
 
+// Helper: Curate balanced mixed product layout
+// Pattern per 4 items: 2 Shirts, 1 Pant, 1 Cap
+function interleaveProductsByCategory(items: any[], sortOrder: string = 'desc'): any[] {
+  const shirts: any[] = [];
+  const pants: any[] = [];
+  const caps: any[] = [];
+  const others: any[] = [];
+
+  // Sort internally by date first
+  const sorted = [...items].sort((a, b) => {
+    const timeA = new Date(a.createdAt).getTime();
+    const timeB = new Date(b.createdAt).getTime();
+    return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+  });
+
+  for (const item of sorted) {
+    const rank = getProductCategoryPriority(item);
+    if (rank === 1 || rank === 2) {
+      shirts.push(item);
+    } else if (rank === 3) {
+      pants.push(item);
+    } else if (rank === 4) {
+      caps.push(item);
+    } else {
+      others.push(item);
+    }
+  }
+
+  const result: any[] = [];
+  let sIdx = 0;
+  let pIdx = 0;
+  let cIdx = 0;
+  let oIdx = 0;
+
+  // Pattern: 2 Shirts, 1 Pant, 1 Cap per 4-item grid cycle
+  while (sIdx < shirts.length || pIdx < pants.length || cIdx < caps.length || oIdx < others.length) {
+    let added = 0;
+
+    // 2 Shirts
+    for (let i = 0; i < 2; i++) {
+      if (sIdx < shirts.length) {
+        result.push(shirts[sIdx++]);
+        added++;
+      }
+    }
+
+    // 1 Pant
+    if (pIdx < pants.length) {
+      result.push(pants[pIdx++]);
+      added++;
+    }
+
+    // 1 Cap
+    if (cIdx < caps.length) {
+      result.push(caps[cIdx++]);
+      added++;
+    }
+
+    // Fallback if any categories run out: drain remainder
+    if (added === 0) {
+      if (sIdx < shirts.length) result.push(shirts[sIdx++]);
+      else if (pIdx < pants.length) result.push(pants[pIdx++]);
+      else if (cIdx < caps.length) result.push(caps[cIdx++]);
+      else if (oIdx < others.length) result.push(others[oIdx++]);
+    }
+  }
+
+  return result;
+}
+
 function ProductsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -178,19 +248,12 @@ function ProductsPageContent() {
         const data = await res.json();
         if (data.success) {
           if (isAllProductsDefault && Array.isArray(data.data)) {
-            const sortedItems = [...data.data].sort((a, b) => {
-              const rankA = getProductCategoryPriority(a);
-              const rankB = getProductCategoryPriority(b);
-              if (rankA !== rankB) return rankA - rankB;
-              const timeA = new Date(a.createdAt).getTime();
-              const timeB = new Date(b.createdAt).getTime();
-              return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
-            });
+            const mixedItems = interleaveProductsByCategory(data.data, sortOrder);
 
             const itemsPerPage = 12;
-            const total = sortedItems.length;
+            const total = mixedItems.length;
             const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
-            const paginated = sortedItems.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+            const paginated = mixedItems.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
             setProducts(paginated);
             setMeta({
