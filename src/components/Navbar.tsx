@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
@@ -64,10 +64,14 @@ const DEFAULT_NAV_CATEGORIES = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, logout, loading } = useAuth();
   const { cart, wishlist, openCartDrawer } = useCart();
   const { settings } = useSettings();
+
+  const currentCategory = (searchParams?.get('category') || '').toLowerCase();
+  const isAllProductsActive = pathname === '/products' && !currentCategory;
 
   // Component States
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
@@ -495,21 +499,28 @@ export default function Navbar() {
             <Link
               href="/products"
               className={`hover:text-zinc-500 transition-colors h-full flex items-center ${
-                pathname === '/products' ? 'text-[#232323] font-semibold border-b-2 border-[#232323]' : ''
+                isAllProductsActive ? 'text-[#232323] font-semibold border-b-2 border-[#232323]' : ''
               }`}
             >
               All Products
             </Link>
             {categories.map((cat: any) => {
               const subs = cat.subcategories || [];
-              const isActive = pathname.includes(cat.slug);
+              const catSlug = (cat.slug || '').toLowerCase();
+              const isCatActive =
+                currentCategory === catSlug ||
+                (catSlug === 'shirts' && currentCategory === 'shirt') ||
+                (catSlug === 'shirt' && currentCategory === 'shirts') ||
+                (catSlug === 'pants' && currentCategory === 'pant') ||
+                (catSlug === 'pant' && currentCategory === 'pants') ||
+                subs.some((s: any) => (s.slug || '').toLowerCase() === currentCategory);
 
               return (
                 <div key={cat.id} className="relative group h-full flex items-center">
                   <Link
                     href={`/products?category=${cat.slug}`}
                     className={`hover:text-zinc-500 transition-colors h-full flex items-center gap-1 ${
-                      isActive ? 'text-[#232323] font-semibold' : ''
+                      isCatActive ? 'text-[#232323] font-semibold border-b-2 border-[#232323]' : ''
                     }`}
                   >
                     <span>{cat.name}</span>
@@ -519,15 +530,22 @@ export default function Navbar() {
                   {subs.length > 0 && (
                     <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
                       <div className="w-56 bg-white border border-zinc-100 rounded-2xl p-2 shadow-xl flex flex-col gap-0.5 text-xs text-zinc-700">
-                        {subs.map((sub: any, idx: number) => (
-                          <Link
-                            key={idx}
-                            href={`/products?category=${sub.slug}`}
-                            className="rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium"
-                          >
-                            {sub.name}
-                          </Link>
-                        ))}
+                        {subs.map((sub: any, idx: number) => {
+                          const subSlug = (sub.slug || '').toLowerCase();
+                          const isSubActive = currentCategory === subSlug;
+
+                          return (
+                            <Link
+                              key={idx}
+                              href={`/products?category=${sub.slug}`}
+                              className={`rounded-xl px-3 py-2 text-left hover:text-zinc-950 hover:bg-zinc-50 transition-colors font-medium ${
+                                isSubActive ? 'bg-zinc-100 font-bold text-zinc-950' : ''
+                              }`}
+                            >
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -587,7 +605,9 @@ export default function Navbar() {
                 <Link
                   href="/products"
                   onClick={() => setShowMobileDrawer(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 text-sm font-bold text-zinc-800"
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold ${
+                    isAllProductsActive ? 'bg-zinc-100 text-zinc-950 font-black' : 'hover:bg-zinc-50 text-zinc-800'
+                  }`}
                 >
                   <ShoppingBag className="h-4.5 w-4.5 text-zinc-500" />
                   <span>All Products</span>
@@ -610,6 +630,14 @@ export default function Navbar() {
                 {categories.map((cat: any) => {
                   const subs = cat.subcategories || [];
                   const isExpanded = expandedMobileCat === cat.id;
+                  const catSlug = (cat.slug || '').toLowerCase();
+                  const isCatActive =
+                    currentCategory === catSlug ||
+                    (catSlug === 'shirts' && currentCategory === 'shirt') ||
+                    (catSlug === 'shirt' && currentCategory === 'shirts') ||
+                    (catSlug === 'pants' && currentCategory === 'pant') ||
+                    (catSlug === 'pant' && currentCategory === 'pants') ||
+                    subs.some((s: any) => (s.slug || '').toLowerCase() === currentCategory);
 
                   return (
                     <div key={cat.id} className="border-b border-zinc-100 last:border-0 py-1">
@@ -617,7 +645,9 @@ export default function Navbar() {
                         <Link
                           href={`/products?category=${cat.slug}`}
                           onClick={() => setShowMobileDrawer(false)}
-                          className="text-sm font-bold text-zinc-800 hover:text-teal-600 py-2 flex-1"
+                          className={`text-sm font-bold py-2 flex-1 ${
+                            isCatActive ? 'text-teal-600 font-black' : 'text-zinc-800 hover:text-teal-600'
+                          }`}
                         >
                           {cat.name}
                         </Link>

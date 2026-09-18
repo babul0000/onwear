@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -16,7 +16,11 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-full flex flex-col">
       <VisitorTracker />
-      {!isAuthPage && !isAdminPage && <Navbar />}
+      {!isAuthPage && !isAdminPage && (
+        <Suspense fallback={<div className="h-24 w-full bg-white border-b border-zinc-100" />}>
+          <Navbar />
+        </Suspense>
+      )}
       <main className={`flex-1 flex flex-col ${!isAdminPage ? 'pb-16 md:pb-0' : ''}`}>{children}</main>
       {!isAuthPage && !isAdminPage && <Footer />}
       {!isAdminPage && <WhatsAppButton />}
