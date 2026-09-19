@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useAuth } from '../context/AuthContext';
+import { GOOGLE_CLIENT_ID } from '../config';
 import Link from 'next/link';
 import { 
   Mail, Lock, User, Phone, Store, Eye, EyeOff, 
@@ -92,7 +93,7 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
   // Google OAuth Click Handler
   const handleGoogleAuth = () => {
     setError('');
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = GOOGLE_CLIENT_ID;
 
     if (!clientId) {
       setError('Google Sign-In is not configured yet. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in your onwear/.env file.');
