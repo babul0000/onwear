@@ -15,6 +15,7 @@ export interface AuthContextType {
   verifyActivationToken: (token: string) => Promise<{ success: boolean; data?: any; message?: string }>;
   setPasswordAndActivate: (token: string, password: string) => Promise<{ success: boolean; message?: string }>;
   resendActivation: (email: string) => Promise<{ success: boolean; message?: string }>;
+  loginWithGoogle: (payload: { idToken?: string; credential?: string; accessToken?: string }) => Promise<{ success: boolean; message?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -188,6 +189,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const loginWithGoogle = async (payload: { idToken?: string; credential?: string; accessToken?: string }) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('shopnest_token', data.data.token);
+        localStorage.setItem('onwear_token', data.data.token);
+        setToken(data.data.token);
+        setUser(data.data.user);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Google authentication failed' };
+      }
+    } catch (err) {
+      console.error('Error during Google authentication:', err);
+      return { success: false, message: 'Server connection error during Google sign-in.' };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -200,7 +226,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthSession,
       verifyActivationToken,
       setPasswordAndActivate,
-      resendActivation
+      resendActivation,
+      loginWithGoogle
     }}>
       {children}
     </AuthContext.Provider>

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Script from 'next/script';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 import { 
@@ -12,6 +13,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 interface AuthCardProps {
   initialMode: 'login' | 'register';
 }
@@ -20,7 +27,11 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, register, resendActivation } = useAuth();
+  const { login, register, resendActivation, loginWithGoogle } = useAuth();
+
+  // Google OAuth state
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleScriptReady, setGoogleScriptReady] = useState(false);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -53,6 +64,87 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
     setError('');
     setSuccess('');
   }, [initialMode]);
+
+  // Check if Google script is loaded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.google?.accounts) {
+      setGoogleScriptReady(true);
+    }
+  }, []);
+
+  // Post auth redirect helper
+  const handlePostAuthRedirect = () => {
+    const redirect = searchParams.get('redirect');
+    if (redirect && redirect.startsWith('/')) {
+      router.push(redirect);
+    } else if (typeof document !== 'undefined' && document.referrer && document.referrer.includes(window.location.host)) {
+      const referrerPath = new URL(document.referrer).pathname;
+      if (referrerPath !== '/login' && referrerPath !== '/register') {
+        router.push(referrerPath);
+      } else {
+        router.push('/');
+      }
+    } else {
+      router.push('/');
+    }
+  };
+
+  // Google OAuth Click Handler
+  const handleGoogleAuth = () => {
+    setError('');
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Google Sign-In is not configured yet. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in your onwear/.env file.');
+      return;
+    }
+
+    if (!window.google?.accounts?.oauth2) {
+      setError('Google services are still loading. Please wait a moment and try again.');
+      return;
+    }
+
+    setGoogleLoading(true);
+
+    try {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'email profile openid',
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse.error) {
+            setGoogleLoading(false);
+            if (tokenResponse.error !== 'popup_closed_by_user') {
+              setError(tokenResponse.error_description || 'Google sign-in was canceled or encountered an error.');
+            }
+            return;
+          }
+
+          if (tokenResponse.access_token) {
+            try {
+              const res = await loginWithGoogle({ accessToken: tokenResponse.access_token });
+              if (res.success) {
+                setSuccess(mode === 'login' ? 'Signed in successfully with Google!' : 'Account registered and signed in with Google!');
+                handlePostAuthRedirect();
+              } else {
+                setError(res.message || 'Google authentication failed. Please try again.');
+              }
+            } catch (err) {
+              console.error(err);
+              setError('Failed to authenticate with Google. Please try again.');
+            } finally {
+              setGoogleLoading(false);
+            }
+          }
+        },
+      });
+
+      client.requestAccessToken();
+    } catch (err) {
+      console.error('Google OAuth init error:', err);
+      setError('Could not initialize Google authentication popup.');
+      setGoogleLoading(false);
+    }
+  };
 
   // Switch mode helper with URL synchronization
   const handleSwitchMode = (newMode: 'login' | 'register') => {
@@ -173,6 +265,11 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
 
   return (
     <div className="min-h-screen w-full bg-[#f6f7f9] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans text-zinc-900 selection:bg-zinc-950 selection:text-white relative">
+      <Script 
+        src="https://accounts.google.com/gsi/client" 
+        strategy="afterInteractive" 
+        onLoad={() => setGoogleScriptReady(true)} 
+      />
       
       {/* Subtle Background Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-tr from-zinc-200/50 via-zinc-100/40 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -289,26 +386,27 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
             </motion.div>
           )}
 
-          {/* Social Sign-In Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Social Sign-In (Google) */}
+          <div>
             <button
               type="button"
-              className="flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 py-3 text-xs font-bold text-zinc-700 transition-all cursor-pointer shadow-2xs"
+              onClick={handleGoogleAuth}
+              disabled={googleLoading || loading}
+              className="w-full flex items-center justify-center gap-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 py-3.5 text-xs font-bold text-zinc-800 transition-all cursor-pointer shadow-2xs hover:shadow-xs disabled:opacity-50 active:scale-[0.99]"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.832 0-8.232-3.893-8.232-8.529S7.408 1.457 12.24 1.457c2.477 0 4.183.993 5.378 2.128l3.1-3.1C18.665.414 15.657 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.618 0 12.28-5.357 12.28-12.24 0-.829-.071-1.636-.2-1.957H12.24z"/>
-              </svg>
-              <span>Google</span>
-            </button>
-            
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 py-3 text-xs font-bold text-zinc-700 transition-all cursor-pointer shadow-2xs"
-            >
-              <svg className="h-4 w-4 fill-[#1877F2]" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              <span>Facebook</span>
+              {googleLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-900" />
+                  <span>Connecting with Google...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.832 0-8.232-3.893-8.232-8.529S7.408 1.457 12.24 1.457c2.477 0 4.183.993 5.378 2.128l3.1-3.1C18.665.414 15.657 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.618 0 12.28-5.357 12.28-12.24 0-.829-.071-1.636-.2-1.957H12.24z"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </>
+              )}
             </button>
           </div>
 

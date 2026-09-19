@@ -261,10 +261,14 @@ export default function Navbar() {
             <div className="relative hidden md:block">
               <button
                 onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700 cursor-pointer"
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700 cursor-pointer overflow-hidden"
                 title="Account Settings"
               >
-                <User className="h-5 w-5" />
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name || 'Account'} className="w-8 h-8 rounded-full object-cover border border-zinc-200" />
+                ) : (
+                  <User className="h-5 w-5" />
+                )}
               </button>
 
               {/* Account Dropdown */}
@@ -279,9 +283,18 @@ export default function Navbar() {
                       <div className="p-3 text-center text-xs text-zinc-400">Loading...</div>
                     ) : user ? (
                       <div className="flex flex-col gap-1 text-sm">
-                        <div className="px-3 py-2 border-b border-zinc-50 mb-1">
-                          <p className="font-bold text-zinc-900 truncate">{user.name}</p>
-                          <p className="text-[10px] text-zinc-400 truncate">{user.email}</p>
+                        <div className="px-3 py-2 border-b border-zinc-50 mb-1 flex items-center gap-2.5">
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-zinc-200 shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center font-bold text-zinc-700 text-xs shrink-0">
+                              {user.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-zinc-900 truncate text-xs">{user.name}</p>
+                            <p className="text-[10px] text-zinc-400 truncate">{user.email}</p>
+                          </div>
                         </div>
                         {user.role === 'admin' && (
                           <Link

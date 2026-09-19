@@ -620,8 +620,12 @@ export default function ProfilePage() {
         <div className="hidden lg:flex flex-col gap-1 border border-line bg-panel p-3 rounded-[4px] w-full lg:w-56 shrink-0">
           {/* User Quick Info */}
           <div className="flex items-center gap-3 border-b border-line pb-4 mb-2 px-2 pt-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-line bg-canvas text-ink font-mono font-bold text-sm">
-              {user.name.charAt(0).toUpperCase()}
+            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-line bg-canvas text-ink font-mono font-bold text-sm overflow-hidden shrink-0">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
             </div>
 
             <div>
