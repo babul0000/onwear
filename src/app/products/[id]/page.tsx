@@ -220,6 +220,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           setSelectedImage(prodData.data.image);
         }
 
+        // SEO: Dynamically update page title & meta description
+        if (typeof document !== 'undefined') {
+          document.title = `${prodData.data.name} - Buy Online in Bangladesh | ONWEAR`;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) {
+            metaDesc.setAttribute('content', prodData.data.description || `Buy ${prodData.data.name} at best price in Bangladesh from ONWEAR.`);
+          }
+        }
+
         // Real-time Analytics: Track product page view
         try {
           const sessionId = typeof window !== 'undefined' ? localStorage.getItem('onwear_visitor_session') : '';
@@ -425,8 +434,86 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  // Schema.org Product & Breadcrumb Structured Data
+  const productJsonLd = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: extractGalleryImages(product),
+    description: product.description || `${product.name} - Premium Men's Clothing by ONWEAR Bangladesh`,
+    sku: product.sku || product.id,
+    brand: {
+      '@type': 'Brand',
+      name: 'ONWEAR',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://www.onwearbd.com/products/${product.id}`,
+      priceCurrency: 'BDT',
+      price: product.discountPrice || product.price,
+      priceValidUntil: '2028-12-31',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'ONWEAR',
+      },
+    },
+    ...(reviews && reviews.length > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: (reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1),
+        reviewCount: reviews.length,
+      },
+    } : {}),
+  } : null;
+
+  const breadcrumbJsonLd = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.onwearbd.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Products',
+        item: 'https://www.onwearbd.com/products',
+      },
+      ...(product.category ? [{
+        '@type': 'ListItem',
+        position: 3,
+        name: product.category.name,
+        item: `https://www.onwearbd.com/products?category=${encodeURIComponent(product.category.slug || product.category.id)}`,
+      }] : []),
+      {
+        '@type': 'ListItem',
+        position: product.category ? 4 : 3,
+        name: product.name,
+        item: `https://www.onwearbd.com/products/${product.id}`,
+      },
+    ],
+  } : null;
+
   return (
     <div className="bg-white min-h-screen text-[#232323] font-['Poppins',sans-serif] tracking-[0.02em] selection:bg-zinc-950 selection:text-white">
+      {/* Schema.org Product Structured Data */}
+      {productJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
+      )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+      )}
       
       {/* 1. BREADCRUMBS ROW (Yellow Minimalist Style) */}
       <div className="border-b border-[#e6e6e6] bg-[#fafafa]">
