@@ -227,17 +227,9 @@ export default function Navbar() {
           {/* CENTER: Store Logo */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-              {settings.logoUrl ? (
-                <img
-                  src={settings.logoUrl}
-                  alt={settings.storeName}
-                  className="h-7 sm:h-9 md:h-11 w-auto object-contain max-w-[140px] sm:max-w-[180px]"
-                />
-              ) : (
-                <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-[0.22em] text-[#000000] uppercase pl-[0.22em] select-none">
-                  ONWEAR
-                </span>
-              )}
+              <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-[0.22em] text-[#000000] uppercase pl-[0.22em] select-none">
+                {settings.storeName || 'ONWEAR'}
+              </span>
             </Link>
           </div>
 
