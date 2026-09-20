@@ -40,7 +40,7 @@ export default function SizeGuideModal({
   onSaveSuccess
 }: SizeGuideModalProps) {
   const { user, token } = useAuth();
-  const isAdmin = user && user.role === 'admin';
+  const isAdmin = Boolean(user && user.role === 'admin');
 
   // Determine initial active category key
   const getInitialCategoryKey = () => {
@@ -62,7 +62,15 @@ export default function SizeGuideModal({
 
   const [activeType, setActiveType] = useState<string>('tshirt');
   const [unit, setUnit] = useState<Unit>('in');
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isEditingState, setIsEditingState] = useState<boolean>(false);
+  const isEditing = isAdmin && isEditingState;
+  const setIsEditing = (val: boolean) => {
+    if (!isAdmin) {
+      setIsEditingState(false);
+      return;
+    }
+    setIsEditingState(val);
+  };
   const [editScope, setEditScope] = useState<'global' | 'product'>('global');
   const [sizeData, setSizeData] = useState<SizeDataMap>(DEFAULT_SIZE_DATA);
   const [isCustomProductChart, setIsCustomProductChart] = useState<boolean>(false);
@@ -406,6 +414,14 @@ export default function SizeGuideModal({
 
   // Save changes
   const handleSave = async () => {
+    if (!isAdmin) {
+      setIsEditing(false);
+      setToastMessage({
+        type: 'error',
+        text: 'Unauthorized: Only administrators can modify size charts.'
+      });
+      return;
+    }
     setSaving(true);
     setToastMessage(null);
 
@@ -524,23 +540,25 @@ export default function SizeGuideModal({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Edit / View Mode Toggle Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditing(!isEditing);
-                setToastMessage(null);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer ${
-                isEditing
-                  ? 'bg-zinc-200 text-zinc-800 hover:bg-zinc-300'
-                  : 'bg-zinc-950 text-white hover:bg-zinc-800'
-              }`}
-              title={isEditing ? 'Exit editor to preview mode' : 'Edit size dimensions'}
-            >
-              <Edit3 className="h-3.5 w-3.5" />
-              <span>{isEditing ? 'Preview' : 'Edit Size Chart'}</span>
-            </button>
+            {/* Edit / View Mode Toggle Button (Admin Only) */}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(!isEditing);
+                  setToastMessage(null);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer ${
+                  isEditing
+                    ? 'bg-zinc-200 text-zinc-800 hover:bg-zinc-300'
+                    : 'bg-zinc-950 text-white hover:bg-zinc-800'
+                }`}
+                title={isEditing ? 'Exit editor to preview mode' : 'Edit size dimensions'}
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>{isEditing ? 'Preview' : 'Edit Size Chart'}</span>
+              </button>
+            )}
 
             {/* Close modal */}
             <button
