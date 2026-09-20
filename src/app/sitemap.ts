@@ -26,10 +26,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/shipping-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/return-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/orders/track`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.4,
     },
     {
       url: `${baseUrl}/login`,
@@ -55,7 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const products = data.data?.products || data.data || [];
       if (Array.isArray(products)) {
         productPages = products.map((prod: any) => ({
-          url: `${baseUrl}/products/${prod.id}`,
+          url: `${baseUrl}/products/${prod.slug || prod.id}`,
           lastModified: prod.updatedAt ? new Date(prod.updatedAt) : new Date(),
           changeFrequency: 'daily' as const,
           priority: 0.85,

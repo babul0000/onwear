@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
@@ -21,7 +22,7 @@ const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL('https://www.onwearbd.com'),
   title: {
     default: "ONWEAR - Unique Way of Elegance | Premium Men's Clothing Bangladesh",
@@ -79,6 +80,9 @@ export const metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'EYBYDML3ByTrxNcaszwRBGEOT3lSDwSXLJVkZvVN334',
   },
 };
 

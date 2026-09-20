@@ -7,15 +7,18 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/orders/track',
+        ],
         disallow: [
-          '/admin/',
           '/admin',
+          '/admin/',
           '/checkout',
           '/cart',
           '/profile',
+          '/orders$',
           '/orders/',
-          '/orders',
           '/api/',
           '/activate-account',
           '/set-password',
@@ -23,12 +26,17 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: [
+          '/',
+          '/orders/track',
+        ],
         disallow: [
+          '/admin',
           '/admin/',
           '/checkout',
           '/cart',
           '/profile',
+          '/orders$',
           '/orders/',
           '/api/',
         ],

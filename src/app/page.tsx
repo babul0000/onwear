@@ -12,6 +12,7 @@ import { formatPrice } from '../utils/format';
 import { getOptimizedImageUrl } from '../utils/image';
 import EcommerceHero from '../components/Hero/EcommerceHero';
 import SmartFitFinder from '../components/SmartFitFinder';
+import FAQSection from '../components/FAQSection';
 
 interface Category {
   id: string;
@@ -498,6 +499,9 @@ export default function Home() {
 
       {/* 6. SMART SIZE & FIT STUDIO */}
       <SmartFitFinder />
+
+      {/* 7. FREQUENTLY ASKED QUESTIONS & FAQ SCHEMA */}
+      <FAQSection />
     </div>
   );
 }
