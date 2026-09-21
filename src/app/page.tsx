@@ -13,6 +13,7 @@ import { getOptimizedImageUrl } from '../utils/image';
 import EcommerceHero from '../components/Hero/EcommerceHero';
 import SmartFitFinder from '../components/SmartFitFinder';
 import FAQSection from '../components/FAQSection';
+import CustomerReviewsSection from '../components/CustomerReviewsSection';
 
 interface Category {
   id: string;
@@ -314,9 +315,9 @@ export default function Home() {
                 href={`/products?category=${cat.slug}`}
                 className="group flex flex-col items-center gap-2"
               >
-                <div className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
+                <div className="relative aspect-[3/4] w-full bg-zinc-100 overflow-hidden border border-zinc-100 shadow-xs transition-all duration-300">
                   <Image
-                    src={cat.image || '/placeholder.svg'}
+                    src={getOptimizedImageUrl(cat.image, 400, 80)}
                     alt={cat.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
@@ -333,8 +334,7 @@ export default function Home() {
         )}
       </section>
 
-
-      {/* 5. NEW ARRIVALS GRID */}
+      {/* 4. NEW ARRIVALS GRID */}
       <section className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex flex-col gap-6 sm:gap-8">
         <div className="flex flex-col gap-4 sm:gap-5 border-b border-[#e6e6e6] pb-4">
           <div className="flex items-end justify-between">
@@ -418,13 +418,13 @@ export default function Home() {
                   {/* Image wrapper */}
                   <div 
                     onClick={() => router.push(`/products/${product.id}`)}
-                    className="relative aspect-[3/4] w-full bg-zinc-50 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
+                    className="relative aspect-[3/4] w-full bg-zinc-100 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
                     <Image
-                      src={product.image || '/placeholder.svg'}
+                      src={getOptimizedImageUrl(product.image, 600, 80)}
                       alt={product.name}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
                         hasTwoImages ? 'group-hover:opacity-0' : ''
                       }`}
@@ -432,10 +432,10 @@ export default function Home() {
                     
                     {hasTwoImages && (
                       <Image
-                        src={product.image2!}
+                        src={getOptimizedImageUrl(product.image2, 600, 80)}
                         alt={`${product.name} alternate`}
                         fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="object-cover opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-105"
                       />
                     )}
@@ -496,6 +496,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* 5. CUSTOMER REVIEWS & EXPERIENCES */}
+      <CustomerReviewsSection />
 
       {/* 6. SMART SIZE & FIT STUDIO */}
       <SmartFitFinder />

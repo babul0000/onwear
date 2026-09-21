@@ -127,7 +127,19 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   // Helper to parse description metadata
   const parseProductMetadata = (desc: string | null) => {
-    if (!desc) return { cleanDesc: '', brand: '', sizes: [], colors: [], fabric: '', care: '', sizeStock: {} as Record<string, number> };
+    if (!desc) {
+      return {
+        cleanDesc: '',
+        brand: '',
+        sizes: [] as string[],
+        colors: [] as string[],
+        fabric: '',
+        care: '',
+        sizeStock: {} as Record<string, number>,
+        variantStock: {} as Record<string, number>,
+        colorImages: {} as Record<string, string>,
+      };
+    }
     const parts = desc.split('---');
     const cleanDesc = parts[0]?.trim() || '';
     
@@ -137,13 +149,25 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     let fabric = '';
     let care = '';
     const sizeStock: Record<string, number> = {};
+    const variantStock: Record<string, number> = {};
+    const colorImages: Record<string, string> = {};
 
     const fullText = desc;
 
-    // Helper to parse stock tokens (e.g. S:10, M:0 or S(10), M(0))
+    // Helper to parse stock tokens (e.g. S:10, M:0 or BLACK-M:1, BROWN-M:0)
     const parseStockTokens = (raw: string) => {
       const tokens = raw.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
       for (const token of tokens) {
+        // Variant pattern: COLOR-SIZE:QTY or COLOR_SIZE:QTY (e.g. BLACK-M:1, BROWN-L:0)
+        const variantMatch = token.match(/^([A-Za-z0-9]+)[-_/]([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+        if (variantMatch) {
+          const col = variantMatch[1].trim().toUpperCase();
+          const sz = variantMatch[2].trim().toUpperCase();
+          const qty = parseInt(variantMatch[3], 10);
+          variantStock[`${col}-${sz}`] = qty;
+          continue;
+        }
+
         const colonMatch = token.match(/^([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
         if (colonMatch) {
           const sz = colonMatch[1].trim().toUpperCase();
@@ -158,10 +182,26 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       }
     };
 
-    // Check SizeStock: or VariantStock: anywhere in text
-    const sizeStockMatch = fullText.match(/(?:SizeStock|VariantStock):\s*([^\n\r]+)/i);
+    // Check VariantStock: or SizeStock: anywhere in text
+    const variantStockMatch = fullText.match(/(?:VariantStock):\s*([^\n\r]+)/i);
+    if (variantStockMatch && variantStockMatch[1]) {
+      parseStockTokens(variantStockMatch[1]);
+    }
+    const sizeStockMatch = fullText.match(/(?:SizeStock):\s*([^\n\r]+)/i);
     if (sizeStockMatch && sizeStockMatch[1]) {
       parseStockTokens(sizeStockMatch[1]);
+    }
+
+    // Check ColorImages: e.g. ColorImages: BLACK=url1, BROWN=url2
+    const colorImagesMatch = fullText.match(/ColorImages:\s*([^\n\r]+)/i);
+    if (colorImagesMatch && colorImagesMatch[1]) {
+      const tokens = colorImagesMatch[1].split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+      for (const token of tokens) {
+        const eqMatch = token.match(/^([A-Za-z0-9]+)\s*[:=]\s*(https?:\/\/[^\s,]+)$/i);
+        if (eqMatch) {
+          colorImages[eqMatch[1].trim().toUpperCase()] = eqMatch[2].trim();
+        }
+      }
     }
 
     if (parts.length > 1) {
@@ -199,9 +239,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       if (sizesMatch && sizesMatch[1]) {
         sizes = sizesMatch[1].split(',').map(s => s.trim().replace(/\(.*?\)/g, '')).filter(Boolean);
       }
+      const colorsMatch = fullText.match(/Colors:\s*([^\n\r]+)/i);
+      if (colorsMatch && colorsMatch[1]) {
+        colors = colorsMatch[1].split(',').map(c => c.trim()).filter(Boolean);
+      }
     }
 
-    return { cleanDesc, brand, sizes, colors, fabric, care, sizeStock };
+    return { cleanDesc, brand, sizes, colors, fabric, care, sizeStock, variantStock, colorImages };
   };
 
   const fetchProductDetails = async () => {
@@ -213,8 +257,26 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
       if (prodData.success) {
         setProduct(prodData.data);
+        const parsedMeta = parseProductMetadata(prodData.data.description);
         const imgs = extractGalleryImages(prodData.data);
-        if (imgs.length > 0) {
+        
+        // Auto-select initial color & image
+        const initialColor = parsedMeta.colors.length > 0 ? parsedMeta.colors[0] : '';
+        if (initialColor) {
+          setSelectedColor(initialColor);
+          const colUpper = initialColor.toUpperCase();
+          const colLower = initialColor.toLowerCase();
+          const explicitImg = parsedMeta.colorImages[colUpper] || parsedMeta.colorImages[colLower];
+          if (explicitImg) {
+            setSelectedImage(explicitImg);
+          } else if (imgs.length > 0) {
+            // Match by keyword or index
+            const matchedByUrl = imgs.find(img => img.toLowerCase().includes(colLower));
+            setSelectedImage(matchedByUrl || imgs[0]);
+          } else if (prodData.data.image) {
+            setSelectedImage(prodData.data.image);
+          }
+        } else if (imgs.length > 0) {
           setSelectedImage(imgs[0]);
         } else if (prodData.data.image) {
           setSelectedImage(prodData.data.image);
@@ -298,8 +360,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         setComment('');
         setRating(5);
         fetchProductDetails();
+        try {
+          localStorage.setItem('onwear_review_updated', Date.now().toString());
+          window.dispatchEvent(new Event('onwear_review_updated'));
+        } catch (e) {}
       } else {
-        setReviewError(data.message || 'Failed to submit review.');
+        const errorMsg = data.message?.includes('Unique constraint')
+          ? 'You have already submitted a review for this product.'
+          : (data.message || 'Failed to submit review.');
+        setReviewError(errorMsg);
       }
     } catch (err) {
       console.error('Error adding review:', err);
@@ -319,6 +388,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
       const data = await res.json();
       if (data.success) {
         fetchProductDetails();
+        try {
+          localStorage.setItem('onwear_review_updated', Date.now().toString());
+          window.dispatchEvent(new Event('onwear_review_updated'));
+        } catch (e) {}
       }
     } catch (err) {
       console.error('Error deleting review:', err);
@@ -392,14 +465,69 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const availableColors = meta.colors.length > 0 ? meta.colors : ['Black', 'White', 'Beige', 'Navy'];
   const availableSizes = meta.sizes.length > 0 ? meta.sizes : ['S', 'M', 'L', 'XL', 'XXL'];
 
-  const isSizeOutOfStock = (sz: string) => {
-    if (!product || product.stock === 0) return true;
-    const normalizedSz = sz.trim().toUpperCase();
-    const directStock = meta.sizeStock[sz];
-    const upperStock = meta.sizeStock[normalizedSz];
-    if (directStock !== undefined) return directStock <= 0;
-    if (upperStock !== undefined) return upperStock <= 0;
-    return false;
+  // Smart Helper to get image for a color
+  const getColorImage = (color: string): string | null => {
+    if (!color) return null;
+    const colUpper = color.trim().toUpperCase();
+    const colLower = color.trim().toLowerCase();
+
+    // 1. Explicit metadata mapping
+    if (meta.colorImages[colUpper]) return meta.colorImages[colUpper];
+    if (meta.colorImages[colLower]) return meta.colorImages[colLower];
+
+    // 2. Keyword in gallery image URL
+    const matchedByUrl = galleryImages.find((img) => img.toLowerCase().includes(colLower));
+    if (matchedByUrl) return matchedByUrl;
+
+    // 3. Positional mapping: match color index to gallery index
+    const colIdx = availableColors.findIndex((c) => c.toLowerCase() === colLower);
+    if (colIdx !== -1 && galleryImages[colIdx]) {
+      return galleryImages[colIdx];
+    }
+
+    return null;
+  };
+
+  // Stock count for size given the selected color
+  const getSizeStockCount = (sz: string, color?: string): number => {
+    if (!product || product.stock === 0) return 0;
+    const activeCol = (color || selectedColor || availableColors[0] || '').trim().toUpperCase();
+    const activeSz = sz.trim().toUpperCase();
+
+    // Variant matrix stock (e.g. BLACK-M)
+    const vKey = `${activeCol}-${activeSz}`;
+    if (meta.variantStock[vKey] !== undefined) {
+      return meta.variantStock[vKey];
+    }
+
+    // General size stock (e.g. M: 1)
+    if (meta.sizeStock[activeSz] !== undefined) {
+      return meta.sizeStock[activeSz];
+    }
+    if (meta.sizeStock[sz] !== undefined) {
+      return meta.sizeStock[sz];
+    }
+
+    return product.stock || 0;
+  };
+
+  const isSizeOutOfStock = (sz: string, color?: string) => {
+    return getSizeStockCount(sz, color) <= 0;
+  };
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+    const matchedImg = getColorImage(color);
+    if (matchedImg) {
+      setSelectedImage(matchedImg);
+    }
+    // If currently selected size is out of stock in this new color, auto-select first available size
+    if (selectedSize && isSizeOutOfStock(selectedSize, color)) {
+      const firstInStock = availableSizes.find((s) => !isSizeOutOfStock(s, color));
+      if (firstInStock) {
+        setSelectedSize(firstInStock);
+      }
+    }
   };
 
   const isSelectedSizeOutOfStock = selectedSize ? isSizeOutOfStock(selectedSize) : false;
@@ -413,7 +541,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     if (isSelectedSizeOutOfStock || isSoldOut) {
       return;
     }
-    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
+    const chosenColor = selectedColor || availableColors[0] || '';
+    const chosenImage = selectedImage || getColorImage(chosenColor) || product.image;
+    const cartProduct = { ...product, image: chosenImage };
+    const res = await addToCart(product.id, quantity, selectedSize, chosenColor, cartProduct);
     if (res.success) {
       openCartDrawer();
     }
@@ -428,7 +559,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     if (isSelectedSizeOutOfStock || isSoldOut) {
       return;
     }
-    const res = await addToCart(product.id, quantity, selectedSize, selectedColor, product);
+    const chosenColor = selectedColor || availableColors[0] || '';
+    const chosenImage = selectedImage || getColorImage(chosenColor) || product.image;
+    const cartProduct = { ...product, image: chosenImage };
+    const res = await addToCart(product.id, quantity, selectedSize, chosenColor, cartProduct);
     if (res.success) {
       router.push('/checkout');
     }
@@ -698,7 +832,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => handleColorSelect(color)}
                         title={color}
                         className={`group relative h-7 w-7 rounded-full transition-all cursor-pointer flex items-center justify-center p-0.5 border ${
                           isSelected ? 'ring-2 ring-black ring-offset-2 border-black' : 'border-zinc-300 hover:border-black'
@@ -977,128 +1111,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      {/* 3. RELATED PRODUCTS SECTION (Yellow Clothing Style Grid) */}
-      <section className="border-t border-[#e6e6e6] bg-[#fafafa] py-14 sm:py-18">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
-          
-          {/* Section Header */}
-          <div className="flex flex-col items-center text-center mb-10">
-            <span className="text-[11px] font-normal tracking-[0.1em] uppercase text-[#969696]">
-              Explore More from {product.category?.name || 'Collection'}
-            </span>
-            <h2 className="text-lg sm:text-xl font-normal tracking-[0.08em] uppercase text-[#232323] mt-1.5">
-              Related Products
-            </h2>
-            <div className="w-10 h-px bg-[#232323] mt-3" />
-          </div>
-
-          {/* Related Products Grid */}
-          {relatedLoading ? (
-            <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
-              {[...Array(4)].map((_, idx) => (
-                <div key={idx} className="animate-pulse flex flex-col gap-3 bg-white p-3 border border-[#e6e6e6]">
-                  <div className="aspect-[3/4] w-full bg-zinc-200"></div>
-                  <div className="h-3 w-2/3 bg-zinc-200"></div>
-                  <div className="h-3 w-1/3 bg-zinc-200"></div>
-                </div>
-              ))}
-            </div>
-          ) : relatedProducts.length === 0 ? (
-            <div className="text-center py-10 text-xs font-normal uppercase tracking-widest text-[#969696]">
-              No other products currently available in this category.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
-              {relatedProducts.map((relProd) => {
-                const relDiscount = relProd.discountPrice !== null && relProd.discountPrice !== undefined;
-                const relCurrentPrice = relDiscount ? relProd.discountPrice : relProd.price;
-                const relIsWished = isInWishlist(relProd.id);
-                const relSoldOut = relProd.stock === 0;
-
-                return (
-                  <div
-                    key={relProd.id}
-                    className="group relative flex flex-col bg-white border border-[#e6e6e6] transition-all duration-300 hover:shadow-xs"
-                  >
-                    {/* Wishlist Button */}
-                    <button
-                      type="button"
-                      onClick={() => addToWishlist(relProd.id, relProd)}
-                      className={`absolute right-2.5 top-2.5 z-10 p-1.5 border border-[#e6e6e6] bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer shadow-xs ${
-                        relIsWished ? 'text-red-500' : 'text-[#727272] hover:text-red-500'
-                      }`}
-                      title="Wishlist"
-                    >
-                      <Heart className="h-3.5 w-3.5" fill={relIsWished ? 'currentColor' : 'none'} />
-                    </button>
-
-                    {/* Image Container with 3:4 aspect ratio and hover image swap */}
-                    <Link href={`/products/${relProd.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
-                      {/* Primary Image */}
-                      <img
-                        src={getOptimizedImageUrl(relProd.image, 450)}
-                        alt={relProd.name}
-                        loading="lazy"
-                        decoding="async"
-                        className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
-                          relSoldOut ? 'opacity-50' : relProd.image2 ? 'group-hover:opacity-0' : ''
-                        }`}
-                      />
-
-                      {/* Secondary Image */}
-                      {!relSoldOut && relProd.image2 && (
-                        <img
-                          src={getOptimizedImageUrl(relProd.image2, 450)}
-                          alt={`${relProd.name} Alternate`}
-                          loading="lazy"
-                          decoding="async"
-                          className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-105"
-                        />
-                      )}
-
-                      {/* Sale / Sold Out Badge */}
-                      {relSoldOut ? (
-                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#232323] px-2 py-0.5 text-[8px] font-normal text-white tracking-widest uppercase">
-                          Sold Out
-                        </span>
-                      ) : relDiscount ? (
-                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#e95144] text-white text-[8px] font-normal tracking-wider uppercase px-2 py-0.5">
-                          Sale
-                        </span>
-                      ) : null}
-                    </Link>
-
-                    {/* Product Details info in Poppins */}
-                    <div className="p-3.5 flex flex-col gap-1">
-                      <Link 
-                        href={`/products/${relProd.id}`}
-                        className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-zinc-600 transition-colors truncate block"
-                        title={relProd.name}
-                      >
-                        {relProd.name}
-                      </Link>
-
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xs sm:text-sm font-medium text-[#232323]">
-                          {formatPrice(relCurrentPrice)}
-                        </span>
-                        {relDiscount && (
-                          <span className="text-[11px] font-normal text-[#969696] line-through">
-                            {formatPrice(relProd.price)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-        </div>
-      </section>
-
-      {/* 4. CUSTOMER REVIEWS SECTION */}
+      {/* 3. CUSTOMER REVIEWS & RATINGS SECTION */}
       <section id="customer-reviews" className="border-t border-[#e6e6e6] bg-white py-14 sm:py-18">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           
@@ -1227,6 +1240,127 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
           </div>
+
+        </div>
+      </section>
+
+      {/* 4. RELATED PRODUCTS SECTION (Yellow Clothing Style Grid) */}
+      <section className="border-t border-[#e6e6e6] bg-[#fafafa] py-14 sm:py-18">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+          
+          {/* Section Header */}
+          <div className="flex flex-col items-center text-center mb-10">
+            <span className="text-[11px] font-normal tracking-[0.1em] uppercase text-[#969696]">
+              Explore More from {product.category?.name || 'Collection'}
+            </span>
+            <h2 className="text-lg sm:text-xl font-normal tracking-[0.08em] uppercase text-[#232323] mt-1.5">
+              Related Products
+            </h2>
+            <div className="w-10 h-px bg-[#232323] mt-3" />
+          </div>
+
+          {/* Related Products Grid */}
+          {relatedLoading ? (
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
+              {[...Array(4)].map((_, idx) => (
+                <div key={idx} className="animate-pulse flex flex-col gap-3 bg-white p-3 border border-[#e6e6e6]">
+                  <div className="aspect-[3/4] w-full bg-zinc-200"></div>
+                  <div className="h-3 w-2/3 bg-zinc-200"></div>
+                  <div className="h-3 w-1/3 bg-zinc-200"></div>
+                </div>
+              ))}
+            </div>
+          ) : relatedProducts.length === 0 ? (
+            <div className="text-center py-10 text-xs font-normal uppercase tracking-widest text-[#969696]">
+              No other products currently available in this category.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
+              {relatedProducts.map((relProd) => {
+                const relDiscount = relProd.discountPrice !== null && relProd.discountPrice !== undefined;
+                const relCurrentPrice = relDiscount ? relProd.discountPrice : relProd.price;
+                const relIsWished = isInWishlist(relProd.id);
+                const relSoldOut = relProd.stock === 0;
+
+                return (
+                  <div
+                    key={relProd.id}
+                    className="group relative flex flex-col bg-white border border-[#e6e6e6] transition-all duration-300 hover:shadow-xs"
+                  >
+                    {/* Wishlist Button */}
+                    <button
+                      type="button"
+                      onClick={() => addToWishlist(relProd.id, relProd)}
+                      className={`absolute right-2.5 top-2.5 z-10 p-1.5 border border-[#e6e6e6] bg-white/90 backdrop-blur-xs hover:scale-105 transition-transform cursor-pointer shadow-xs ${
+                        relIsWished ? 'text-red-500' : 'text-[#727272] hover:text-red-500'
+                      }`}
+                      title="Wishlist"
+                    >
+                      <Heart className="h-3.5 w-3.5" fill={relIsWished ? 'currentColor' : 'none'} />
+                    </button>
+
+                    {/* Image Container with 3:4 aspect ratio and hover image swap */}
+                    <Link href={`/products/${relProd.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
+                      {/* Primary Image */}
+                      <img
+                        src={getOptimizedImageUrl(relProd.image, 450)}
+                        alt={relProd.name}
+                        loading="lazy"
+                        decoding="async"
+                        className={`h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
+                          relSoldOut ? 'opacity-50' : relProd.image2 ? 'group-hover:opacity-0' : ''
+                        }`}
+                      />
+
+                      {/* Secondary Image */}
+                      {!relSoldOut && relProd.image2 && (
+                        <img
+                          src={getOptimizedImageUrl(relProd.image2, 450)}
+                          alt={`${relProd.name} Alternate`}
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full object-cover opacity-0 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-105"
+                        />
+                      )}
+
+                      {/* Sale / Sold Out Badge */}
+                      {relSoldOut ? (
+                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#232323] px-2 py-0.5 text-[8px] font-normal text-white tracking-widest uppercase">
+                          Sold Out
+                        </span>
+                      ) : relDiscount ? (
+                        <span className="absolute left-2.5 top-2.5 z-10 bg-[#e95144] text-white text-[8px] font-normal tracking-wider uppercase px-2 py-0.5">
+                          Sale
+                        </span>
+                      ) : null}
+                    </Link>
+
+                    {/* Product Details info in Poppins */}
+                    <div className="p-3.5 flex flex-col gap-1">
+                      <Link 
+                        href={`/products/${relProd.id}`}
+                        className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-zinc-600 transition-colors truncate block"
+                        title={relProd.name}
+                      >
+                        {relProd.name}
+                      </Link>
+
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs sm:text-sm font-medium text-[#232323]">
+                          {formatPrice(relCurrentPrice)}
+                        </span>
+                        {relDiscount && (
+                          <span className="text-[11px] font-normal text-[#969696] line-through">
+                            {formatPrice(relProd.price)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         </div>
       </section>

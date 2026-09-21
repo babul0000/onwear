@@ -66,6 +66,7 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     { name: 'Magenta', code: '#E63970' }
   ]);
   const [variantEdits, setVariantEdits] = useState<Record<string, { sku: string; price: string; stock: string }>>({});
+  const [colorImages, setColorImages] = useState<Record<string, string>>({});
 
   // Image Gallery states
   const [galleryUrlInput, setGalleryUrlInput] = useState('');
@@ -392,6 +393,31 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
       ? `SizeStock: ${Object.entries(sizeStockMap).map(([sz, stk]) => `${sz}:${stk}`).join(', ')}`
       : '';
 
+    // Extract VariantStock per color and size combination
+    const variantStockTokens: string[] = [];
+    for (const [key, val] of Object.entries(variantEdits)) {
+      if (val.sku !== 'EXCLUDED') {
+        const parsed = parseInt(val.stock);
+        if (!isNaN(parsed)) {
+          variantStockTokens.push(`${key.toUpperCase()}:${parsed}`);
+        }
+      }
+    }
+    const variantStockLine = variantStockTokens.length > 0
+      ? `VariantStock: ${variantStockTokens.join(', ')}`
+      : '';
+
+    // Extract Color to Image mappings
+    const colorImageTokens: string[] = [];
+    for (const [col, url] of Object.entries(colorImages)) {
+      if (url && typeof url === 'string' && url.trim()) {
+        colorImageTokens.push(`${col.toUpperCase()}=${url.trim()}`);
+      }
+    }
+    const colorImagesLine = colorImageTokens.length > 0
+      ? `ColorImages: ${colorImageTokens.join(', ')}`
+      : '';
+
     // Serialize metadata details in product description
     const finalDescription = `
 ${description}
@@ -400,8 +426,8 @@ ${description}
 Brand: ${brand}
 Short Description: ${shortDescription}
 Sizes: ${sizes.join(', ')}
-${sizeStockLine ? sizeStockLine + '\n' : ''}Colors: ${colors.map(c => c.name).join(', ')}
-Images: ${gallery.join(', ')}
+${sizeStockLine ? sizeStockLine + '\n' : ''}${variantStockLine ? variantStockLine + '\n' : ''}Colors: ${colors.map(c => c.name).join(', ')}
+${colorImagesLine ? colorImagesLine + '\n' : ''}Images: ${gallery.join(', ')}
 Tags: ${tags.join(', ')}
 Weight: ${weight} kg
 Dimensions: ${dimensions}
@@ -549,6 +575,9 @@ Free Shipping: ${freeShipping ? 'Yes' : 'No'}
             variantEdits={variantEdits}
             onVariantChange={handleVariantChange}
             onRemoveVariant={handleRemoveVariant}
+            gallery={gallery}
+            colorImages={colorImages}
+            onColorImageChange={(col, url) => setColorImages(prev => ({ ...prev, [col.toUpperCase()]: url }))}
           />
         </div>
 

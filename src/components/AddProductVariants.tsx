@@ -24,6 +24,9 @@ interface AddProductVariantsProps {
   variantEdits: Record<string, { sku: string; price: string; stock: string }>;
   onVariantChange: (key: string, field: 'sku' | 'price' | 'stock', value: string) => void;
   onRemoveVariant: (key: string) => void;
+  gallery?: string[];
+  colorImages?: Record<string, string>;
+  onColorImageChange?: (colorName: string, imageUrl: string) => void;
 }
 
 export default function AddProductVariants({
@@ -41,7 +44,10 @@ export default function AddProductVariants({
   basePrice,
   variantEdits,
   onVariantChange,
-  onRemoveVariant
+  onRemoveVariant,
+  gallery = [],
+  colorImages = {},
+  onColorImageChange
 }: AddProductVariantsProps) {
   
   const getVariantsList = () => {
@@ -134,6 +140,36 @@ export default function AddProductVariants({
             onKeyDown={onAddColor}
             className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 transition-all outline-none"
           />
+
+          {/* Color to Photo Mapping */}
+          {colors.length > 0 && gallery && gallery.length > 0 && (
+            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-zinc-100">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Color to Photo Mapping:</span>
+              <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+                {colors.map((c) => {
+                  const selectedImg = colorImages[c.name.toUpperCase()] || colorImages[c.name] || '';
+                  return (
+                    <div key={c.name} className="flex items-center justify-between gap-2 p-1.5 border border-zinc-200 rounded-lg bg-white">
+                      <div className="flex items-center gap-1.5 min-w-[70px]">
+                        <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.code }} />
+                        <span className="text-[11px] font-bold text-zinc-700 truncate">{c.name}</span>
+                      </div>
+                      <select
+                        value={selectedImg}
+                        onChange={(e) => onColorImageChange && onColorImageChange(c.name, e.target.value)}
+                        className="text-[10px] border border-zinc-200 rounded p-1 bg-zinc-50 flex-1 max-w-[150px] truncate outline-none"
+                      >
+                        <option value="">Auto (Default Image)</option>
+                        {gallery.map((url, imgIdx) => (
+                          <option key={imgIdx} value={url}>Photo #{imgIdx + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

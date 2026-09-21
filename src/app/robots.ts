@@ -10,6 +10,15 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/orders/track',
+          '/favicon.ico',
+          '/favicon-48x48.png',
+          '/favicon-96x96.png',
+          '/icon-192.png',
+          '/icon-512.png',
+          '/icon.svg',
+          '/apple-icon.png',
+          '/site.webmanifest',
+          '/manifest.json',
         ],
         disallow: [
           '/admin',
@@ -29,6 +38,15 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/orders/track',
+          '/favicon.ico',
+          '/favicon-48x48.png',
+          '/favicon-96x96.png',
+          '/icon-192.png',
+          '/icon-512.png',
+          '/icon.svg',
+          '/apple-icon.png',
+          '/site.webmanifest',
+          '/manifest.json',
         ],
         disallow: [
           '/admin',

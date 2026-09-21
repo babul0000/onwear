@@ -38,12 +38,18 @@ export default function AdminReviewsPage() {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`${API_URL}/reviews?includeDeleted=true`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(`${API_URL}/reviews?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache'
+        }
       });
       const data = await res.json();
-      if (data.success) {
-        setReviews(data.data);
+      if (data.success && Array.isArray(data.data)) {
+        // Exclude any deleted reviews completely
+        setReviews(data.data.filter((r: Review) => !r.isDeleted));
       }
     } catch (err) {
       console.error('Error fetching admin reviews:', err);
@@ -66,20 +72,26 @@ export default function AdminReviewsPage() {
 
   const handleConfirmDelete = async () => {
     if (!token || !reviewToDelete) return;
+    const deletedId = reviewToDelete.id;
     setDeleting(true);
     setMessage(null);
 
     try {
-      const res = await fetch(`${API_URL}/reviews/${reviewToDelete.id}`, {
+      const res = await fetch(`${API_URL}/reviews/${deletedId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
 
       if (data.success) {
-        setMessage({ type: 'success', text: 'Review removed successfully!' });
+        setMessage({ type: 'success', text: 'Review permanently removed successfully!' });
+        // Immediately remove from UI list
+        setReviews((prev) => prev.filter((r) => r.id !== deletedId));
         setReviewToDelete(null);
-        fetchReviews();
+        try {
+          localStorage.setItem('onwear_review_updated', Date.now().toString());
+          window.dispatchEvent(new Event('onwear_review_updated'));
+        } catch (e) {}
       } else {
         setMessage({ type: 'error', text: data.message || 'Failed to delete review' });
       }

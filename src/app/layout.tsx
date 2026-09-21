@@ -57,9 +57,9 @@ export const metadata: Metadata = {
     description: "Shop premium men's clothing, designer panjabi, shirts, and trousers at ONWEAR Bangladesh. Fast nationwide doorstep delivery.",
     images: [
       {
-        url: "https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg",
-        width: 1200,
-        height: 630,
+        url: "https://www.onwearbd.com/logo.jpg",
+        width: 1024,
+        height: 1024,
         alt: "ONWEAR - Unique Way of Elegance"
       }
     ]
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ONWEAR - Unique Way of Elegance | Premium Men's Fashion",
     description: "Premium men's clothing brand in Bangladesh. Discover signature shirts, panjabi & pants.",
-    images: ["https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg"]
+    images: ["https://www.onwearbd.com/logo.jpg"]
   },
   robots: {
     index: true,
@@ -87,12 +87,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
       { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
     ],
+    shortcut: ['/favicon.ico'],
   },
+  manifest: '/site.webmanifest',
 };
 
 const organizationJsonLd = {
@@ -101,7 +106,8 @@ const organizationJsonLd = {
   name: 'ONWEAR',
   legalName: 'ONWEAR Official',
   url: 'https://www.onwearbd.com',
-  logo: 'https://i.ibb.co/HTB1fbYf/On-Wear-unique-way-of-elegance-1-jpg-2.jpg',
+  logo: 'https://www.onwearbd.com/logo.jpg',
+  image: 'https://www.onwearbd.com/logo.jpg',
   description: "Unique way of elegance - Premium Men's Fashion & Lifestyle Brand in Bangladesh",
   telephone: '+8801603742963',
   email: 'onwear.25@gmail.com',
@@ -153,6 +159,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://onwear-server.onrender.com" />
+        {/* Favicon & Web App Icons */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         {/* Schema.org Structured Data */}
         <script
           type="application/ld+json"

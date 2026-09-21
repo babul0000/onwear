@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { getOptimizedImageUrl } from '../../utils/image';
 
 interface HeroSlideProps {
   imageUrl: string;
@@ -26,6 +27,7 @@ export default function HeroSlide({
   children,
 }: HeroSlideProps) {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Reset offset if slide becomes inactive
   useEffect(() => {
@@ -49,12 +51,13 @@ export default function HeroSlide({
 
   const posX = typeof positionX === 'number' ? positionX : 50;
   const posY = typeof positionY === 'number' ? positionY : 50;
+  const optimizedUrl = getOptimizedImageUrl(imageUrl, isMobile ? 900 : 1800, 85);
 
   return (
     <div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-out select-none ${
+      className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-out select-none bg-zinc-950 ${
         isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
       }`}
     >
@@ -73,16 +76,18 @@ export default function HeroSlide({
         className="absolute inset-0 w-full h-full origin-center will-change-transform"
       >
         <Image
-          src={imageUrl}
+          src={optimizedUrl}
           alt={title}
           fill
           priority={priority}
-          unoptimized
           sizes="100vw"
+          onLoad={() => setIsLoaded(true)}
           style={{
             objectPosition: `${posX}% ${posY}%`,
           }}
-          className="object-cover pointer-events-none"
+          className={`object-cover pointer-events-none transition-opacity duration-500 ease-out ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
       </motion.div>
 

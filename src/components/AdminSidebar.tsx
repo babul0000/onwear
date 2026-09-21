@@ -8,7 +8,7 @@ import {
   Store, LayoutDashboard, ShoppingBag, FolderTree, 
   Receipt, Users, ArrowRightLeft, Truck, Tag, Landmark, 
   BarChart3, Settings, ShoppingCart, ChevronDown, ChevronUp, 
-  Sliders, Percent, LogOut, Megaphone, X
+  Sliders, Percent, LogOut, Megaphone, X, MessageSquare
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -169,6 +169,20 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             </div>
           )}
         </div>
+
+        {/* Customer Reviews Direct Link */}
+        <Link
+          href="/admin/reviews"
+          onClick={onClose}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all ${
+            pathname === '/admin/reviews' 
+              ? 'bg-zinc-950 text-white shadow-md font-extrabold' 
+              : 'text-zinc-500 hover:bg-zinc-100/70 hover:text-zinc-950'
+          }`}
+        >
+          <MessageSquare className="h-4.5 w-4.5 text-zinc-400 shrink-0" />
+          <span>Customer Reviews</span>
+        </Link>
 
         {/* Data Dropdown */}
         <div className="space-y-0.5">

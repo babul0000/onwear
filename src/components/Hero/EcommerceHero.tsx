@@ -165,9 +165,9 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
 
   const defaultSlides: SlideData[] = [
     {
-      id: '3733f754-de61-475d-950d-03ae81e6733a',
+      id: '7edc19f5-1a82-4ae6-ba89-114b6709f526',
       title: 'Hero Slide 2',
-      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789660522/onwear/hero_slides/mmv4vk4xjbyuvw7wh5kq.webp',
+      imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789705605/onwear/hero_slides/dfot7bsi5uhbnmqzydpj.jpg',
       linkUrl: '/products?category=denim',
       positionX: 75,
       positionY: 41,
@@ -175,7 +175,20 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
   ];
 
   // Slides State - Initialized safely with defaultSlides to match SSR
-  const [slides, setSlides] = useState<SlideData[]>(defaultSlides);
+  const [slides, setSlides] = useState<SlideData[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('onwear_hero_slides');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (_) {}
+    }
+    return defaultSlides;
+  });
   const [editSlides, setEditSlides] = useState<SlideData[]>([]);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   
@@ -202,26 +215,21 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch Hero Slides and sync with localStorage cache
+  // Fetch Hero Slides and sync with localStorage cache smoothly
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem('onwear_hero_slides');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSlides(parsed);
-        }
-      }
-    } catch (e) {}
-
     async function loadSlides() {
       try {
         const res = await fetch(`${API_URL}/promotions/hero-slides`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setSlides(data.data);
+          const newSlides = data.data;
+          // Compare with current slides to avoid unnecessary flash / rerender
+          const isSame = JSON.stringify(newSlides) === JSON.stringify(slides);
+          if (!isSame) {
+            setSlides(newSlides);
+          }
           try {
-            localStorage.setItem('onwear_hero_slides', JSON.stringify(data.data));
+            localStorage.setItem('onwear_hero_slides', JSON.stringify(newSlides));
           } catch (e) {}
         }
       } catch (err) {
@@ -229,7 +237,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
       }
     }
     loadSlides();
-  }, []);
+  }, [slides]);
 
   // Scroll scale-down transition for the last slide (if multi-slide)
   useEffect(() => {

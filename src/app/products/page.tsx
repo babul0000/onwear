@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../config';
 import { Search, SlidersHorizontal, ShoppingBag, Heart, Star, Check } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+import { getOptimizedImageUrl } from '../../utils/image';
 
 const COLOR_MAP: Record<string, string> = {
   black: 'bg-zinc-950 border-zinc-950',
@@ -649,7 +650,7 @@ function ProductsPageContent() {
                       <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
                         {/* Primary Image */}
                         <img
-                          src={prod.image || '/placeholder.svg'}
+                          src={getOptimizedImageUrl(prod.image, 600, 80)}
                           alt={prod.name}
                           loading="lazy"
                           decoding="async"
@@ -661,7 +662,7 @@ function ProductsPageContent() {
                         {/* Secondary Image */}
                         {!isSoldOut && prod.image2 && (
                           <img
-                            src={prod.image2}
+                            src={getOptimizedImageUrl(prod.image2, 600, 80)}
                             alt={`${prod.name} Alternate`}
                             loading="lazy"
                             decoding="async"
