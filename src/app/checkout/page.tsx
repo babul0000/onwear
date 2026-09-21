@@ -5,8 +5,9 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../config';
-import { CreditCard, ShoppingBag, Truck, Check, Percent, CheckCircle2, ArrowRight, ShieldCheck, Mail, Copy, Smartphone } from 'lucide-react';
+import { CreditCard, ShoppingBag, Truck, Check, Percent, CheckCircle2, ArrowRight, ShieldCheck, Mail, Copy, Smartphone, MapPin, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+import { BANGLADESH_DISTRICTS, DHAKA_AREAS, detectOutsideDhakaMatch } from '../../utils/bangladeshLocations';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
@@ -19,9 +20,10 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [district, setDistrict] = useState('dhaka'); // Default to Dhaka
+  const [dhakaArea, setDhakaArea] = useState('mirpur'); // Default to Dhaka City
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  const [zone, setZone] = useState('inside'); // default to inside Dhaka
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BKASH' | 'NAGAD' | 'ONLINE'>('COD');
   const [paymentPhone, setPaymentPhone] = useState('');
@@ -34,7 +36,6 @@ export default function CheckoutPage() {
   const [whatsappNumber, setWhatsappNumber] = useState('8801603742963');
 
   // Dynamic Shipping Rates States
-  const [shippingCost, setShippingCost] = useState(80);
   const [insideRate, setInsideRate] = useState(80);
   const [outsideRate, setOutsideRate] = useState(150);
   const [freeShippingMinAmount, setFreeShippingMinAmount] = useState(2500);
@@ -85,7 +86,6 @@ export default function CheckoutPage() {
         if (ratesData.success) {
           setInsideRate(ratesData.data.insideDhaka);
           setOutsideRate(ratesData.data.outsideDhaka);
-          setShippingCost(ratesData.data.insideDhaka);
           if (ratesData.data.freeShippingMinAmount) {
             setFreeShippingMinAmount(ratesData.data.freeShippingMinAmount);
           }
@@ -119,8 +119,15 @@ export default function CheckoutPage() {
     return acc + price * item.quantity;
   }, 0);
 
+  // Derived Zone, Sub-urban, and Delivery Rates
+  const currentAreaObj = district === 'dhaka' ? DHAKA_AREAS.find((a) => a.id === dhakaArea) : null;
+  const isDhakaSubUrban = Boolean(currentAreaObj?.isSubUrban);
+  const detectedOutsideKeyword = (district === 'dhaka' && !isDhakaSubUrban) ? detectOutsideDhakaMatch(address) : null;
+  const isOutsideDelivery = district !== 'dhaka' || isDhakaSubUrban || Boolean(detectedOutsideKeyword);
+  const computedShippingRate = isOutsideDelivery ? outsideRate : insideRate;
+
   const isFreeShipping = freeShippingMinAmount > 0 && cartSubtotal >= freeShippingMinAmount;
-  const effectiveShippingCost = isFreeShipping ? 0 : shippingCost;
+  const effectiveShippingCost = isFreeShipping ? 0 : computedShippingRate;
   const grandTotal = Math.max(0, cartSubtotal - discountApplied + effectiveShippingCost);
 
   // If order was just placed, render celebratory success card
@@ -244,14 +251,12 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedZone = e.target.value;
-    setZone(selectedZone);
-    if (selectedZone === 'inside') {
-      setShippingCost(insideRate);
-    } else {
-      setShippingCost(outsideRate);
-    }
+  const handleDistrictChange = (newDistrict: string) => {
+    setDistrict(newDistrict);
+  };
+
+  const handleDhakaAreaChange = (newArea: string) => {
+    setDhakaArea(newArea);
   };
 
   const handleApplyCoupon = async (e: React.MouseEvent) => {
@@ -344,7 +349,10 @@ export default function CheckoutPage() {
       }
     }
 
-    const shippingAddress = `${address}${city ? `, ${city}` : ''}${postalCode ? ` - ${postalCode}` : ''} (${zone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka'})`;
+    const currentDistObj = BANGLADESH_DISTRICTS.find((d) => d.id === district);
+    const districtDisplay = currentDistObj ? `${currentDistObj.nameEn} (${currentDistObj.nameBn})` : (city || 'Dhaka');
+    const areaDisplay = district === 'dhaka' && currentAreaObj ? `, Area: ${currentAreaObj.nameEn}` : (city ? `, Area/Thana: ${city}` : '');
+    const shippingAddress = `${address.trim()}, District: ${districtDisplay}${areaDisplay}${postalCode ? ` - Postcode: ${postalCode}` : ''} (${isOutsideDelivery ? 'Outside Dhaka' : 'Inside Dhaka'})`;
 
     // Map checkout items array
     const checkoutItemsPayload = items.map((item: any) => ({
@@ -370,7 +378,7 @@ export default function CheckoutPage() {
           email: email.trim(),
           phone: phone.trim(),
           shippingAddress,
-          zone,
+          zone: isOutsideDelivery ? 'outside' : 'inside',
           items: checkoutItemsPayload,
           note: note || undefined,
           couponCode: appliedCoupon || undefined,
@@ -524,43 +532,162 @@ export default function CheckoutPage() {
               />
             </div>
 
+            {/* 1. District Selector (All 64 Districts of Bangladesh) */}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Delivery Zone *</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 text-teal-600" />
+                  <span>District / জেলা *</span>
+                </label>
+                <span className={`text-[10px] font-black font-mono px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  !isOutsideDelivery 
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}>
+                  {!isOutsideDelivery ? `Inside Dhaka (${formatPrice(insideRate)})` : `Outside Dhaka (${formatPrice(outsideRate)})`}
+                </span>
+              </div>
               <select
-                value={zone}
-                onChange={handleZoneChange}
+                value={district}
+                onChange={(e) => handleDistrictChange(e.target.value)}
                 className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-semibold cursor-pointer"
               >
-                <option value="inside">Inside Dhaka ({formatPrice(insideRate)})</option>
-                <option value="outside">Outside Dhaka ({formatPrice(outsideRate)})</option>
+                <optgroup label="Dhaka Division (ঢাকা বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Dhaka').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Chattogram Division (চট্টগ্রাম বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Chattogram').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Sylhet Division (সিলেট বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Sylhet').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Rajshahi Division (রাজশাহী বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Rajshahi').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Khulna Division (খুলনা বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Khulna').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Barishal Division (বরিশাল বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Barishal').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Rangpur Division (রংপুর বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Rangpur').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Mymensingh Division (ময়মনসিংহ বিভাগ)">
+                  {BANGLADESH_DISTRICTS.filter((d) => d.division === 'Mymensingh').map((d) => (
+                    <option key={d.id} value={d.id}>{d.nameBn} ({d.nameEn})</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
+            {/* 2. Dhaka Area Selector (if Dhaka) OR Thana/Upazila text input (if Outside Dhaka) */}
+            {district === 'dhaka' ? (
+              <div className="flex flex-col gap-1.5 sm:col-span-2 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Dhaka Area / থানা *</label>
+                  {isDhakaSubUrban && (
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      সাব-ঢাকা ডেলিভারি ({formatPrice(outsideRate)})
+                    </span>
+                  )}
+                </div>
+                <select
+                  value={dhakaArea}
+                  onChange={(e) => handleDhakaAreaChange(e.target.value)}
+                  className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-semibold cursor-pointer"
+                >
+                  <optgroup label="Dhaka City (ঢাকা সিটি - ৳80 ডেলিভারি)">
+                    {DHAKA_AREAS.filter((a) => !a.isSubUrban).map((a) => (
+                      <option key={a.id} value={a.id}>{a.nameBn} ({a.nameEn})</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Sub-urban Dhaka (ঢাকার বাইরে/সাব-ঢাকা - ৳150 ডেলিভারি)">
+                    {DHAKA_AREAS.filter((a) => a.isSubUrban).map((a) => (
+                      <option key={a.id} value={a.id}>{a.nameBn} ({a.nameEn})</option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5 sm:col-span-2 animate-in fade-in duration-150">
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Thana / Upazila / Area (থানা / উপজেলা) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Panchlaish, Agrabad, Kotwali, etc."
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
+                />
+              </div>
+            )}
+
+            {/* 3. Delivery Charge Live Visual Badge */}
+            <div className={`sm:col-span-2 p-3.5 rounded-2xl border flex items-center justify-between text-xs transition-all ${
+              !isOutsideDelivery 
+                ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' 
+                : 'bg-amber-50/60 border-amber-200 text-amber-900'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <Truck className={`h-4 w-4 shrink-0 ${!isOutsideDelivery ? 'text-emerald-600' : 'text-amber-600'}`} />
+                <div>
+                  <span className="font-bold block">
+                    {!isOutsideDelivery ? 'ঢাকা সিটির ভেতরে হোম ডেলিভারি' : 'ঢাকার বাইরে সারা বাংলাদেশে হোম ডেলিভারি'}
+                  </span>
+                  <span className="text-[10px] opacity-75">
+                    {!isOutsideDelivery ? 'সাধারণত ২৪-৪৮ ঘণ্টার মধ্যে ডেলিভারি' : 'সাধারণত ২-৪ কার্যদিবসের মধ্যে ডেলিভারি'}
+                  </span>
+                </div>
+              </div>
+              <span className="font-black font-mono text-sm">
+                {isFreeShipping ? 'FREE' : formatPrice(computedShippingRate)}
+              </span>
+            </div>
+
+            {/* 4. Street Address & Realtime Keyword Detection */}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Street Address *</label>
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Full Delivery Address (সম্পূর্ণ ঠিকানা) *</label>
               <textarea
                 required
                 rows={3}
-                placeholder="House #, Road #, Area, District"
+                placeholder="House #, Road #, Area, Landmark / সম্পূর্ণ ঠিকানা..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
               />
+              {detectedOutsideKeyword && (
+                <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-900 shadow-xs animate-in fade-in duration-200 mt-1">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="flex-1 flex flex-col gap-1">
+                    <p className="font-bold text-amber-950">
+                      ঠিকানায় &ldquo;{detectedOutsideKeyword}&rdquo; পাওয়া গেছে (ঢাকার বাইরে)।
+                    </p>
+                    <p className="text-[11px] text-amber-800 leading-snug">
+                      যেহেতু আপনার ঠিকানাটি ঢাকার বাইরে, তাই ডেলিভারি চার্জ অটোমেটিক ঢাকার বাইরে ({formatPrice(outsideRate)}) নির্ধারিত হয়েছে।
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">City / District</label>
-              <input
-                type="text"
-                placeholder="e.g. Dhaka"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="rounded-2xl border border-zinc-200 p-3.5 text-base sm:text-sm bg-zinc-50 focus:bg-white focus:outline-none focus:border-zinc-950 font-medium"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Postal Code</label>
+            {/* 5. Postal Code */}
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Postal Code (Optional)</label>
               <input
                 type="text"
                 placeholder="e.g. 1229"
@@ -900,13 +1027,13 @@ export default function CheckoutPage() {
               <span className="font-mono font-bold text-zinc-900">{formatPrice(cartSubtotal)}</span>
             </div>
             <div className="flex justify-between text-zinc-500 items-center">
-              <span>Shipping ({zone === 'inside' ? 'Dhaka' : 'Outside'})</span>
+              <span>Shipping ({!isOutsideDelivery ? 'Inside Dhaka' : 'Outside Dhaka'})</span>
               {isFreeShipping ? (
                 <span className="font-mono font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px] uppercase tracking-wider">
                   FREE DELIVERY
                 </span>
               ) : (
-                <span className="font-mono font-bold text-zinc-900">{formatPrice(shippingCost)}</span>
+                <span className="font-mono font-bold text-zinc-900">{formatPrice(computedShippingRate)}</span>
               )}
             </div>
             {discountApplied > 0 && (
