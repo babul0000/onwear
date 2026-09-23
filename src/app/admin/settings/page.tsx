@@ -8,7 +8,7 @@ import { API_URL } from '../../../config';
 import { 
   Settings, Save, Globe, Phone, Mail, MapPin, 
   Truck, Upload, Loader2, Sparkles, Image as ImageIcon,
-  Bell, Smartphone, Layers, CheckCircle2, Ruler
+  Bell, Smartphone, Layers, CheckCircle2, Ruler, ShieldCheck
 } from 'lucide-react';
 import SizeGuideModal from '../../../components/SizeGuideModal';
 
@@ -38,6 +38,15 @@ export default function AdminSettingsPage() {
   const [bkashNumber, setBkashNumber] = useState('01603742963');
   const [nagadNumber, setNagadNumber] = useState('01603742963');
   const [whatsappNumber, setWhatsappNumber] = useState('8801603742963');
+
+  // Advance Courier Payment Policy
+  const [advanceCourierEnabled, setAdvanceCourierEnabled] = useState<boolean>(true);
+  const [advanceCourierScope, setAdvanceCourierScope] = useState<string>('OUTSIDE_DHAKA_ONLY');
+  const [advanceCourierAmountType, setAdvanceCourierAmountType] = useState<string>('EXACT_DELIVERY_CHARGE');
+  const [advanceCourierFixedAmount, setAdvanceCourierFixedAmount] = useState<number>(150);
+  const [advanceCourierNote, setAdvanceCourierNote] = useState<string>(
+    'অর্ডারটি কনফার্ম করার জন্য অনুগ্রহ করে ডেলিভারি চার্জ অগ্রিম পরিশোধ করুন। বাকি মূল্য পণ্য হাতে পেয়ে পরিশোধ করবেন।'
+  );
 
   // Shipping & Free Delivery
   const [shippingInsideDhaka, setShippingInsideDhaka] = useState<number>(80);
@@ -91,6 +100,11 @@ export default function AdminSettingsPage() {
       setShippingInsideDhaka(settings.shippingInsideDhaka || 80);
       setShippingOutsideDhaka(settings.shippingOutsideDhaka || 150);
       setFreeShippingMinAmount(settings.freeShippingMinAmount !== undefined ? settings.freeShippingMinAmount : 2500);
+      setAdvanceCourierEnabled(settings.advanceCourierEnabled !== undefined ? settings.advanceCourierEnabled : true);
+      setAdvanceCourierScope(settings.advanceCourierScope || 'OUTSIDE_DHAKA_ONLY');
+      setAdvanceCourierAmountType(settings.advanceCourierAmountType || 'EXACT_DELIVERY_CHARGE');
+      setAdvanceCourierFixedAmount(settings.advanceCourierFixedAmount !== undefined ? settings.advanceCourierFixedAmount : 150);
+      setAdvanceCourierNote(settings.advanceCourierNote || 'অর্ডারটি কনফার্ম করার জন্য অনুগ্রহ করে ডেলিভারি চার্জ অগ্রিম পরিশোধ করুন। বাকি মূল্য পণ্য হাতে পেয়ে পরিশোধ করবেন।');
       setAnnouncementText(settings.announcementText || '');
       setAnnouncementEnabled(settings.announcementEnabled !== undefined ? settings.announcementEnabled : true);
       setAnnouncementLink(settings.announcementLink || '/products');
@@ -196,6 +210,11 @@ export default function AdminSettingsPage() {
           shippingInsideDhaka,
           shippingOutsideDhaka,
           freeShippingMinAmount,
+          advanceCourierEnabled,
+          advanceCourierScope,
+          advanceCourierAmountType,
+          advanceCourierFixedAmount,
+          advanceCourierNote,
           announcementText,
           announcementEnabled,
           announcementLink,
@@ -923,6 +942,92 @@ export default function AdminSettingsPage() {
               <p className="text-[10px] text-zinc-400 mt-1">
                 Orders with subtotal above this amount get <strong>100% Free Shipping</strong> automatically.
               </p>
+            </div>
+          </div>
+
+          {/* 3. ADVANCE COURIER PAYMENT POLICY */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-5">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                <ShieldCheck className="h-4.5 w-4.5 text-teal-600" />
+                <span>Advance Courier Payment</span>
+              </h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={advanceCourierEnabled}
+                  onChange={(e) => setAdvanceCourierEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                  {advanceCourierEnabled ? 'Active' : 'Off'}
+                </span>
+              </label>
+            </div>
+
+            <p className="text-[11px] text-zinc-500 font-medium">
+              Prevent fake orders and return-to-origin (RTO) courier costs by requiring customers to pay the delivery fee in advance.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                  Advance Payment Scope
+                </label>
+                <select
+                  value={advanceCourierScope}
+                  onChange={(e) => setAdvanceCourierScope(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-900 font-bold focus:bg-white focus:outline-none focus:border-zinc-950"
+                >
+                  <option value="OUTSIDE_DHAKA_ONLY">Outside Dhaka Only (ঢাকার বাইরে - রিকমেন্ডেড)</option>
+                  <option value="ALL">All Orders (ঢাকার ভেতরে ও বাইরে - সর্বত্র)</option>
+                  <option value="DISABLED">Disabled (সম্পূর্ণ ক্যাশ অন ডেলিভারি)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                  Advance Amount Calculation
+                </label>
+                <select
+                  value={advanceCourierAmountType}
+                  onChange={(e) => setAdvanceCourierAmountType(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-900 font-bold focus:bg-white focus:outline-none focus:border-zinc-950"
+                >
+                  <option value="EXACT_DELIVERY_CHARGE">Exact Delivery Charge (৳{shippingInsideDhaka} Inside / ৳{shippingOutsideDhaka} Outside)</option>
+                  <option value="FIXED_AMOUNT">Fixed Prepayment Amount (ফিক্সড পরিমাণ)</option>
+                </select>
+              </div>
+
+              {advanceCourierAmountType === 'FIXED_AMOUNT' && (
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                    Fixed Advance Amount (BDT)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={advanceCourierFixedAmount}
+                    onChange={(e) => setAdvanceCourierFixedAmount(Number(e.target.value))}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-900 font-mono font-bold focus:bg-white focus:outline-none focus:border-zinc-950"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                  Customer Checkout Notice (Bangla / English)
+                </label>
+                <textarea
+                  rows={3}
+                  value={advanceCourierNote}
+                  onChange={(e) => setAdvanceCourierNote(e.target.value)}
+                  placeholder="অর্ডারটি কনফার্ম করার জন্য অনুগ্রহ করে ডেলিভারি চার্জ অগ্রিম পরিশোধ করুন..."
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-800 font-medium focus:bg-white focus:outline-none focus:border-zinc-950 resize-none leading-relaxed"
+                />
+              </div>
             </div>
           </div>
 

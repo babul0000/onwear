@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { formatPrice } from '../../../utils/format';
 import { useAuth } from '../../../context/AuthContext';
 import { API_URL } from '../../../config';
-import { ShoppingBag, ArrowLeft, Printer, Loader2, X, AlertCircle, Trash2 } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Printer, Loader2, X, AlertCircle, Trash2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '../../../components/ConfirmModal';
 
@@ -218,9 +218,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               </span>
             </p>
             <p className="text-zinc-600">
-              Method: <strong className="text-zinc-950 uppercase">{order.paymentMethod || 'COD'}</strong>
+              Method: <strong className="text-zinc-950 uppercase">{order.paymentMethod === 'COD_WITH_ADVANCE' ? 'Cash on Delivery (Advance Courier Paid)' : (order.paymentMethod || 'COD')}</strong>
             </p>
-            {order.trxId && (
+            {order.advanceTrxId && (
+              <p className="text-[#E2136E] font-bold font-mono">
+                Advance TrxID: {order.advanceTrxId} ({order.advancePaymentMethod || 'bKash'})
+              </p>
+            )}
+            {order.trxId && !order.advanceTrxId && (
               <p className="text-[#E2136E] font-bold font-mono">
                 TrxID: {order.trxId} {order.paymentPhone ? `(${order.paymentPhone})` : ''}
               </p>
@@ -283,6 +288,28 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <span className="text-sm font-black uppercase tracking-wider text-zinc-950">Grand Total</span>
             <span className="text-2xl font-black text-zinc-950 font-mono">{formatPrice(order.totalAmount)}</span>
           </div>
+
+          {order.advanceAmount > 0 && (
+            <div className="mt-2 pt-3 border-t border-dashed border-zinc-200 flex flex-col gap-2.5">
+              <div className="flex justify-between items-center text-teal-800 font-bold bg-teal-50/70 p-2.5 rounded-xl border border-teal-200/60">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-teal-600" />
+                  Advance Courier Fee ({order.advancePaymentMethod || 'bKash'} - {order.advancePaymentStatus || 'Paid'})
+                </span>
+                <span className="font-mono text-xs">{formatPrice(order.advanceAmount)}</span>
+              </div>
+              
+              <div className="flex justify-between items-baseline p-3.5 bg-zinc-950 text-white rounded-2xl">
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider block">Remaining Due on Delivery (COD)</span>
+                  <span className="text-[10px] text-zinc-400">পণ্য হাতে পেয়ে ডেলিভারিম্যানকে পরিশোধযোগ্য</span>
+                </div>
+                <span className="text-xl font-black font-mono text-teal-400">
+                  {formatPrice(order.dueAmount ?? (order.totalAmount - order.advanceAmount))}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -40,6 +40,15 @@ export default function CheckoutPage() {
   const [outsideRate, setOutsideRate] = useState(150);
   const [freeShippingMinAmount, setFreeShippingMinAmount] = useState(2500);
 
+  // Advance Courier Configuration States
+  const [advanceCourierEnabled, setAdvanceCourierEnabled] = useState(true);
+  const [advanceCourierScope, setAdvanceCourierScope] = useState('OUTSIDE_DHAKA_ONLY');
+  const [advanceCourierAmountType, setAdvanceCourierAmountType] = useState('EXACT_SHIPPING');
+  const [advanceCourierFixedAmount, setAdvanceCourierFixedAmount] = useState(150);
+  const [advanceCourierNote, setAdvanceCourierNote] = useState('');
+  const [advanceMethod, setAdvanceMethod] = useState<'BKASH' | 'NAGAD'>('BKASH');
+  const [onlinePayMode, setOnlinePayMode] = useState<'ADVANCE' | 'FULL'>('ADVANCE');
+
   // Coupon States
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
@@ -55,6 +64,8 @@ export default function CheckoutPage() {
   const [orderSuccessData, setOrderSuccessData] = useState<{
     orderId: string;
     totalAmount: number;
+    advanceAmount?: number;
+    dueAmount?: number;
     autoAccountCreated: boolean;
     customerEmail: string;
     customerName?: string;
@@ -95,6 +106,11 @@ export default function CheckoutPage() {
           if (settingsData.data.nagadNumber) setNagadNumber(settingsData.data.nagadNumber);
           if (settingsData.data.whatsappNumber) setWhatsappNumber(settingsData.data.whatsappNumber.replace(/[^0-9]/g, ''));
           if (settingsData.data.freeShippingMinAmount) setFreeShippingMinAmount(settingsData.data.freeShippingMinAmount);
+          if (settingsData.data.advanceCourierEnabled !== undefined) setAdvanceCourierEnabled(settingsData.data.advanceCourierEnabled);
+          if (settingsData.data.advanceCourierScope) setAdvanceCourierScope(settingsData.data.advanceCourierScope);
+          if (settingsData.data.advanceCourierAmountType) setAdvanceCourierAmountType(settingsData.data.advanceCourierAmountType);
+          if (settingsData.data.advanceCourierFixedAmount !== undefined) setAdvanceCourierFixedAmount(settingsData.data.advanceCourierFixedAmount);
+          if (settingsData.data.advanceCourierNote) setAdvanceCourierNote(settingsData.data.advanceCourierNote);
         }
       } catch (err) {
         console.error('Error fetching checkout configs:', err);
@@ -130,6 +146,20 @@ export default function CheckoutPage() {
   const effectiveShippingCost = isFreeShipping ? 0 : computedShippingRate;
   const grandTotal = Math.max(0, cartSubtotal - discountApplied + effectiveShippingCost);
 
+  // Advance Courier Calculation
+  const isAdvanceRequired =
+    advanceCourierEnabled &&
+    (advanceCourierScope === 'ALL' || (advanceCourierScope === 'OUTSIDE_DHAKA_ONLY' && isOutsideDelivery)) &&
+    effectiveShippingCost > 0;
+
+  const advancePayableAmount = isAdvanceRequired
+    ? (advanceCourierAmountType === 'FIXED_AMOUNT' && advanceCourierFixedAmount > 0
+        ? advanceCourierFixedAmount
+        : effectiveShippingCost)
+    : 0;
+
+  const dueOnDeliveryAmount = Math.max(0, grandTotal - advancePayableAmount);
+
   // If order was just placed, render celebratory success card
   if (orderSuccessData) {
     const cleanWaNumber = whatsappNumber.replace(/[^0-9]/g, '');
@@ -155,8 +185,31 @@ export default function CheckoutPage() {
             <p className="text-xs text-zinc-400 font-mono mt-1">Order ID: #{orderSuccessData.orderId}</p>
           </div>
 
+          {/* Advance Courier Payment Confirmation Notice */}
+          {orderSuccessData.advanceAmount && orderSuccessData.advanceAmount > 0 && (
+            <div className="w-full rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-left flex flex-col gap-2.5 shadow-sm">
+              <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>অগ্রিম কুরিয়ার ফি সাবমিট সফল হয়েছে</span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-semibold text-zinc-700 bg-white/80 p-2.5 rounded-xl border border-emerald-100">
+                <span>গৃহীত অগ্রিম কুরিয়ার ফি:</span>
+                <span className="font-mono font-bold text-emerald-700">{formatPrice(orderSuccessData.advanceAmount)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold text-zinc-900 bg-white p-2.5 rounded-xl border border-emerald-200">
+                <span>পণ্য ডেলিভারির সময় বাকি প্রদেয় (COD Due):</span>
+                <span className="font-mono text-emerald-800 text-sm font-black">{formatPrice(orderSuccessData.dueAmount || 0)}</span>
+              </div>
+              {orderSuccessData.trxId && (
+                <p className="text-[11px] text-emerald-900 font-medium pt-0.5">
+                  TrxID: <strong className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-200">{orderSuccessData.trxId}</strong> (আমাদের টিম দ্রুত ভেরিফাই করে পার্সেল পাঠিয়ে দেবে)
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Direct Mobile Banking (bKash/Nagad) confirmation notice */}
-          {(orderSuccessData.paymentMethod === 'BKASH' || orderSuccessData.paymentMethod === 'NAGAD') && (
+          {(!orderSuccessData.advanceAmount || orderSuccessData.advanceAmount === 0) && (orderSuccessData.paymentMethod === 'BKASH' || orderSuccessData.paymentMethod === 'NAGAD') && (
             <div className="w-full rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-left flex flex-col gap-1.5 shadow-sm">
               <div className="flex items-center gap-2 text-amber-950 font-bold text-xs">
                 <Smartphone className="h-4 w-4 text-amber-700 shrink-0" />
@@ -335,8 +388,19 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Direct Mobile Banking (bKash/Nagad) Validation
-    if (paymentMethod === 'BKASH' || paymentMethod === 'NAGAD') {
+    // Direct Mobile Banking (bKash/Nagad) Validation & Advance Courier Validation
+    if (isAdvanceRequired && paymentMethod === 'COD') {
+      if (!paymentPhone.trim() || paymentPhone.trim().length < 10) {
+        setError(`কুরিয়ার চার্জ ${formatPrice(advancePayableAmount)} অগ্রিম প্রদানের জন্য আপনার ${advanceMethod === 'BKASH' ? 'বিকাশ' : 'নগদ'} প্রেরক মোবাইল নম্বর প্রদান করুন।`);
+        setLoading(false);
+        return;
+      }
+      if (!trxId.trim() || trxId.trim().length < 4) {
+        setError(`কুরিয়ার চার্জ ${formatPrice(advancePayableAmount)} অগ্রিম পরিশোধের TrxID (Transaction ID) প্রদান করুন।`);
+        setLoading(false);
+        return;
+      }
+    } else if (paymentMethod === 'BKASH' || paymentMethod === 'NAGAD') {
       if (!paymentPhone.trim() || paymentPhone.trim().length < 10) {
         setError(`Please enter the ${paymentMethod === 'BKASH' ? 'bKash' : 'Nagad'} sender mobile number you used to make the payment.`);
         setLoading(false);
@@ -370,6 +434,9 @@ export default function CheckoutPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      const finalMethodToSend = isAdvanceRequired && paymentMethod === 'COD' ? 'COD_WITH_ADVANCE' : paymentMethod;
+      const finalAdvanceMethod = isAdvanceRequired ? (paymentMethod === 'COD' ? advanceMethod : paymentMethod) : (paymentMethod === 'BKASH' || paymentMethod === 'NAGAD' ? paymentMethod : undefined);
+
       const res = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers,
@@ -382,9 +449,12 @@ export default function CheckoutPage() {
           items: checkoutItemsPayload,
           note: note || undefined,
           couponCode: appliedCoupon || undefined,
-          paymentMethod,
+          paymentMethod: finalMethodToSend,
           paymentPhone: paymentPhone.trim() || undefined,
-          trxId: trxId.trim().toUpperCase() || undefined
+          trxId: trxId.trim().toUpperCase() || undefined,
+          advanceAmount: isAdvanceRequired ? advancePayableAmount : undefined,
+          advancePaymentMethod: finalAdvanceMethod,
+          advanceTrxId: trxId.trim().toUpperCase() || undefined
         })
       });
 
@@ -408,9 +478,12 @@ export default function CheckoutPage() {
             const currentToken = data.data?.token || token;
             if (currentToken) payHeaders['Authorization'] = `Bearer ${currentToken}`;
 
+            const payAdvanceOnly = isAdvanceRequired && onlinePayMode === 'ADVANCE';
+
             const payRes = await fetch(`${API_URL}/payments/sslcommerz/initiate/${data.data.id}`, {
               method: 'POST',
-              headers: payHeaders
+              headers: payHeaders,
+              body: JSON.stringify({ payAdvanceOnly })
             });
             const payData = await payRes.json();
             if (payData.success && payData.data.gatewayUrl) {
@@ -420,11 +493,13 @@ export default function CheckoutPage() {
               setOrderSuccessData({
                 orderId: data.data.id,
                 totalAmount: data.data.totalAmount,
+                advanceAmount: data.data.advanceAmount,
+                dueAmount: data.data.dueAmount,
                 autoAccountCreated: data.data.autoAccountCreated,
                 customerEmail: data.data.customerEmail || email,
                 customerName: name.trim(),
                 customerPhone: phone.trim(),
-                paymentMethod,
+                paymentMethod: finalMethodToSend,
                 trxId: trxId.trim().toUpperCase()
               });
             }
@@ -433,11 +508,13 @@ export default function CheckoutPage() {
             setOrderSuccessData({
               orderId: data.data.id,
               totalAmount: data.data.totalAmount,
+              advanceAmount: data.data.advanceAmount,
+              dueAmount: data.data.dueAmount,
               autoAccountCreated: data.data.autoAccountCreated,
               customerEmail: data.data.customerEmail || email,
               customerName: name.trim(),
               customerPhone: phone.trim(),
-              paymentMethod,
+              paymentMethod: finalMethodToSend,
               trxId: trxId.trim().toUpperCase()
             });
           }
@@ -446,11 +523,13 @@ export default function CheckoutPage() {
           setOrderSuccessData({
             orderId: data.data.id,
             totalAmount: data.data.totalAmount,
+            advanceAmount: data.data.advanceAmount,
+            dueAmount: data.data.dueAmount,
             autoAccountCreated: data.data.autoAccountCreated,
             customerEmail: data.data.customerEmail || email,
             customerName: name.trim(),
             customerPhone: phone.trim(),
-            paymentMethod,
+            paymentMethod: finalMethodToSend,
             trxId: trxId.trim().toUpperCase()
           });
         }
@@ -711,233 +790,458 @@ export default function CheckoutPage() {
 
           {/* Payment Method Selector */}
           <div className="border-t border-zinc-100 pt-6 flex flex-col gap-4">
-            <h4 className="font-black text-zinc-900 text-xs uppercase tracking-wider">Payment Method</h4>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* COD Option */}
-              <label
-                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'COD'
-                    ? 'border-zinc-950 bg-zinc-50 shadow-sm ring-1 ring-zinc-950/10'
-                    : 'border-zinc-200 hover:border-zinc-300 bg-white'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="COD"
-                  checked={paymentMethod === 'COD'}
-                  onChange={() => setPaymentMethod('COD')}
-                  className="h-4 w-4 text-zinc-950 focus:ring-zinc-950"
-                />
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-900">Cash on Delivery</span>
-                  <span className="text-[10px] text-zinc-400">Pay cash upon delivery</span>
-                </div>
-              </label>
-
-              {/* bKash Option */}
-              <label
-                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'BKASH'
-                    ? 'border-[#E2136E] bg-pink-50/60 shadow-sm ring-1 ring-[#E2136E]/20'
-                    : 'border-zinc-200 hover:border-zinc-300 bg-white'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="BKASH"
-                  checked={paymentMethod === 'BKASH'}
-                  onChange={() => setPaymentMethod('BKASH')}
-                  className="h-4 w-4 text-[#E2136E] focus:ring-[#E2136E]"
-                />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-[#E2136E]">bKash</span>
-                    <span className="text-[9px] bg-[#E2136E]/10 text-[#E2136E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Merchant</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-400">Make Payment / TrxID Verification</span>
-                </div>
-              </label>
-
-              {/* Nagad Option */}
-              <label
-                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'NAGAD'
-                    ? 'border-[#F7921E] bg-amber-50/60 shadow-sm ring-1 ring-[#F7921E]/20'
-                    : 'border-zinc-200 hover:border-zinc-300 bg-white'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="NAGAD"
-                  checked={paymentMethod === 'NAGAD'}
-                  onChange={() => setPaymentMethod('NAGAD')}
-                  className="h-4 w-4 text-[#F7921E] focus:ring-[#F7921E]"
-                />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-[#F7921E]">Nagad</span>
-                    <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Merchant</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-400">Send Money / TrxID Verification</span>
-                </div>
-              </label>
-
-              {/* Online Payment Option */}
-              <label
-                className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'ONLINE'
-                    ? 'border-indigo-600 bg-indigo-50/60 shadow-sm ring-1 ring-indigo-600/20'
-                    : 'border-zinc-200 hover:border-zinc-300 bg-white'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="ONLINE"
-                  checked={paymentMethod === 'ONLINE'}
-                  onChange={() => setPaymentMethod('ONLINE')}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
-                />
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-900">Card & Mobile Banking</span>
-                  <span className="text-[10px] text-zinc-400">Visa, Mastercard, Amex, SSLCommerz</span>
-                </div>
-              </label>
+            <div className="flex items-center justify-between">
+              <h4 className="font-black text-zinc-900 text-xs uppercase tracking-wider">Payment Method / পেমেন্ট মাধ্যম</h4>
+              {isAdvanceRequired && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                  অগ্রিম কুরিয়ার ফি প্রযোজ্য
+                </span>
+              )}
             </div>
 
-            {/* Direct bKash Detailed Instructions & Form */}
-            {paymentMethod === 'BKASH' && (
-              <div className="border border-[#E2136E]/30 bg-pink-50/40 p-5 flex flex-col gap-4 animate-in fade-in duration-200">
-                <div className="flex items-center justify-between border-b border-[#E2136E]/20 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#E2136E]" />
-                    <span className="text-xs font-black uppercase text-[#E2136E] font-mono tracking-wider">bKash Merchant Payment Guide</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-600">Total:</span>
-                    <span className="text-sm font-black text-zinc-950 font-mono">{formatPrice(grandTotal)}</span>
-                  </div>
+            {/* Advance Courier Policy Alert Notice */}
+            {isAdvanceRequired && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300/80 text-amber-950 flex flex-col gap-2 animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-amber-600 text-white text-[10px] font-black uppercase font-mono tracking-wider">জরুরি তথ্য</span>
+                  <span className="text-xs font-bold text-amber-900">ডেলিভারি চার্জ অগ্রিম প্রযোজ্য</span>
                 </div>
-
-                {/* Number & Copy Box */}
-                <div className="flex items-center justify-between bg-white border border-pink-200/80 p-3.5 shadow-sm">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR bKash Number (Merchant Account)</span>
-                    <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{bkashNumber}</span>
+                <p className="text-xs text-amber-900 leading-relaxed font-sans">
+                  {advanceCourierNote || 'ঢাকার বাইরে ক্যাশ অন ডেলিভারি অর্ডারে ফেক অর্ডার রোধে ডেলিভারি চার্জ অগ্রিম প্রযোজ্য।'}
+                </p>
+                <div className="flex items-center gap-3 pt-1 border-t border-amber-200/60 text-xs font-medium">
+                  <div className="flex items-center gap-1.5 text-rose-700">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                    <span>অগ্রিম প্রদেয়: <strong className="font-mono font-bold">{formatPrice(advancePayableAmount)}</strong></span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyNumber(bkashNumber)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E2136E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c90f61] transition-colors shadow-sm cursor-pointer"
-                  >
-                    {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
-                  </button>
-                </div>
-
-                {/* Step instructions */}
-                <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
-                  <p><strong className="text-zinc-900">ধাপ ১:</strong> বিকাশ অ্যাপ ওপেন করুন অথবা <strong>*247#</strong> ডায়াল করে <strong>Make Payment (পেমেন্ট)</strong> অপশন সিলেক্ট করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ২:</strong> মার্চেন্ট নম্বর হিসেবে <strong className="font-mono text-zinc-950">{bkashNumber}</strong> দিন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে রেফারেন্স নম্বর দিন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> পেমেন্ট সম্পন্ন করার পর ফিরতি মেসেজ থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক বিকাশ নম্বর</strong> নিচে দিন।</p>
-                </div>
-
-                {/* Inputs for Sender Number and TrxID */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-pink-200/40">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Your bKash Number *</label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="01XXXXXXXXX"
-                      value={paymentPhone}
-                      onChange={(e) => setPaymentPhone(e.target.value)}
-                      className="border border-pink-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#E2136E] font-mono font-medium shadow-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">bKash Transaction ID (TrxID) *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 9J8K7L6M"
-                      value={trxId}
-                      onChange={(e) => setTrxId(e.target.value.toUpperCase())}
-                      className="border border-pink-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#E2136E] font-mono font-bold uppercase shadow-sm"
-                    />
+                  <span className="text-amber-300">|</span>
+                  <div className="flex items-center gap-1.5 text-emerald-800">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span>ডেলিভারির সময় বাকি প্রদেয়: <strong className="font-mono font-bold">{formatPrice(dueOnDeliveryAmount)}</strong></span>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Direct Nagad Detailed Instructions & Form */}
-            {paymentMethod === 'NAGAD' && (
-              <div className="border border-[#F7921E]/30 bg-amber-50/40 p-5 flex flex-col gap-4 animate-in fade-in duration-200">
-                <div className="flex items-center justify-between border-b border-[#F7921E]/20 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#F7921E]" />
-                    <span className="text-xs font-black uppercase text-[#F7921E] font-mono tracking-wider">Nagad Personal Send Money Guide</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-600">Total:</span>
-                    <span className="text-sm font-black text-zinc-950 font-mono">{formatPrice(grandTotal)}</span>
-                  </div>
-                </div>
-
-                {/* Number & Copy Box */}
-                <div className="flex items-center justify-between bg-white border border-amber-200/80 p-3.5 shadow-sm">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR Nagad Number (Personal Account)</span>
-                    <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{nagadNumber}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyNumber(nagadNumber)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F7921E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#d87c14] transition-colors shadow-sm cursor-pointer"
+            
+            {/* If Advance Courier is Required */}
+            {isAdvanceRequired ? (
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: COD with Advance Mobile Banking */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'COD'
+                        ? 'border-zinc-950 bg-zinc-50 shadow-sm ring-1 ring-zinc-950/10'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
                   >
-                    {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
-                  </button>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="COD"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="h-4 w-4 text-zinc-950 focus:ring-zinc-950"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900">Cash on Delivery (কুরিয়ার চার্জ অগ্রিম)</span>
+                      <span className="text-[10px] text-zinc-500">বিকাশ/নগদে {formatPrice(advancePayableAmount)} দিয়ে অর্ডার করুন</span>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Online Payment via Card / SSLCommerz */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'ONLINE'
+                        ? 'border-indigo-600 bg-indigo-50/60 shadow-sm ring-1 ring-indigo-600/20'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="ONLINE"
+                      checked={paymentMethod === 'ONLINE'}
+                      onChange={() => setPaymentMethod('ONLINE')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900">Online Payment Gateway</span>
+                      <span className="text-[10px] text-zinc-400">Card, bKash, Nagad via SSLCommerz</span>
+                    </div>
+                  </label>
                 </div>
 
-                {/* Step instructions */}
-                <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
-                  <p><strong className="text-zinc-900">ধাপ ১:</strong> নগদ অ্যাপ ওপেন করুন অথবা <strong>*167#</strong> ডায়াল করে <strong>Send Money (সেন্ড মানি)</strong> সিলেক্ট করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ২:</strong> প্রাপক নম্বর হিসেবে <strong className="font-mono text-zinc-950">{nagadNumber}</strong> দিন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে সেন্ড মানি সম্পন্ন করুন।</p>
-                  <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি সম্পন্ন করার পর SMS থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক নগদ নম্বর</strong> নিচে দিন।</p>
+                {/* Sub-form when COD with Advance is selected */}
+                {paymentMethod === 'COD' && (
+                  <div className="border border-zinc-200 bg-zinc-50/50 p-5 rounded-2xl flex flex-col gap-4 animate-in fade-in duration-200 mt-1">
+                    <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+                      <span className="text-xs font-black uppercase text-zinc-700 tracking-wider">
+                        Select Gateway for Courier Charge ({formatPrice(advancePayableAmount)})
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAdvanceMethod('BKASH')}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                            advanceMethod === 'BKASH'
+                              ? 'bg-[#E2136E] text-white shadow-xs'
+                              : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100'
+                          }`}
+                        >
+                          bKash
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdvanceMethod('NAGAD')}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                            advanceMethod === 'NAGAD'
+                              ? 'bg-[#F7921E] text-white shadow-xs'
+                              : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-100'
+                          }`}
+                        >
+                          Nagad
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* bKash Guide for Advance */}
+                    {advanceMethod === 'BKASH' ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between bg-white border border-pink-200 p-3 rounded-xl shadow-xs">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR bKash Merchant Number</span>
+                            <span className="text-sm font-black text-zinc-950 font-mono">{bkashNumber}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyNumber(bkashNumber)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E2136E] text-white text-xs font-bold uppercase rounded-lg hover:bg-[#c90f61] transition-colors shadow-xs"
+                          >
+                            {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            <span>{copiedNumber ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
+                          <p><strong className="text-zinc-900">ধাপ ১:</strong> বিকাশ অ্যাপে গিয়ে <strong>Make Payment</strong> অপশনে যান।</p>
+                          <p><strong className="text-zinc-900">ধাপ ২:</strong> মার্চেন্ট নম্বর <strong className="font-mono text-zinc-950">{bkashNumber}</strong> দিন।</p>
+                          <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950 font-bold">{formatPrice(advancePayableAmount)}</strong> প্রদান করুন।</p>
+                          <p><strong className="text-zinc-900">ধাপ ৪:</strong> পেমেন্ট শেষে ফিরতি SMS থেকে <strong>Transaction ID (TrxID)</strong> ও আপনার প্রেরক নম্বর নিচে লিখুন।</p>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Nagad Guide for Advance */
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between bg-white border border-amber-200 p-3 rounded-xl shadow-xs">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR Nagad Personal Number</span>
+                            <span className="text-sm font-black text-zinc-950 font-mono">{nagadNumber}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyNumber(nagadNumber)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F7921E] text-white text-xs font-bold uppercase rounded-lg hover:bg-[#d87c14] transition-colors shadow-xs"
+                          >
+                            {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            <span>{copiedNumber ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
+                          <p><strong className="text-zinc-900">ধাপ ১:</strong> নগদ অ্যাপে গিয়ে <strong>Send Money</strong> অপশনে যান।</p>
+                          <p><strong className="text-zinc-900">ধাপ ২:</strong> প্রাপক নম্বর <strong className="font-mono text-zinc-950">{nagadNumber}</strong> দিন।</p>
+                          <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950 font-bold">{formatPrice(advancePayableAmount)}</strong> প্রদান করুন।</p>
+                          <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি শেষে ফিরতি SMS থেকে <strong>Transaction ID (TrxID)</strong> ও আপনার প্রেরক নম্বর নিচে লিখুন।</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inputs for Advance Sender & TrxID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-zinc-200">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">
+                          আপনার {advanceMethod === 'BKASH' ? 'বিকাশ' : 'নগদ'} নম্বর *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="01XXXXXXXXX"
+                          value={paymentPhone}
+                          onChange={(e) => setPaymentPhone(e.target.value)}
+                          className="border border-zinc-300 p-3 text-xs bg-white rounded-xl focus:outline-none focus:border-zinc-950 font-mono font-medium shadow-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">
+                          Transaction ID (TrxID) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 9J8K7L6M"
+                          value={trxId}
+                          onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                          className="border border-zinc-300 p-3 text-xs bg-white rounded-xl focus:outline-none focus:border-zinc-950 font-mono font-bold uppercase shadow-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* If Online Payment chosen with Advance */}
+                {paymentMethod === 'ONLINE' && (
+                  <div className="border border-indigo-200 bg-indigo-50/40 p-4 rounded-2xl flex flex-col gap-3 animate-in fade-in">
+                    <span className="text-xs font-bold text-indigo-950">অনলাইনে কি পরিমাণ পরিশোধ করতে চান?</span>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2.5 text-xs text-zinc-800 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="onlinePayMode"
+                          value="ADVANCE"
+                          checked={onlinePayMode === 'ADVANCE'}
+                          onChange={() => setOnlinePayMode('ADVANCE')}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
+                        />
+                        <span>শুধুমাত্র কুরিয়ার চার্জ <strong className="font-mono text-zinc-950">{formatPrice(advancePayableAmount)}</strong> দিন (বাকি {formatPrice(dueOnDeliveryAmount)} ক্যাশ অন ডেলিভারি)</span>
+                      </label>
+                      <label className="flex items-center gap-2.5 text-xs text-zinc-800 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="onlinePayMode"
+                          value="FULL"
+                          checked={onlinePayMode === 'FULL'}
+                          onChange={() => setOnlinePayMode('FULL')}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
+                        />
+                        <span>সম্পূর্ণ অর্ডার মূল্য <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> অনলাইনে পরিশোধ করুন</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Regular Payment Methods when advance is not required (e.g. Inside Dhaka) */
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* COD Option */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'COD'
+                        ? 'border-zinc-950 bg-zinc-50 shadow-sm ring-1 ring-zinc-950/10'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="COD"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="h-4 w-4 text-zinc-950 focus:ring-zinc-950"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900">Cash on Delivery</span>
+                      <span className="text-[10px] text-zinc-400">Pay cash upon delivery (পণ্য হাতে পেয়ে টাকা দিন)</span>
+                    </div>
+                  </label>
+
+                  {/* bKash Option */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'BKASH'
+                        ? 'border-[#E2136E] bg-pink-50/60 shadow-sm ring-1 ring-[#E2136E]/20'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="BKASH"
+                      checked={paymentMethod === 'BKASH'}
+                      onChange={() => setPaymentMethod('BKASH')}
+                      className="h-4 w-4 text-[#E2136E] focus:ring-[#E2136E]"
+                    />
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-[#E2136E]">bKash</span>
+                        <span className="text-[9px] bg-[#E2136E]/10 text-[#E2136E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Merchant</span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400">Make Payment / TrxID Verification</span>
+                    </div>
+                  </label>
+
+                  {/* Nagad Option */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'NAGAD'
+                        ? 'border-[#F7921E] bg-amber-50/60 shadow-sm ring-1 ring-[#F7921E]/20'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="NAGAD"
+                      checked={paymentMethod === 'NAGAD'}
+                      onChange={() => setPaymentMethod('NAGAD')}
+                      className="h-4 w-4 text-[#F7921E] focus:ring-[#F7921E]"
+                    />
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-[#F7921E]">Nagad</span>
+                        <span className="text-[9px] bg-[#F7921E]/10 text-[#F7921E] font-black px-1.5 py-0.2 rounded font-mono uppercase">Personal</span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400">Send Money / TrxID Verification</span>
+                    </div>
+                  </label>
+
+                  {/* Online Payment Option */}
+                  <label
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                      paymentMethod === 'ONLINE'
+                        ? 'border-indigo-600 bg-indigo-50/60 shadow-sm ring-1 ring-indigo-600/20'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="ONLINE"
+                      checked={paymentMethod === 'ONLINE'}
+                      onChange={() => setPaymentMethod('ONLINE')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900">Card & Mobile Banking</span>
+                      <span className="text-[10px] text-zinc-400">Visa, Mastercard, Amex, SSLCommerz</span>
+                    </div>
+                  </label>
                 </div>
 
-                {/* Inputs for Sender Number and TrxID */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200/40">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Your Nagad Number *</label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="01XXXXXXXXX"
-                      value={paymentPhone}
-                      onChange={(e) => setPaymentPhone(e.target.value)}
-                      className="border border-amber-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#F7921E] font-mono font-medium shadow-sm"
-                    />
+                {/* Direct bKash Detailed Instructions & Form */}
+                {paymentMethod === 'BKASH' && (
+                  <div className="border border-[#E2136E]/30 bg-pink-50/40 p-5 flex flex-col gap-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-[#E2136E]/20 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#E2136E]" />
+                        <span className="text-xs font-black uppercase text-[#E2136E] font-mono tracking-wider">bKash Merchant Payment Guide</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-zinc-600">Total:</span>
+                        <span className="text-sm font-black text-zinc-950 font-mono">{formatPrice(grandTotal)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white border border-pink-200/80 p-3.5 shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR bKash Number (Merchant Account)</span>
+                        <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{bkashNumber}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyNumber(bkashNumber)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E2136E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#c90f61] transition-colors shadow-sm cursor-pointer"
+                      >
+                        {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
+                      <p><strong className="text-zinc-900">ধাপ ১:</strong> বিকাশ অ্যাপ ওপেন করুন অথবা <strong>*247#</strong> ডায়াল করে <strong>Make Payment</strong> সিলেক্ট করুন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ২:</strong> মার্চেন্ট নম্বর হিসেবে <strong className="font-mono text-zinc-950">{bkashNumber}</strong> দিন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে রেফারেন্স নম্বর দিন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ৪:</strong> পেমেন্ট সম্পন্ন করার পর ফিরতি মেসেজ থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক বিকাশ নম্বর</strong> নিচে দিন।</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-pink-200/40">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Your bKash Number *</label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="01XXXXXXXXX"
+                          value={paymentPhone}
+                          onChange={(e) => setPaymentPhone(e.target.value)}
+                          className="border border-pink-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#E2136E] font-mono font-medium shadow-sm"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">bKash Transaction ID (TrxID) *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 9J8K7L6M"
+                          value={trxId}
+                          onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                          className="border border-pink-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#E2136E] font-mono font-bold uppercase shadow-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Nagad Transaction ID (TrxID) *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 7X8Y9Z01"
-                      value={trxId}
-                      onChange={(e) => setTrxId(e.target.value.toUpperCase())}
-                      className="border border-amber-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#F7921E] font-mono font-bold uppercase shadow-sm"
-                    />
+                )}
+
+                {/* Direct Nagad Detailed Instructions & Form */}
+                {paymentMethod === 'NAGAD' && (
+                  <div className="border border-[#F7921E]/30 bg-amber-50/40 p-5 flex flex-col gap-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-[#F7921E]/20 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#F7921E]" />
+                        <span className="text-xs font-black uppercase text-[#F7921E] font-mono tracking-wider">Nagad Personal Send Money Guide</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-zinc-600">Total:</span>
+                        <span className="text-sm font-black text-zinc-950 font-mono">{formatPrice(grandTotal)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white border border-amber-200/80 p-3.5 shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">ONWEAR Nagad Number (Personal Account)</span>
+                        <span className="text-sm font-black text-zinc-950 font-mono tracking-wider">{nagadNumber}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyNumber(nagadNumber)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F7921E] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#d87c14] transition-colors shadow-sm cursor-pointer"
+                      >
+                        {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        <span>{copiedNumber ? 'Copied!' : 'Copy Number'}</span>
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-zinc-600 leading-relaxed flex flex-col gap-1 pl-1">
+                      <p><strong className="text-zinc-900">ধাপ ১:</strong> নগদ অ্যাপ ওপেন করুন অথবা <strong>*167#</strong> ডায়াল করে <strong>Send Money</strong> সিলেক্ট করুন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ২:</strong> প্রাপক নম্বর হিসেবে <strong className="font-mono text-zinc-950">{nagadNumber}</strong> দিন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ৩:</strong> টাকার পরিমাণ <strong className="font-mono text-zinc-950">{formatPrice(grandTotal)}</strong> দিয়ে সেন্ড মানি সম্পন্ন করুন।</p>
+                      <p><strong className="text-zinc-900">ধাপ ৪:</strong> সেন্ড মানি সম্পন্ন করার পর SMS থেকে <strong>Transaction ID (TrxID)</strong> এবং আপনার <strong>প্রেরক নগদ নম্বর</strong> নিচে দিন।</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200/40">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Your Nagad Number *</label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="01XXXXXXXXX"
+                          value={paymentPhone}
+                          onChange={(e) => setPaymentPhone(e.target.value)}
+                          className="border border-amber-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#F7921E] font-mono font-medium shadow-sm"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black uppercase text-zinc-700 tracking-wider">Nagad Transaction ID (TrxID) *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 7X8Y9Z01"
+                          value={trxId}
+                          onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                          className="border border-amber-300/80 p-3 text-xs bg-white focus:outline-none focus:border-[#F7921E] font-mono font-bold uppercase shadow-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -1043,9 +1347,29 @@ export default function CheckoutPage() {
               </div>
             )}
             <div className="flex justify-between items-baseline border-t border-zinc-200 pt-3 text-zinc-950">
-              <span className="text-sm font-black uppercase tracking-wider">Total</span>
+              <span className="text-sm font-black uppercase tracking-wider">Total Value</span>
               <span className="text-2xl font-black text-teal-650 font-mono">{formatPrice(grandTotal)}</span>
             </div>
+
+            {/* Advance vs Due breakdown */}
+            {isAdvanceRequired && (
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-300/80 flex flex-col gap-2 mt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-amber-950 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    <span>অগ্রিম প্রদেয় (কুরিয়ার বিল):</span>
+                  </span>
+                  <span className="font-black text-rose-600 font-mono text-sm">{formatPrice(advancePayableAmount)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs border-t border-amber-200/60 pt-2">
+                  <span className="font-bold text-zinc-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>পণ্য পেয়ে পরিশোধ করবেন (COD):</span>
+                  </span>
+                  <span className="font-black text-emerald-700 font-mono text-sm">{formatPrice(dueOnDeliveryAmount)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <button

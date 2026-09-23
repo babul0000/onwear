@@ -17,7 +17,10 @@ import {
   ShieldAlert, 
   AlertTriangle,
   Loader2,
-  PackageCheck
+  PackageCheck,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { formatPrice } from '../../../utils/format';
 
@@ -33,6 +36,7 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [status, setStatus] = useState('PENDING');
   const [paymentStatus, setPaymentStatus] = useState('UNPAID');
+  const [isVerifyingAdvance, setIsVerifyingAdvance] = useState(false);
 
   // Deletion modals state
   const [deleteModalOrder, setDeleteModalOrder] = useState<any | null>(null);
@@ -119,6 +123,58 @@ export default function AdminOrdersPage() {
     } catch (err) {
       console.error(err);
       setError('An error occurred');
+    }
+  };
+
+  // Verify Advance Courier Payment
+  const handleVerifyAdvance = async (orderId: string) => {
+    setIsVerifyingAdvance(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}/verify-advance`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess('Advance courier payment verified successfully! Order marked as advance confirmed.');
+        setSelectedOrder(data.data);
+        fetchOrders();
+      } else {
+        setError(data.message || 'Failed to verify advance payment');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred while verifying advance payment');
+    } finally {
+      setIsVerifyingAdvance(false);
+    }
+  };
+
+  // Reject Advance Courier Payment
+  const handleRejectAdvance = async (orderId: string) => {
+    setIsVerifyingAdvance(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}/reject-advance`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess('Advance courier payment marked as rejected.');
+        setSelectedOrder(data.data);
+        fetchOrders();
+      } else {
+        setError(data.message || 'Failed to reject advance payment');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred while rejecting advance payment');
+    } finally {
+      setIsVerifyingAdvance(false);
     }
   };
 
@@ -423,10 +479,81 @@ export default function AdminOrdersPage() {
                   ))}
                 </div>
                 <div className="flex justify-between items-baseline border-t border-dashed border-zinc-100 pt-3 mt-3">
-                  <span className="text-xs font-bold text-zinc-800">Total Paid</span>
+                  <span className="text-xs font-bold text-zinc-800">Total Order Amount</span>
                   <span className="text-base font-extrabold text-teal-650 font-mono">{formatPrice(selectedOrder.totalAmount)}</span>
                 </div>
               </div>
+
+              {/* Advance Courier Payment & Verification Section */}
+              {selectedOrder.advanceAmount > 0 && (
+                <div className="rounded-2xl border border-teal-200 bg-teal-50/40 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase text-teal-900 tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="h-4 w-4 text-teal-600" />
+                      Advance Courier Bill
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase font-mono ${
+                      selectedOrder.advancePaymentStatus === 'PAID'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : selectedOrder.advancePaymentStatus === 'PENDING'
+                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                        : 'bg-red-100 text-red-800 border border-red-300'
+                    }`}>
+                      {selectedOrder.advancePaymentStatus || 'PENDING'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Advance Required</span>
+                      <p className="font-bold text-zinc-900 font-mono">{formatPrice(selectedOrder.advanceAmount)}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">COD Collectible</span>
+                      <p className="font-extrabold text-teal-700 font-mono">
+                        {formatPrice(selectedOrder.dueAmount ?? (selectedOrder.totalAmount - selectedOrder.advanceAmount))}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Gateway</span>
+                      <p className="font-semibold text-zinc-800 capitalize">
+                        {selectedOrder.advancePaymentMethod || selectedOrder.paymentMethod || 'bKash'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">TrxID / Ref</span>
+                      <p className="font-mono font-bold text-zinc-900">
+                        {selectedOrder.advanceTrxId || selectedOrder.trxId || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Verification Buttons */}
+                  {selectedOrder.advancePaymentStatus !== 'PAID' && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-teal-200/60">
+                      <button
+                        type="button"
+                        disabled={isVerifyingAdvance}
+                        onClick={() => handleVerifyAdvance(selectedOrder.id)}
+                        className="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                      >
+                        {isVerifyingAdvance ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                        <span>Verify Advance</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isVerifyingAdvance}
+                        onClick={() => handleRejectAdvance(selectedOrder.id)}
+                        className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                        title="Reject Advance Payment"
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        <span>Reject</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Change Status Form */}
               <form onSubmit={handleUpdateStatus} className="border-t border-zinc-100 pt-4 flex flex-col gap-4">
@@ -507,7 +634,23 @@ export default function AdminOrdersPage() {
                               day: 'numeric'
                             })}
                           </td>
-                          <td className="px-6 py-4 font-bold text-zinc-900 font-mono">{formatPrice(order.totalAmount)}</td>
+                          <td className="px-6 py-4 font-mono">
+                            <div className="font-bold text-zinc-900">{formatPrice(order.totalAmount)}</div>
+                            {order.advanceAmount > 0 && (
+                              <div className="mt-1 space-y-0.5">
+                                <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded font-sans ${
+                                  order.advancePaymentStatus === 'PAID'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                }`}>
+                                  Adv: {formatPrice(order.advanceAmount)} ({order.advancePaymentStatus || 'PENDING'})
+                                </span>
+                                <div className="text-[11px] text-zinc-500 font-mono">
+                                  COD Due: {formatPrice(order.dueAmount ?? (order.totalAmount - order.advanceAmount))}
+                                </div>
+                              </div>
+                            )}
+                          </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border ${
                               statusColors[order.status] || 'bg-zinc-50 text-zinc-700 border-zinc-200'

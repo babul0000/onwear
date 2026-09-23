@@ -33,6 +33,11 @@ export interface StoreSetting {
   registerImageUrl: string | null;
   registerTitle: string | null;
   registerSubtitle: string | null;
+  advanceCourierEnabled?: boolean;
+  advanceCourierScope?: string;
+  advanceCourierAmountType?: string;
+  advanceCourierFixedAmount?: number;
+  advanceCourierNote?: string | null;
   updatedAt: string;
 }
 
@@ -72,6 +77,11 @@ const defaultSettings: StoreSetting = {
   registerImageUrl: 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg',
   registerTitle: 'START JOURNEY',
   registerSubtitle: 'Join ONWEAR to unlock VIP privileges, track orders & save wishlists',
+  advanceCourierEnabled: true,
+  advanceCourierScope: 'OUTSIDE_DHAKA_ONLY',
+  advanceCourierAmountType: 'EXACT_SHIPPING',
+  advanceCourierFixedAmount: 150,
+  advanceCourierNote: 'ঢাকার বাইরে ক্যাশ অন ডেলিভারি অর্ডারে ফেক অর্ডার রোধে ডেলিভারি চার্জ অগ্রিম প্রযোজ্য। বাকি টাকা পণ্য হাতে পেয়ে পরিশোধ করবেন।',
   updatedAt: new Date().toISOString()
 };
 
