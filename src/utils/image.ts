@@ -25,12 +25,21 @@ export function getOptimizedImageUrl(
 
   // 2. Unsplash URL optimization
   if (cleanUrl.includes('images.unsplash.com')) {
-    const urlObj = new URL(cleanUrl);
-    urlObj.searchParams.set('auto', 'format');
-    urlObj.searchParams.set('fit', 'crop');
-    urlObj.searchParams.set('w', width.toString());
-    urlObj.searchParams.set('q', quality.toString());
-    return urlObj.toString();
+    try {
+      const urlObj = new URL(cleanUrl);
+      urlObj.searchParams.set('auto', 'format');
+      urlObj.searchParams.set('fit', 'crop');
+      urlObj.searchParams.set('w', width.toString());
+      urlObj.searchParams.set('q', quality.toString());
+      return urlObj.toString();
+    } catch {
+      return cleanUrl;
+    }
+  }
+
+  // 3. Fallback for any other external image: proxy through Cloudinary fetch CDN for instant WebP delivery
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+    return `https://res.cloudinary.com/lgmh6vly/image/fetch/f_auto,q_auto:good,w_${width},c_limit/${cleanUrl}`;
   }
 
   return cleanUrl;

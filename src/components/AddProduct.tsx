@@ -295,22 +295,9 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
       
       if (data.success && data.data?.url) {
         setGallery([...gallery, data.data.url]);
-        setSuccessMsg('Image uploaded successfully!');
+        setSuccessMsg('Image uploaded and optimized successfully to Cloudinary CDN!');
       } else {
-        // Fallback to ImgBB if local upload had an issue
-        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '42fdb6623317f99b22cc6bbb8ce01fc2';
-        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-          method: 'POST',
-          body: formData,
-        });
-        const imgbbData = await imgbbRes.json();
-        if (imgbbData.success) {
-          setGallery([...gallery, imgbbData.data.url]);
-          setSuccessMsg('Image uploaded successfully!');
-        } else {
-          const msg = data.message || imgbbData.error?.message || 'Image upload failed.';
-          setErrorMsg(msg);
-        }
+        setErrorMsg(data.message || 'Image upload failed. Please ensure file is valid and try again.');
       }
     } catch (err) {
       console.error('Error uploading image:', err);

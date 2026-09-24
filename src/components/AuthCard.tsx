@@ -73,6 +73,13 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
     }
   }, []);
 
+  // Show friendly notification if session expired
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      setError('Your session has expired. Please log in again to continue.');
+    }
+  }, [searchParams]);
+
   // Post auth redirect helper
   const handlePostAuthRedirect = () => {
     const redirect = searchParams.get('redirect');

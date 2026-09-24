@@ -2,6 +2,13 @@
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { API_URL } from '../config';
+import { 
+  getStoredTokens, 
+  setStoredTokens, 
+  clearStoredTokens, 
+  refreshAccessToken, 
+  authFetch 
+} from '../utils/api';
 
 export interface AuthContextType {
   user: any;
@@ -11,11 +18,12 @@ export interface AuthContextType {
   register: (name: string, email: string, password: string, phone: string, address: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateProfile: (name: string, phone: string, address: string) => Promise<{ success: boolean; message?: string }>;
-  setAuthSession: (user: any, token: string) => void;
+  setAuthSession: (user: any, token: string, refreshToken?: string) => void;
   verifyActivationToken: (token: string) => Promise<{ success: boolean; data?: any; message?: string }>;
   setPasswordAndActivate: (token: string, password: string) => Promise<{ success: boolean; message?: string }>;
   resendActivation: (email: string) => Promise<{ success: boolean; message?: string }>;
   loginWithGoogle: (payload: { idToken?: string; credential?: string; accessToken?: string }) => Promise<{ success: boolean; message?: string }>;
+  authFetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,27 +34,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('shopnest_token') || localStorage.getItem('onwear_token');
+    const { token: storedToken, refreshToken: storedRefreshToken } = getStoredTokens();
     if (storedToken) {
       setToken(storedToken);
       fetchUserProfile(storedToken);
+    } else if (storedRefreshToken) {
+      // Access token expired/missing but refresh token exists: silent renew immediately
+      refreshAccessToken().then((newToken) => {
+        if (newToken) {
+          setToken(newToken);
+          fetchUserProfile(newToken);
+        } else {
+          setLoading(false);
+        }
+      });
     } else {
       setLoading(false);
     }
+
+    const handleSessionUpdated = (e: any) => {
+      if (e.detail?.token) setToken(e.detail.token);
+      if (e.detail?.user) setUser(e.detail.user);
+    };
+
+    const handleLogout = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener('auth:session-updated', handleSessionUpdated);
+    window.addEventListener('auth:logout', handleLogout);
+
+    return () => {
+      window.removeEventListener('auth:session-updated', handleSessionUpdated);
+      window.removeEventListener('auth:logout', handleLogout);
+    };
   }, []);
 
   const fetchUserProfile = async (jwtToken: string) => {
     try {
-      const res = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`
-        }
-      });
+      const res = await authFetch(`${API_URL}/auth/me`);
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
       } else {
-        // Token might have expired
+        // If even silent refresh failed, clean up
         logout();
       }
     } catch (err) {
@@ -68,8 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       const data = await res.json();
       if (data.success) {
-        localStorage.setItem('shopnest_token', data.data.token);
-        localStorage.setItem('onwear_token', data.data.token);
+        setStoredTokens(data.data.token, data.data.refreshToken, data.data.user);
         setToken(data.data.token);
         setUser(data.data.user);
         return { success: true };
@@ -101,16 +132,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const setAuthSession = (newUser: any, newToken: string) => {
-    localStorage.setItem('shopnest_token', newToken);
-    localStorage.setItem('onwear_token', newToken);
+  const setAuthSession = (newUser: any, newToken: string, newRefreshToken?: string) => {
+    setStoredTokens(newToken, newRefreshToken, newUser);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
-    localStorage.removeItem('shopnest_token');
-    localStorage.removeItem('onwear_token');
+    clearStoredTokens();
     setToken(null);
     setUser(null);
   };
@@ -141,7 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       const data = await res.json();
       if (data.success) {
-        setAuthSession(data.data.user, data.data.token);
+        setAuthSession(data.data.user, data.data.token, data.data.refreshToken);
         return { success: true };
       }
       return { success: false, message: data.message || 'Failed to activate account' };
@@ -168,11 +197,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token || !user) return { success: false, message: 'Not authenticated' };
 
     try {
-      const res = await fetch(`${API_URL}/users/${user.id}`, {
+      const res = await authFetch(`${API_URL}/users/${user.id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ name, phone, address })
       });
@@ -200,8 +228,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       const data = await res.json();
       if (data.success) {
-        localStorage.setItem('shopnest_token', data.data.token);
-        localStorage.setItem('onwear_token', data.data.token);
+        setStoredTokens(data.data.token, data.data.refreshToken, data.data.user);
         setToken(data.data.token);
         setUser(data.data.user);
         return { success: true };
@@ -227,7 +254,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       verifyActivationToken,
       setPasswordAndActivate,
       resendActivation,
-      loginWithGoogle
+      loginWithGoogle,
+      authFetch
     }}>
       {children}
     </AuthContext.Provider>
@@ -241,4 +269,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
 

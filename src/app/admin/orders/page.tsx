@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
+import { authFetch } from '../../../utils/api';
 import { 
   ArrowLeft, 
   Eye, 
@@ -49,9 +50,7 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${API_URL}/orders?includeDeleted=true`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await authFetch(`${API_URL}/orders?includeDeleted=true`);
       const data = await res.json();
       if (data.success) {
         setOrders(data.data || []);

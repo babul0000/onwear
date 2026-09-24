@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../config';
+import { authFetch } from '../../utils/api';
 import Link from 'next/link';
 import { 
-  Users, ShoppingBag, DollarSign, Clock, ShoppingCart, ArrowRight, CheckCircle2, Package, Eye
+  Users, ShoppingBag, DollarSign, Clock, ShoppingCart, ArrowRight, CheckCircle2, Package, Eye, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import QuickAddProduct from '../../components/QuickAddProduct';
 import SalesOverviewChart, { AnalyticsMetrics, ChartDataPoint } from '../../components/SalesOverviewChart';
@@ -47,6 +48,8 @@ export default function AdminDashboard() {
   const [productList, setProductList] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== 'admin') {
@@ -56,9 +59,10 @@ export default function AdminDashboard() {
 
   const loadStatsAndProducts = async () => {
     if (!token) return;
+    setFetchError(null);
     try {
       const [analyticsRes, productsRes, categoriesRes] = await Promise.all([
-        fetch(`${API_URL}/analytics/dashboard-overview`, { headers: { Authorization: `Bearer ${token}` } }),
+        authFetch(`${API_URL}/analytics/dashboard-overview`),
         fetch(`${API_URL}/products?limit=9999&includeDeleted=true`),
         fetch(`${API_URL}/categories`)
       ]);
@@ -100,17 +104,27 @@ export default function AdminDashboard() {
 
         setTopProducts(topSellingProducts || []);
         setTopViewedProducts(topViewed || []);
+      } else {
+        setFetchError('Live metrics could not be loaded completely. Click retry if server was sleeping.');
       }
     } catch (err) {
       console.error('Error fetching real admin analytics:', err);
+      setFetchError('Connection timeout or server wake-up delay.');
     } finally {
       setLoading(false);
+      setRetrying(false);
     }
   };
 
   useEffect(() => {
     loadStatsAndProducts();
   }, [token]);
+
+  const handleManualRetry = () => {
+    setRetrying(true);
+    loadStatsAndProducts();
+  };
+
 
   if (!token || !user || user.role !== 'admin') {
     return null;
@@ -143,6 +157,25 @@ export default function AdminDashboard() {
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
+
+      {/* Connection / Cold Start Notice with Retry */}
+      {fetchError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <p className="text-xs font-semibold">{fetchError}</p>
+          </div>
+          <button
+            onClick={handleManualRetry}
+            disabled={retrying}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${retrying ? 'animate-spin' : ''}`} />
+            <span>{retrying ? 'Retrying...' : 'Retry Now'}</span>
+          </button>
+        </div>
+      )}
+
 
       {/* 2. SIX SUMMARY METRICS CARDS (100% Real from Database) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

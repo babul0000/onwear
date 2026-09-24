@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../../../config';
+import { authFetch } from '../../../utils/api';
 import { ArrowLeft, User as UserIcon, ShieldCheck, Users, Loader2, Trash2 } from 'lucide-react';
 import ConfirmModal from '../../../components/ConfirmModal';
 
@@ -31,9 +32,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await authFetch(`${API_URL}/users`);
       const data = await res.json();
       if (data.success) {
         setUsers(data.data);
