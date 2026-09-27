@@ -14,6 +14,7 @@ interface SizeGuideModalProps {
   categoryName?: string;
   productId?: string;
   productName?: string;
+  availableSizes?: string[];
   sizeChartUrl?: string | null;
   onSaveSuccess?: () => void;
 }
@@ -36,6 +37,7 @@ export default function SizeGuideModal({
   categoryName = '',
   productId,
   productName,
+  availableSizes = [],
   sizeChartUrl,
   onSaveSuccess
 }: SizeGuideModalProps) {
@@ -44,17 +46,32 @@ export default function SizeGuideModal({
 
   // Determine initial active category key
   const getInitialCategoryKey = () => {
-    const lower = (categoryName || '').toLowerCase();
-    if (lower.includes('pant') || lower.includes('denim') || lower.includes('chino') || lower.includes('trouser') || lower.includes('baggy') || lower.includes('straight')) {
+    const combined = `${categoryName || ''} ${productName || ''}`.toLowerCase();
+    if (
+      combined.includes('pant') ||
+      combined.includes('denim') ||
+      combined.includes('chino') ||
+      combined.includes('trouser') ||
+      combined.includes('baggy') ||
+      combined.includes('straight') ||
+      combined.includes('cargo') ||
+      combined.includes('jeans')
+    ) {
       return 'baggy_denim';
     }
-    if (lower.includes('panjabi') || lower.includes('kurta') || lower.includes('traditional')) {
+    if (combined.includes('panjabi') || combined.includes('kurta') || combined.includes('traditional')) {
       return 'panjabi';
     }
-    if (lower.includes('t-shirt') || lower.includes('polo') || lower.includes('tee')) {
+    if (combined.includes('t-shirt') || combined.includes('tshirt') || combined.includes('polo') || combined.includes('tee')) {
       return 'tshirt';
     }
-    if (lower.includes('boxy') || lower.includes('shirt')) {
+    if (combined.includes('boxy')) {
+      return 'boxy_shirt';
+    }
+    if (combined.includes('regular') && combined.includes('shirt')) {
+      return 'regular_shirt';
+    }
+    if (combined.includes('shirt')) {
       return 'boxy_shirt';
     }
     return 'boxy_shirt';
@@ -144,8 +161,6 @@ export default function SizeGuideModal({
     }
   }, [isOpen, categoryName, productId, sizeChartUrl]);
 
-  if (!isOpen) return null;
-
   // Ensure current category chart exists
   const currentChart: SizeCategory = sizeData[activeType] || {
     title: activeType,
@@ -155,6 +170,33 @@ export default function SizeGuideModal({
 
   const rows = currentChart.rows[unit] || [];
   const headers = currentChart.headers || ['Size'];
+
+  // Filter rows by availableSizes to display only this product's configured sizes
+  const displayedRows = React.useMemo(() => {
+    if (!availableSizes || availableSizes.length === 0) return rows;
+    const availUpper = availableSizes.map(s => s.trim().toUpperCase());
+
+    // Rows matching the product's actual sizes
+    const matched = rows.filter(r => availUpper.includes((r.size || '').trim().toUpperCase()));
+
+    // If any size in availableSizes is not yet in preset rows, create an entry
+    const matchedSet = new Set(matched.map(r => (r.size || '').trim().toUpperCase()));
+    const missing = availUpper.filter(s => !matchedSet.has(s));
+
+    if (missing.length > 0 && matched.length > 0) {
+      const extraRows: SizeRow[] = missing.map(sz => {
+        const extra: SizeRow = { size: sz };
+        headers.forEach(h => {
+          const k = h.toLowerCase().trim();
+          if (k !== 'size') extra[k] = '—';
+        });
+        return extra;
+      });
+      return [...matched, ...extraRows];
+    }
+
+    return matched.length > 0 ? matched : rows;
+  }, [rows, availableSizes, headers]);
 
   // Update cell value
   const handleCellChange = (rowIdx: number, colHeader: string, value: string) => {
@@ -498,6 +540,8 @@ export default function SizeGuideModal({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 selection:bg-zinc-950 selection:text-white">
       {/* Backdrop */}
@@ -518,7 +562,7 @@ export default function SizeGuideModal({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm sm:text-base font-black text-zinc-950 uppercase tracking-wider font-sans">
-                  {isEditing ? 'Size Chart Studio' : 'Size & Measurement Guide'}
+                  {isEditing ? 'Size Chart Studio' : 'Size Guide'}
                 </h2>
                 {isCustomProductChart && !isEditing && (
                   <span className="text-[9px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded font-mono">
@@ -534,7 +578,7 @@ export default function SizeGuideModal({
               <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
                 {isEditing 
                   ? 'Customize sizes, headers, and inch/cm dimensions' 
-                  : 'Find your perfect tailored fit with exact measurements'}
+                  : (productName || 'Tailored fit measurements')}
               </p>
             </div>
           </div>
@@ -624,60 +668,21 @@ export default function SizeGuideModal({
           </div>
         )}
 
-        {/* TAB SELECTOR & UNIT SWITCHER */}
-        <div className="px-5 sm:px-6 pt-3 pb-2 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-3 bg-white">
-          {/* Category Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {Object.keys(sizeData).map((key) => {
-              const cat = sizeData[key];
-              const isActive = activeType === key;
-              return (
-                <div key={key} className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setActiveType(key)}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-zinc-950 text-white shadow-xs'
-                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                    }`}
-                  >
-                    {cat.title || key}
-                  </button>
-                  {isEditing && Object.keys(sizeData).length > 1 && isActive && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCategory(key)}
-                      className="ml-0.5 p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
-                      title="Delete this category chart"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+        {/* WHEN PRODUCT IS PRESENT: SIMPLE CLEAN BAR WITH PRODUCT/CATEGORY TITLE & INCH/CM TOGGLE */}
+        {productId ? (
+          <div className="px-5 sm:px-6 py-3 border-b border-zinc-200/80 bg-zinc-50 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-zinc-900 uppercase tracking-wider font-mono">
+                {productName || currentChart.title}
+              </span>
+            </div>
 
-            {/* Add Category Tab Button (Edit Mode) */}
-            {isEditing && (
-              <button
-                type="button"
-                onClick={() => setShowAddCategory(!showAddCategory)}
-                className="px-2.5 py-1.5 border border-dashed border-zinc-300 text-zinc-700 hover:border-zinc-950 text-xs font-bold uppercase tracking-wider flex items-center gap-1 bg-zinc-50 hover:bg-white transition-all cursor-pointer"
-              >
-                <Plus className="h-3 w-3" />
-                <span>Add Category</span>
-              </button>
-            )}
-          </div>
-
-          {/* Unit Toggle & Auto Convert Tools */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-zinc-200 bg-zinc-50 p-0.5">
+            {/* Inches / CM Switcher */}
+            <div className="flex items-center border border-zinc-200 bg-white p-0.5 rounded-lg shadow-2xs">
               <button
                 type="button"
                 onClick={() => setUnit('in')}
-                className={`px-3 py-1 text-xs font-black uppercase font-mono transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 text-xs font-bold uppercase font-mono rounded-md transition-all cursor-pointer ${
                   unit === 'in' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
                 }`}
               >
@@ -686,7 +691,7 @@ export default function SizeGuideModal({
               <button
                 type="button"
                 onClick={() => setUnit('cm')}
-                className={`px-3 py-1 text-xs font-black uppercase font-mono transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 text-xs font-bold uppercase font-mono rounded-md transition-all cursor-pointer ${
                   unit === 'cm' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
                 }`}
               >
@@ -694,7 +699,78 @@ export default function SizeGuideModal({
               </button>
             </div>
           </div>
-        </div>
+        ) : (
+          /* TAB SELECTOR & UNIT SWITCHER (ONLY FOR GLOBAL ADMIN SETTINGS) */
+          <div className="px-5 sm:px-6 pt-3 pb-2 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-3 bg-white">
+            {/* Category Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {Object.keys(sizeData).map((key) => {
+                const cat = sizeData[key];
+                const isActive = activeType === key;
+                return (
+                  <div key={key} className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setActiveType(key)}
+                      className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-zinc-950 text-white shadow-xs'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {cat.title || key}
+                    </button>
+                    {isEditing && Object.keys(sizeData).length > 1 && isActive && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategory(key)}
+                        className="ml-0.5 p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
+                        title="Delete this category chart"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddCategory(!showAddCategory)}
+                  className="px-2.5 py-1.5 border border-dashed border-zinc-300 text-zinc-700 hover:border-zinc-950 text-xs font-bold uppercase tracking-wider flex items-center gap-1 bg-zinc-50 hover:bg-white transition-all cursor-pointer"
+                >
+                  <Plus className="h-3 w-3" />
+                  <span>Add Category</span>
+                </button>
+              )}
+            </div>
+
+            {/* Unit Toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center border border-zinc-200 bg-zinc-50 p-0.5 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setUnit('in')}
+                  className={`px-3 py-1 text-xs font-black uppercase font-mono transition-all cursor-pointer rounded ${
+                    unit === 'in' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
+                  }`}
+                >
+                  Inches (in)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnit('cm')}
+                  className={`px-3 py-1 text-xs font-black uppercase font-mono transition-all cursor-pointer rounded ${
+                    unit === 'cm' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
+                  }`}
+                >
+                  CM (cm)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ADD CATEGORY POPUP FORM */}
         {isEditing && showAddCategory && (
@@ -851,10 +927,10 @@ export default function SizeGuideModal({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {rows.map((row, rowIdx) => (
+                {(isEditing ? rows : displayedRows).map((row, rowIdx) => (
                   <tr key={rowIdx} className="hover:bg-zinc-50/80 transition-colors font-medium">
                     {/* Size column */}
-                    <td className="p-2.5 font-black text-zinc-950 font-mono bg-zinc-50/40">
+                    <td className="p-3 font-black text-zinc-950 font-mono bg-zinc-50/40">
                       {isEditing ? (
                         <input
                           type="text"
@@ -873,7 +949,7 @@ export default function SizeGuideModal({
                       const key = header.toLowerCase().trim();
                       const val = row[key] || '';
                       return (
-                        <td key={colIdx} className="p-2.5 text-zinc-700 font-mono">
+                        <td key={colIdx} className="p-3 text-zinc-700 font-mono">
                           {isEditing ? (
                             <input
                               type="text"
@@ -907,18 +983,6 @@ export default function SizeGuideModal({
               </tbody>
             </table>
 
-            {/* Brand Emblem Footer inside table */}
-            {!isEditing && (
-              <div className="py-3 px-4 bg-zinc-50 border-t border-zinc-200 flex flex-col items-center justify-center gap-0.5 text-center">
-                <span className="text-xs font-black tracking-widest text-zinc-950 uppercase font-sans">
-                  ON WEAR.
-                </span>
-                <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">
-                  UNIQUE WAY OF ELEGANCE • ESTD. 2025
-                </span>
-              </div>
-            )}
-
             {/* Add Size Row Button in Edit Mode */}
             {isEditing && (
               <div className="p-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
@@ -937,39 +1001,10 @@ export default function SizeGuideModal({
             )}
           </div>
 
-          {/* HOW TO MEASURE GUIDE (View Mode) */}
-          {!isEditing && (
-            <div className="bg-zinc-50 border border-zinc-200 p-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-zinc-900 font-bold text-xs uppercase tracking-wider">
-                <HelpCircle className="h-4 w-4 text-teal-650" />
-                <span>How to Measure Accurately</span>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-600">
-                <div className="flex items-start gap-2">
-                  <span className="font-black text-teal-650 font-mono">1.</span>
-                  <p><strong>Chest:</strong> Measure around the fullest part of your chest, keeping the tape horizontal under your arms.</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="font-black text-teal-650 font-mono">2.</span>
-                  <p><strong>Length:</strong> Measure straight down from the highest point of the shoulder down to the bottom hemline.</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="font-black text-teal-650 font-mono">3.</span>
-                  <p><strong>Shoulder:</strong> Measure across the back from the edge of one shoulder bone to the other.</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="font-black text-teal-650 font-mono">4.</span>
-                  <p><strong>Waist:</strong> Measure around your natural waistline, where your trousers usually rest comfortably.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
         </div>
 
         {/* MODAL FOOTER */}
-        <div className="border-t border-zinc-200 p-4 bg-zinc-50 flex flex-wrap items-center justify-between gap-3">
+        <div className="border-t border-zinc-200 p-4 bg-zinc-50 flex items-center justify-end gap-3">
           {isEditing ? (
             <>
               <button
@@ -1007,18 +1042,13 @@ export default function SizeGuideModal({
               </div>
             </>
           ) : (
-            <>
-              <span className="text-[11px] font-semibold text-zinc-400">
-                * All measurements are standard tailored fit. In between sizes? We recommend ordering the larger size.
-              </span>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
-              >
-                Got It
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer rounded-lg"
+            >
+              Close
+            </button>
           )}
         </div>
 

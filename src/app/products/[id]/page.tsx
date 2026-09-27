@@ -1372,6 +1372,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         categoryName={product.category?.name || ''}
         productId={product.id}
         productName={product.name}
+        availableSizes={availableSizes}
         sizeChartUrl={(product as any).sizeChartUrl || null}
       />
 

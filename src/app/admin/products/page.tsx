@@ -86,6 +86,7 @@ export default function AdminProductsPage() {
   const [showManualUrl, setShowManualUrl] = useState(false);
   const [editSizes, setEditSizes] = useState<string[]>([]);
   const [editSizeStock, setEditSizeStock] = useState<Record<string, string>>({});
+  const [newSizeInput, setNewSizeInput] = useState<string>('');
   const [productDescription, setProductDescription] = useState<string>('');
 
   // Image Uploading States
@@ -177,10 +178,6 @@ export default function AdminProductsPage() {
     if (sizesMatch && sizesMatch[1]) {
       parsedSizes = sizesMatch[1].split(',').map((s: string) => s.trim().replace(/\(.*?\)/g, '')).filter(Boolean);
     }
-    if (parsedSizes.length === 0) {
-      parsedSizes = ['S', 'M', 'L', 'XL'];
-    }
-    setEditSizes(parsedSizes);
 
     // Parse existing SizeStock from description
     const stockMap: Record<string, string> = {};
@@ -194,14 +191,58 @@ export default function AdminProductsPage() {
         }
       }
     }
+
+    // Include any sizes from stockMap that might be missing from parsedSizes
+    const existingSizesUpper = new Set(parsedSizes.map(s => s.toUpperCase()));
+    Object.keys(stockMap).forEach(sz => {
+      if (!sz.includes('-') && !existingSizesUpper.has(sz)) {
+        parsedSizes.push(sz);
+        existingSizesUpper.add(sz);
+      }
+    });
+
+    if (parsedSizes.length === 0) {
+      parsedSizes = ['S', 'M', 'L', 'XL'];
+    }
+
     parsedSizes.forEach(sz => {
       if (stockMap[sz.toUpperCase()] === undefined) {
         stockMap[sz.toUpperCase()] = prod.stock !== undefined ? Math.max(0, Math.floor(prod.stock / parsedSizes.length)).toString() : '10';
       }
     });
+    setEditSizes(parsedSizes);
     setEditSizeStock(stockMap);
+    setNewSizeInput('');
 
     setEditModalProduct(prod);
+  };
+
+  const handleAddEditSize = (customSize?: string) => {
+    const raw = (customSize !== undefined ? customSize : newSizeInput).trim();
+    if (!raw) return;
+    const formatted = raw.toUpperCase();
+
+    if (editSizes.some(s => s.toUpperCase() === formatted)) {
+      setNewSizeInput('');
+      return;
+    }
+
+    setEditSizes(prev => [...prev, formatted]);
+    setEditSizeStock(prev => ({
+      ...prev,
+      [formatted]: prev[formatted] !== undefined ? prev[formatted] : '10'
+    }));
+    setNewSizeInput('');
+  };
+
+  const handleRemoveEditSize = (sizeToRemove: string) => {
+    const targetUpper = sizeToRemove.toUpperCase();
+    setEditSizes(prev => prev.filter(s => s.toUpperCase() !== targetUpper));
+    setEditSizeStock(prev => {
+      const next = { ...prev };
+      delete next[targetUpper];
+      return next;
+    });
   };
 
   // Upload helper with Cloudinary primary and ImgBB fallback
@@ -344,18 +385,74 @@ export default function AdminProductsPage() {
     setError('');
     setSuccess('');
 
-    // Reconstruct description with updated SizeStock
-    let updatedDesc = productDescription;
-    const sizeStockStr = editSizes.map(sz => `${sz.toUpperCase()}:${parseInt(editSizeStock[sz.toUpperCase()] || '0')}`).join(', ');
+    // Reconstruct description with updated Sizes and SizeStock
+    let updatedDesc = productDescription || '';
+    const sizeListStr = editSizes.join(', ');
+    const sizeStockStr = editSizes
+      .map(sz => `${sz.toUpperCase()}:${parseInt(editSizeStock[sz.toUpperCase()] || '0')}`)
+      .join(', ');
     
+    // 1. Update or append Sizes:
+    if (/Sizes:\s*[^\n\r]+/i.test(updatedDesc)) {
+      updatedDesc = updatedDesc.replace(/Sizes:\s*[^\n\r]+/i, `Sizes: ${sizeListStr}`);
+    } else if (updatedDesc.includes('---')) {
+      updatedDesc = updatedDesc.replace(/---/, `---\nSizes: ${sizeListStr}`);
+    } else {
+      updatedDesc = `${updatedDesc}\n\n---\nSizes: ${sizeListStr}`;
+    }
+
+    // 2. Update or append SizeStock:
     if (/SizeStock:\s*[^\n\r]+/i.test(updatedDesc)) {
       updatedDesc = updatedDesc.replace(/SizeStock:\s*[^\n\r]+/i, `SizeStock: ${sizeStockStr}`);
     } else if (/Sizes:\s*[^\n\r]+/i.test(updatedDesc)) {
       updatedDesc = updatedDesc.replace(/(Sizes:\s*[^\n\r]+)/i, `$1\nSizeStock: ${sizeStockStr}`);
-    } else if (updatedDesc.includes('---')) {
-      updatedDesc = updatedDesc.replace(/---/, `---\nSizes: ${editSizes.join(', ')}\nSizeStock: ${sizeStockStr}`);
     } else {
-      updatedDesc = `${updatedDesc}\n\n---\nSizes: ${editSizes.join(', ')}\nSizeStock: ${sizeStockStr}`;
+      updatedDesc = `${updatedDesc}\nSizeStock: ${sizeStockStr}`;
+    }
+
+    // 3. Keep VariantStock in sync if present
+    const variantMatch = updatedDesc.match(/VariantStock:\s*([^\n\r]+)/i);
+    if (variantMatch && variantMatch[1]) {
+      const existingTokens = variantMatch[1].split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+      const activeSizesUpper = new Set(editSizes.map(s => s.toUpperCase()));
+
+      // Remove tokens for removed sizes
+      const filteredTokens = existingTokens.filter(token => {
+        const m = token.match(/^([A-Za-z0-9]+)[-_/]([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+        if (m) {
+          const sz = m[2].trim().toUpperCase();
+          return activeSizesUpper.has(sz);
+        }
+        return true;
+      });
+
+      // Find color prefixes
+      const colorsSet = new Set<string>();
+      filteredTokens.forEach(token => {
+        const m = token.match(/^([A-Za-z0-9]+)[-_/]([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+        if (m) colorsSet.add(m[1].trim().toUpperCase());
+      });
+      const colorsLineMatch = updatedDesc.match(/Colors:\s*([^\n\r]+)/i);
+      if (colorsLineMatch && colorsLineMatch[1]) {
+        colorsLineMatch[1].split(',').map(c => c.trim().toUpperCase()).filter(Boolean).forEach(c => colorsSet.add(c));
+      }
+
+      // Add missing variants for any newly added size
+      editSizes.forEach(sz => {
+        const szUpper = sz.toUpperCase();
+        colorsSet.forEach(col => {
+          const exists = filteredTokens.some(t => {
+            const m = t.match(/^([A-Za-z0-9]+)[-_/]([A-Za-z0-9]+)\s*[:=]\s*(\d+)$/);
+            return m && m[1].trim().toUpperCase() === col && m[2].trim().toUpperCase() === szUpper;
+          });
+          if (!exists) {
+            const stockVal = parseInt(editSizeStock[szUpper] || '10');
+            filteredTokens.push(`${col}-${szUpper}:${stockVal}`);
+          }
+        });
+      });
+
+      updatedDesc = updatedDesc.replace(/VariantStock:\s*[^\n\r]+/i, `VariantStock: ${filteredTokens.join(', ')}`);
     }
 
     const body: any = {
@@ -533,6 +630,7 @@ export default function AdminProductsPage() {
     setShowManualUrl(false);
     setEditSizes([]);
     setEditSizeStock({});
+    setNewSizeInput('');
     setProductDescription('');
     setEditModalProduct(null);
   };
@@ -1241,71 +1339,171 @@ export default function AdminProductsPage() {
                 </div>
 
                 {/* Size Variant Stock Controls */}
-                <div className="flex flex-col gap-2.5 sm:col-span-2 bg-zinc-50 border border-zinc-200 rounded-2xl p-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-zinc-800 flex items-center gap-1.5">
-                      <Sliders className="h-3.5 w-3.5 text-indigo-600" />
-                      <span>Size Variant Stock (Set 0 to mark Out of Stock / Crossed Out with ✕)</span>
-                    </label>
-                    <span className="text-[10px] text-zinc-400 font-mono">
-                      0 stock = ✕ Crossed
-                    </span>
+                <div className="flex flex-col gap-3.5 sm:col-span-2 bg-zinc-50/90 border border-zinc-200 rounded-2xl p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200/70 pb-3">
+                    <div>
+                      <label className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                        <Sliders className="h-3.5 w-3.5 text-indigo-600" />
+                        <span>Size Variant Stock & Management</span>
+                      </label>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                        Add or remove sizes, customize inventory count per size (0 stock = Crossed out ✕)
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono text-zinc-500 bg-white border border-zinc-200 px-2.5 py-1 rounded-lg">
+                        Total Variant Stock: <strong className="text-zinc-900">{editSizes.reduce((sum, sz) => sum + (parseInt(editSizeStock[sz.toUpperCase()] || '0') || 0), 0)}</strong> pcs
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const total = editSizes.reduce((sum, sz) => sum + (parseInt(editSizeStock[sz.toUpperCase()] || '0') || 0), 0);
+                          setStock(total.toString());
+                        }}
+                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                        title="Update Base Inventory Stock Quantity to match total variant stock"
+                      >
+                        Sync Total
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                    {editSizes.map((sz) => {
-                      const currentVal = editSizeStock[sz.toUpperCase()] ?? '0';
-                      const isZero = parseInt(currentVal) === 0;
-                      return (
-                        <div
-                          key={sz}
-                          className={`flex flex-col gap-1.5 p-3 rounded-xl border transition-all ${
-                            isZero
-                              ? 'bg-red-50/60 border-red-200'
-                              : 'bg-white border-zinc-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-zinc-800">{sz}</span>
+                  {/* Add New Size Input & Quick Suggestions */}
+                  <div className="flex flex-col gap-2.5 bg-white p-3 rounded-xl border border-zinc-200/80 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Type new size (e.g. XS, XXL, 3XL, 32, Free) & press Enter..."
+                        value={newSizeInput}
+                        onChange={(e) => setNewSizeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddEditSize();
+                          }
+                        }}
+                        className="flex-1 text-xs font-semibold px-3 py-2 rounded-lg border border-zinc-200 bg-zinc-50 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddEditSize()}
+                        className="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs shrink-0"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Add Size</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Add Suggestions */}
+                    {['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL']
+                      .filter(s => !editSizes.some(es => es.toUpperCase() === s.toUpperCase()))
+                      .length > 0 && (
+                      <div className="flex items-center flex-wrap gap-1.5 pt-1 border-t border-zinc-100">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mr-1">
+                          Quick Add:
+                        </span>
+                        {['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL']
+                          .filter(s => !editSizes.some(es => es.toUpperCase() === s.toUpperCase()))
+                          .map((suggested) => (
                             <button
+                              key={suggested}
                               type="button"
-                              onClick={() => {
-                                const nextVal = isZero ? '10' : '0';
-                                setEditSizeStock(prev => ({
-                                  ...prev,
-                                  [sz.toUpperCase()]: nextVal
-                                }));
-                              }}
-                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                                isZero
-                                  ? 'bg-red-200 text-red-800 hover:bg-red-300'
-                                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                              }`}
+                              onClick={() => handleAddEditSize(suggested)}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold bg-zinc-100 hover:bg-indigo-50 hover:text-indigo-600 text-zinc-700 px-2 py-0.5 rounded-md border border-zinc-200/80 transition-all cursor-pointer"
                             >
-                              {isZero ? '✕ 0 Stock' : 'Set 0'}
+                              <Plus className="h-2.5 w-2.5 text-zinc-400" />
+                              <span>{suggested}</span>
                             </button>
-                          </div>
-                          <input
-                            type="number"
-                            min="0"
-                            value={currentVal}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setEditSizeStock(prev => ({
-                                ...prev,
-                                [sz.toUpperCase()]: val
-                              }));
-                            }}
-                            className={`w-full text-xs font-mono font-bold p-1.5 rounded-lg border outline-none ${
-                              isZero
-                                ? 'bg-white border-red-300 text-red-600'
-                                : 'bg-zinc-50 border-zinc-200 text-zinc-900 focus:bg-white focus:border-indigo-500'
-                            }`}
-                          />
-                        </div>
-                      );
-                    })}
+                          ))}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Size Cards Grid */}
+                  {editSizes.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-xl">
+                      No size variants configured for this product. Use the input above or quick suggestions to add sizes.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                      {editSizes.map((sz) => {
+                        const currentVal = editSizeStock[sz.toUpperCase()] ?? '0';
+                        const isZero = parseInt(currentVal) === 0;
+                        return (
+                          <div
+                            key={sz}
+                            className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
+                              isZero
+                                ? 'bg-red-50/60 border-red-200'
+                                : 'bg-white border-zinc-200 shadow-xs'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-black text-zinc-900 bg-zinc-100 px-1.5 py-0.5 rounded">
+                                  {sz}
+                                </span>
+                                {isZero && (
+                                  <span className="text-[9px] font-bold text-red-600 bg-red-100 px-1 rounded">
+                                    Sold Out
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const nextVal = isZero ? '10' : '0';
+                                    setEditSizeStock(prev => ({
+                                      ...prev,
+                                      [sz.toUpperCase()]: nextVal
+                                    }));
+                                  }}
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
+                                    isZero
+                                      ? 'bg-red-200 text-red-800 hover:bg-red-300'
+                                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                  }`}
+                                  title={isZero ? 'Restore stock' : 'Mark out of stock'}
+                                >
+                                  {isZero ? '✕ 0' : 'Set 0'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveEditSize(sz)}
+                                  className="text-zinc-400 hover:text-red-600 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
+                                  title={`Remove size ${sz}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-semibold text-zinc-500">Stock Count</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={currentVal}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setEditSizeStock(prev => ({
+                                    ...prev,
+                                    [sz.toUpperCase()]: val
+                                  }));
+                                }}
+                                className={`w-full text-xs font-mono font-bold p-1.5 rounded-lg border outline-none ${
+                                  isZero
+                                    ? 'bg-white border-red-300 text-red-600'
+                                    : 'bg-zinc-50 border-zinc-200 text-zinc-900 focus:bg-white focus:border-indigo-500'
+                                }`}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 

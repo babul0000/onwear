@@ -168,7 +168,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
       id: '7edc19f5-1a82-4ae6-ba89-114b6709f526',
       title: 'Hero Slide 2',
       imageUrl: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789705605/onwear/hero_slides/dfot7bsi5uhbnmqzydpj.jpg',
-      linkUrl: '/products?category=denim',
+      linkUrl: '/products',
       positionX: 75,
       positionY: 41,
     }
@@ -182,7 +182,10 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+            return parsed.map((s: SlideData) => ({
+              ...s,
+              linkUrl: s.linkUrl && s.linkUrl.includes('category=denim') ? '/products' : (s.linkUrl || '/products')
+            }));
           }
         }
       } catch (_) {}
@@ -222,7 +225,10 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
         const res = await fetch(`${API_URL}/promotions/hero-slides`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const newSlides = data.data;
+          const newSlides = data.data.map((s: SlideData) => ({
+            ...s,
+            linkUrl: s.linkUrl && s.linkUrl.includes('category=denim') ? '/products' : (s.linkUrl || '/products')
+          }));
           // Compare with current slides to avoid unnecessary flash / rerender
           const isSame = JSON.stringify(newSlides) === JSON.stringify(slides);
           if (!isSame) {
@@ -272,17 +278,22 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
     const activeSlide = activeSlides[activeSlideIdx] || activeSlides[0];
     if (!activeSlide) return;
 
+    let targetUrl = activeSlide.linkUrl || '/products';
+    if (targetUrl.includes('category=denim')) {
+      targetUrl = '/products';
+    }
+
     if (isMobile) {
       if (showMobileCTA) {
         // Second tap opens the redirect URL
-        if (activeSlide.linkUrl) router.push(activeSlide.linkUrl);
+        router.push(targetUrl);
       } else {
         // First tap reveals CTA temporarily
         setShowMobileCTA(true);
       }
     } else {
       // Desktop opens instantly on click
-      if (activeSlide.linkUrl) router.push(activeSlide.linkUrl);
+      router.push(targetUrl);
     }
   };
 

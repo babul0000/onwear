@@ -204,9 +204,18 @@ function ProductsPageContent() {
 
   // Parse initial query params on mount/change
   useEffect(() => {
-    const categoryQuery = searchParams.get('category');
+    const rawCategory = (searchParams.get('category') || '').trim().toLowerCase();
     const searchQuery = searchParams.get('search');
-    setSelectedCategory(categoryQuery || '');
+    
+    // Normalize aliases so broken links like category=denim or category=shirt never show 0 products
+    let resolvedCategory = rawCategory;
+    if (rawCategory === 'denim' || rawCategory === 'jeans') {
+      resolvedCategory = 'pants';
+    } else if (rawCategory === 'shirt') {
+      resolvedCategory = 'shirts';
+    }
+    
+    setSelectedCategory(resolvedCategory);
     setSearch(searchQuery || '');
   }, [searchParams]);
 
