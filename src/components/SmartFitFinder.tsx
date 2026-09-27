@@ -25,6 +25,7 @@ import {
 interface ProductItem {
   id: string;
   name: string;
+  slug?: string;
   price: number;
   discountPrice?: number | null;
   image?: string;
@@ -774,7 +775,7 @@ export default function SmartFitFinder() {
                 return (
                   <div
                     key={prod.id}
-                    onClick={() => router.push(`/products/${prod.id}`)}
+                    onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
                     className="bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-1.5 cursor-pointer hover:border-zinc-400 transition-all group"
                   >
                     <div className="relative aspect-[3/4] w-full bg-white rounded-lg overflow-hidden border border-zinc-100">

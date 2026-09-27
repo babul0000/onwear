@@ -656,7 +656,7 @@ function ProductsPageContent() {
                      </button>
 
                      {/* Aspect 3/4 Image Container */}
-                      <a href={`/products/${prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
+                      <a href={`/products/${prod.slug || prod.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 border border-zinc-100 shadow-xs relative block">
                         {/* Primary Image */}
                         <img
                           src={getOptimizedImageUrl(prod.image, 600, 80)}
@@ -709,7 +709,7 @@ function ProductsPageContent() {
                      {/* Info Block */}
                       <div className="mt-2.5 flex flex-col flex-1 px-0.5 gap-1">
                         <a 
-                          href={`/products/${prod.id}`} 
+                          href={`/products/${prod.slug || prod.id}`} 
                           className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors block truncate"
                           title={prod.name}
                         >

@@ -81,7 +81,7 @@ export default function AdminProductsTable({ productList, loading }: AdminProduc
                   </td>
                   <td className="px-6 py-3.5 text-center">
                     <Link 
-                      href={`/products/${prod.id}`}
+                      href={`/products/${prod.slug || prod.id}`}
                       target="_blank"
                       className="h-7 w-7 rounded-xl border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-800 transition-colors mx-auto"
                     >

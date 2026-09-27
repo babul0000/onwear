@@ -38,6 +38,10 @@ export interface StoreSetting {
   advanceCourierAmountType?: string;
   advanceCourierFixedAmount?: number;
   advanceCourierNote?: string | null;
+  welcomeOfferEnabled?: boolean;
+  welcomeOfferTitle?: string | null;
+  welcomeOfferText?: string | null;
+  welcomeOfferCode?: string | null;
   updatedAt: string;
 }
 
@@ -82,6 +86,10 @@ const defaultSettings: StoreSetting = {
   advanceCourierAmountType: 'EXACT_SHIPPING',
   advanceCourierFixedAmount: 150,
   advanceCourierNote: 'ঢাকার বাইরে ক্যাশ অন ডেলিভারি অর্ডারে ফেক অর্ডার রোধে ডেলিভারি চার্জ অগ্রিম প্রযোজ্য। বাকি টাকা পণ্য হাতে পেয়ে পরিশোধ করবেন।',
+  welcomeOfferEnabled: true,
+  welcomeOfferTitle: 'New Member Welcome:',
+  welcomeOfferText: 'Get Tk 200 Off your first order with coupon code',
+  welcomeOfferCode: 'WELCOME200',
   updatedAt: new Date().toISOString()
 };
 

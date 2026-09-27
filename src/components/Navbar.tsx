@@ -172,11 +172,11 @@ export default function Navbar() {
     }
   };
 
-  const handleSelectResult = (productId: string) => {
+  const handleSelectResult = (productSlugOrId: string) => {
     setShowSearchOverlay(false);
     setSearchQuery('');
     setLiveResults([]);
-    router.push(`/products/${productId}`);
+    router.push(`/products/${productSlugOrId}`);
   };
 
   return (
@@ -455,7 +455,7 @@ export default function Navbar() {
                           return (
                             <div
                               key={prod.id}
-                              onClick={() => handleSelectResult(prod.id)}
+                              onClick={() => handleSelectResult(prod.slug || prod.id)}
                               className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-zinc-50 border border-zinc-100 hover:border-zinc-300 transition-all cursor-pointer group"
                             >
                               <img

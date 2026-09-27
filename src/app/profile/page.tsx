@@ -1015,7 +1015,7 @@ export default function ProfilePage() {
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
 
-                        <Link href={`/products/${item.product.id}`} className="aspect-[3/4] w-full overflow-hidden bg-canvas border border-line block">
+                        <Link href={`/products/${item.product.slug || item.product.id}`} className="aspect-[3/4] w-full overflow-hidden bg-canvas border border-line block">
                           <img
                             src={item.product.image || '/placeholder.svg'}
                             alt={item.product.name}
@@ -1024,7 +1024,7 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="mt-3.5 flex flex-col flex-1">
-                          <Link href={`/products/${item.product.id}`} className="font-bold text-ink group-hover:text-indigo transition-colors text-xs line-clamp-1 block">
+                          <Link href={`/products/${item.product.slug || item.product.id}`} className="font-bold text-ink group-hover:text-indigo transition-colors text-xs line-clamp-1 block">
                             {item.product.name}
                           </Link>
 

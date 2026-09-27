@@ -15,6 +15,7 @@ interface RealReviewItem {
   userName: string;
   productId: string;
   productName: string;
+  productSlug?: string;
   productImage: string;
   productPrice?: number;
 }
@@ -63,6 +64,7 @@ export default function CustomerReviewsSection() {
             createdAt: r.createdAt,
             userName: r.user?.name || 'Customer',
             productId: r.product?.id || r.productId,
+            productSlug: r.product?.slug,
             productName: r.product?.name || 'ONWEAR Apparel',
             productImage: r.product?.image || '',
             productPrice: r.product?.discountPrice || r.product?.price,
@@ -263,7 +265,7 @@ export default function CustomerReviewsSection() {
               <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-zinc-200/70">
                 {rev.productName && (
                   <Link
-                    href={`/products/${rev.productId}`}
+                    href={`/products/${rev.productSlug || rev.productId}`}
                     className="flex items-center gap-2.5 p-2 bg-white border border-zinc-200 hover:border-zinc-900 transition-colors"
                     title={rev.productName}
                   >

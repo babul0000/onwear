@@ -291,6 +291,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
           }
         }
 
+        // URL normalization: If user arrived via UUID, seamlessly update browser URL bar to the clean SEO slug
+        if (typeof window !== 'undefined' && prodData.data.slug && productId !== prodData.data.slug) {
+          window.history.replaceState(null, '', `/products/${prodData.data.slug}`);
+        }
+
         // Real-time Analytics: Track product page view
         try {
           const sessionId = typeof window !== 'undefined' ? localStorage.getItem('onwear_visitor_session') : '';
@@ -407,7 +412,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   const handleShare = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+      const shareUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/products/${product.slug || product.id}`
+        : `https://www.onwearbd.com/products/${product.slug || product.id}`;
+      navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }
@@ -582,7 +590,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     },
     offers: {
       '@type': 'Offer',
-      url: `https://www.onwearbd.com/products/${product.id}`,
+      url: `https://www.onwearbd.com/products/${product.slug || product.id}`,
       priceCurrency: 'BDT',
       price: product.discountPrice || product.price,
       priceValidUntil: '2028-12-31',
@@ -628,7 +636,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         '@type': 'ListItem',
         position: product.category ? 4 : 3,
         name: product.name,
-        item: `https://www.onwearbd.com/products/${product.id}`,
+        item: `https://www.onwearbd.com/products/${product.slug || product.id}`,
       },
     ],
   } : null;
@@ -1300,7 +1308,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     </button>
 
                     {/* Image Container with 3:4 aspect ratio and hover image swap */}
-                    <Link href={`/products/${relProd.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
+                    <Link href={`/products/${relProd.slug || relProd.id}`} className="aspect-[3/4] w-full overflow-hidden bg-zinc-50 relative block">
                       {/* Primary Image */}
                       <img
                         src={getOptimizedImageUrl(relProd.image, 450)}
@@ -1338,7 +1346,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     {/* Product Details info in Poppins */}
                     <div className="p-3.5 flex flex-col gap-1">
                       <Link 
-                        href={`/products/${relProd.id}`}
+                        href={`/products/${relProd.slug || relProd.id}`}
                         className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-zinc-600 transition-colors truncate block"
                         title={relProd.name}
                       >

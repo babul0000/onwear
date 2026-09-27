@@ -25,6 +25,7 @@ interface Category {
 interface Product {
   id: string;
   name: string;
+  slug?: string;
   price: number;
   discountPrice?: number | null;
   image?: string;
@@ -417,7 +418,7 @@ export default function Home() {
                 <div key={product.id} className="group relative flex flex-col gap-2.5">
                   {/* Image wrapper */}
                   <div 
-                    onClick={() => router.push(`/products/${product.id}`)}
+                    onClick={() => router.push(`/products/${product.slug || product.id}`)}
                     className="relative aspect-[3/4] w-full bg-zinc-100 overflow-hidden border border-zinc-100 shadow-xs cursor-pointer"
                   >
                     <Image
@@ -473,7 +474,7 @@ export default function Home() {
                   {/* Product metadata */}
                   <div className="flex flex-col gap-1 px-0.5 pt-2">
                     <Link
-                      href={`/products/${product.id}`}
+                      href={`/products/${product.slug || product.id}`}
                       className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors truncate block"
                       title={product.name}
                     >

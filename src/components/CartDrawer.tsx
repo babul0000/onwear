@@ -129,7 +129,7 @@ export default function CartDrawer() {
                     <div>
                       <div className="flex justify-between items-start gap-2">
                         <Link
-                          href={`/products/${item.productId}`}
+                          href={`/products/${item.product?.slug || item.productId}`}
                           onClick={closeCartDrawer}
                           className="text-xs font-bold uppercase tracking-tight text-zinc-900 hover:text-teal-650 line-clamp-1 transition-colors"
                         >

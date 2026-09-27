@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { GOOGLE_CLIENT_ID } from '../config';
 import Link from 'next/link';
 import { 
@@ -29,6 +30,7 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, register, resendActivation, loginWithGoogle } = useAuth();
+  const { settings } = useSettings();
 
   // Google OAuth state
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -343,7 +345,7 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
           </div>
 
           {/* Welcome Gift Promo Callout (Register Mode) */}
-          {mode === 'register' && (
+          {mode === 'register' && (settings?.welcomeOfferEnabled ?? true) && (
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -351,7 +353,14 @@ export default function AuthCard({ initialMode }: AuthCardProps) {
             >
               <Gift className="h-4 w-4 text-amber-600 shrink-0" />
               <div className="text-[11px] font-semibold leading-tight">
-                <strong>New Member Welcome:</strong> Get <strong>Tk 200 Off</strong> your first order with coupon code <span className="font-mono bg-amber-100 font-bold px-1.5 py-0.5 rounded text-amber-900">WELCOME200</span>.
+                <strong>{settings?.welcomeOfferTitle || 'New Member Welcome:'}</strong>{' '}
+                {settings?.welcomeOfferText || 'Get Tk 200 Off your first order with coupon code'}{' '}
+                {settings?.welcomeOfferCode && (
+                  <span className="font-mono bg-amber-100 font-bold px-1.5 py-0.5 rounded text-amber-900">
+                    {settings.welcomeOfferCode}
+                  </span>
+                )}
+                .
               </div>
             </motion.div>
           )}

@@ -8,7 +8,7 @@ import { API_URL } from '../../../config';
 import { 
   Settings, Save, Globe, Phone, Mail, MapPin, 
   Truck, Upload, Loader2, Sparkles, Image as ImageIcon,
-  Bell, Smartphone, Layers, CheckCircle2, Ruler, ShieldCheck
+  Bell, Smartphone, Layers, CheckCircle2, Ruler, ShieldCheck, Gift
 } from 'lucide-react';
 import SizeGuideModal from '../../../components/SizeGuideModal';
 
@@ -73,6 +73,12 @@ export default function AdminSettingsPage() {
   const [registerTitle, setRegisterTitle] = useState('START JOURNEY');
   const [registerSubtitle, setRegisterSubtitle] = useState('Join ONWEAR to unlock VIP privileges, track orders & save wishlists');
 
+  // Welcome Offer Banner (Register Page)
+  const [welcomeOfferEnabled, setWelcomeOfferEnabled] = useState<boolean>(true);
+  const [welcomeOfferTitle, setWelcomeOfferTitle] = useState('New Member Welcome:');
+  const [welcomeOfferText, setWelcomeOfferText] = useState('Get Tk 200 Off your first order with coupon code');
+  const [welcomeOfferCode, setWelcomeOfferCode] = useState('WELCOME200');
+
   // UI State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -119,6 +125,10 @@ export default function AdminSettingsPage() {
       setRegisterImageUrl(settings.registerImageUrl || 'https://i.ibb.co/FqHjfvxG/Gemini-Generated-Image-ino58qino58qino5.jpg');
       setRegisterTitle(settings.registerTitle || 'START JOURNEY');
       setRegisterSubtitle(settings.registerSubtitle || 'Join ONWEAR to unlock VIP privileges, track orders & save wishlists');
+      setWelcomeOfferEnabled(settings.welcomeOfferEnabled !== undefined ? settings.welcomeOfferEnabled : true);
+      setWelcomeOfferTitle(settings.welcomeOfferTitle || 'New Member Welcome:');
+      setWelcomeOfferText(settings.welcomeOfferText || 'Get Tk 200 Off your first order with coupon code');
+      setWelcomeOfferCode(settings.welcomeOfferCode || 'WELCOME200');
       setLoading(false);
     }
   }, [settings]);
@@ -228,7 +238,11 @@ export default function AdminSettingsPage() {
           loginSubtitle,
           registerImageUrl,
           registerTitle,
-          registerSubtitle
+          registerSubtitle,
+          welcomeOfferEnabled,
+          welcomeOfferTitle,
+          welcomeOfferText,
+          welcomeOfferCode
         })
       });
 
@@ -730,7 +744,127 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* 5. CONTACT INFORMATION */}
+          {/* 5. NEW MEMBER WELCOME OFFER (REGISTRATION PROMO) */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-6">
+            <div className="border-b border-zinc-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                  <Gift className="h-4.5 w-4.5 text-amber-600" />
+                  <span>New Member Welcome Offer (Registration Page)</span>
+                </h2>
+                <p className="text-zinc-500 text-xs mt-1 font-medium">
+                  Enable, customize, or hide the welcome gift promo banner that appears on the customer registration page.
+                </p>
+              </div>
+
+              {/* Toggle ON/OFF switch */}
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-bold ${welcomeOfferEnabled ? 'text-amber-700' : 'text-zinc-400'}`}>
+                  {welcomeOfferEnabled ? 'Active (Visible)' : 'Disabled (Hidden)'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setWelcomeOfferEnabled(!welcomeOfferEnabled)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    welcomeOfferEnabled ? 'bg-amber-500' : 'bg-zinc-300'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      welcomeOfferEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {welcomeOfferEnabled ? (
+              <div className="space-y-5">
+                {/* Live Preview */}
+                <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">
+                      Live Preview (How customers see it on /register)
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                      Realtime Preview
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-xs text-amber-900">
+                    <Gift className="h-4 w-4 text-amber-600 shrink-0" />
+                    <div className="text-[11px] font-semibold leading-tight">
+                      <strong>{welcomeOfferTitle || 'New Member Welcome:'}</strong>{' '}
+                      {welcomeOfferText || 'Get Tk 200 Off your first order with coupon code'}{' '}
+                      {welcomeOfferCode && (
+                        <span className="font-mono bg-amber-100 font-bold px-1.5 py-0.5 rounded text-amber-900">
+                          {welcomeOfferCode}
+                        </span>
+                      )}
+                      .
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                      Badge Title
+                    </label>
+                    <input
+                      type="text"
+                      value={welcomeOfferTitle}
+                      onChange={(e) => setWelcomeOfferTitle(e.target.value)}
+                      placeholder="New Member Welcome:"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-800 font-bold focus:bg-white focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                      Promo Text
+                    </label>
+                    <input
+                      type="text"
+                      value={welcomeOfferText}
+                      onChange={(e) => setWelcomeOfferText(e.target.value)}
+                      placeholder="Get Tk 200 Off your first order with coupon code"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-800 font-medium focus:bg-white focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-1.5">
+                      Coupon Code (Checkout Discount)
+                    </label>
+                    <input
+                      type="text"
+                      value={welcomeOfferCode}
+                      onChange={(e) => setWelcomeOfferCode(e.target.value.toUpperCase())}
+                      placeholder="WELCOME200"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs text-zinc-950 font-mono font-bold uppercase focus:bg-white focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                  <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-[11px] leading-relaxed">
+                    <strong>Tip:</strong> কুপন কোডটি (<code>{welcomeOfferCode || 'WELCOME200'}</code>) কার্যকর করার জন্য{' '}
+                    <a href="/admin/coupons" className="underline font-bold hover:text-amber-950">
+                      Coupon Management (/admin/coupons)
+                    </a>{' '}
+                    পেজে গিয়ে এই একই কোড দিয়ে <em>First Order Only</em> টিক মার্ক দিয়ে কুপন একটিভ রাখবেন।
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 text-center text-xs text-zinc-400 font-medium">
+                The welcome offer banner is currently <strong>hidden</strong> from the registration page.
+              </div>
+            )}
+          </div>
+
+          {/* 6. CONTACT INFORMATION */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-5">
             <h2 className="text-sm font-black text-zinc-950 uppercase tracking-wider border-b border-zinc-100 pb-4 flex items-center gap-2">
               <Phone className="h-4.5 w-4.5 text-teal-600" />

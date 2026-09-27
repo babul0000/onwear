@@ -1225,7 +1225,19 @@ export default function AdminProductsPage() {
                     type="text"
                     required
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      const newName = e.target.value;
+                      setName(newName);
+                      if (!editingId) {
+                        const autoSlug = newName
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^\w\s-]/g, '')
+                          .replace(/[\s_-]+/g, '-')
+                          .replace(/^-+|-+$/g, '');
+                        setSlug(autoSlug);
+                      }
+                    }}
                     className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 font-semibold"
                   />
                 </div>

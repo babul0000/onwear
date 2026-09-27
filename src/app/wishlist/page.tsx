@@ -60,7 +60,7 @@ export default function WishlistPage() {
                   <Trash2 className="h-4 w-4" />
                 </button>
 
-                <Link href={`/products/${targetId}`} className="aspect-[4/3] w-full overflow-hidden bg-zinc-50 border border-zinc-100 block">
+                <Link href={`/products/${prod.slug || targetId}`} className="aspect-[4/3] w-full overflow-hidden bg-zinc-50 border border-zinc-100 block">
                   <img
                     src={prod.image || '/placeholder.svg'}
                     alt={prod.name || 'Product'}
@@ -70,7 +70,7 @@ export default function WishlistPage() {
 
                 <div className="mt-3 flex flex-col flex-1 gap-1">
                   <Link 
-                    href={`/products/${targetId}`} 
+                    href={`/products/${prod.slug || targetId}`} 
                     className="text-xs sm:text-[13px] font-normal tracking-[0.02em] capitalize text-[#232323] hover:text-[#727272] transition-colors block truncate"
                     title={prod.name || 'Product'}
                   >
