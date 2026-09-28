@@ -554,15 +554,15 @@ export default function SizeGuideModal({
       <div className="relative z-10 w-full max-w-3xl bg-white border border-zinc-200 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* TOP HEADER */}
-        <div className="flex items-center justify-between border-b border-zinc-200 px-5 sm:px-6 py-4 bg-zinc-50">
+        <div className="flex items-center justify-between border-b border-zinc-200 px-5 sm:px-6 py-4 bg-white">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-zinc-950 text-white rounded-lg shadow-sm">
               <Ruler className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-black text-zinc-950 uppercase tracking-wider font-sans">
-                  {isEditing ? 'Size Chart Studio' : 'Size Guide'}
+                <h2 className="text-base sm:text-lg font-bold text-zinc-950 tracking-tight font-sans">
+                  {isEditing ? 'Size Chart Studio' : 'Size Charts'}
                 </h2>
                 {isCustomProductChart && !isEditing && (
                   <span className="text-[9px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded font-mono">
@@ -575,7 +575,7 @@ export default function SizeGuideModal({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+              <p className="text-xs font-normal text-zinc-500 mt-0.5 font-sans">
                 {isEditing 
                   ? 'Customize sizes, headers, and inch/cm dimensions' 
                   : (productName || 'Tailored fit measurements')}
@@ -668,38 +668,8 @@ export default function SizeGuideModal({
           </div>
         )}
 
-        {/* WHEN PRODUCT IS PRESENT: SIMPLE CLEAN BAR WITH PRODUCT/CATEGORY TITLE & INCH/CM TOGGLE */}
-        {productId ? (
-          <div className="px-5 sm:px-6 py-3 border-b border-zinc-200/80 bg-zinc-50 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-zinc-900 uppercase tracking-wider font-mono">
-                {productName || currentChart.title}
-              </span>
-            </div>
-
-            {/* Inches / CM Switcher */}
-            <div className="flex items-center border border-zinc-200 bg-white p-0.5 rounded-lg shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setUnit('in')}
-                className={`px-3.5 py-1.5 text-xs font-bold uppercase font-mono rounded-md transition-all cursor-pointer ${
-                  unit === 'in' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
-                }`}
-              >
-                Inches (in)
-              </button>
-              <button
-                type="button"
-                onClick={() => setUnit('cm')}
-                className={`px-3.5 py-1.5 text-xs font-bold uppercase font-mono rounded-md transition-all cursor-pointer ${
-                  unit === 'cm' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
-                }`}
-              >
-                CM (cm)
-              </button>
-            </div>
-          </div>
-        ) : (
+        {/* WHEN PRODUCT IS NOT PRESENT (GLOBAL ADMIN STUDIO): TAB SELECTOR & UNIT SWITCHER */}
+        {!productId && (
           /* TAB SELECTOR & UNIT SWITCHER (ONLY FOR GLOBAL ADMIN SETTINGS) */
           <div className="px-5 sm:px-6 pt-3 pb-2 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-3 bg-white">
             {/* Category Tabs */}
@@ -805,8 +775,53 @@ export default function SizeGuideModal({
         )}
 
         {/* MODAL MAIN CONTENT */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col gap-6 font-sans">
           
+          {/* PRODUCT & FABRIC DESCRIPTION BLOCK (ARJO STYLE) */}
+          {productId && !isEditing && (
+            <div className="flex flex-col gap-2.5 text-xs sm:text-sm text-zinc-600 leading-relaxed font-sans border-b border-zinc-100 pb-4">
+              <p>
+                The <strong className="font-semibold text-zinc-950">{productName || currentChart.title}</strong> from ONWEAR is the perfect choice for effortless modern style. Crafted for comfort and breathability, this lightweight piece keeps you cool and confident during warmer days. With its relaxed fit and timeless silhouette, it's ideal for both casual outings and daily wear. If you're looking for premium apparel for men in BD, this versatile piece is a must-have. Stay stylish and comfortable with ONWEAR.
+              </p>
+              <p className="font-semibold text-zinc-950 text-xs sm:text-sm">
+                Fabric: <span className="font-normal text-zinc-700">Cotton Blend.</span> <span className="ml-3 font-semibold text-zinc-950">GSM:</span> <span className="font-normal text-zinc-700">140-160.</span>
+              </p>
+            </div>
+          )}
+
+          {/* TAB HEADER & UNIT SWITCHER FOR PRODUCT VIEW */}
+          {productId && !isEditing && (
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-200">
+              <div className="flex items-center -mb-px">
+                <div className="px-4 py-2 border-t border-l border-r border-zinc-300 bg-white rounded-t-md text-xs sm:text-sm font-bold text-zinc-900 font-sans shadow-2xs">
+                  {currentChart.title || 'Shirt Size Chart'}
+                </div>
+              </div>
+
+              {/* Inches / CM Toggle */}
+              <div className="flex items-center border border-zinc-200 bg-white p-0.5 rounded-lg mb-1 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setUnit('in')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer font-sans ${
+                    unit === 'in' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
+                  }`}
+                >
+                  Inches (in)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnit('cm')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer font-sans ${
+                    unit === 'cm' ? 'bg-zinc-950 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-950'
+                  }`}
+                >
+                  CM (cm)
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* EDIT MODE QUICK TOOLBAR */}
           {isEditing && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium">
@@ -892,24 +907,28 @@ export default function SizeGuideModal({
             </div>
           )}
 
-          {/* SIZE MEASUREMENTS TABLE */}
-          <div className="overflow-x-auto border border-zinc-200 bg-white shadow-sm">
-            <table className="w-full text-left border-collapse text-xs">
+          {/* SIZE MEASUREMENTS TABLE - CLEAN ARJO-STYLE BOX GRID */}
+          <div className="overflow-x-auto bg-white border border-zinc-200 rounded-sm shadow-2xs">
+            <table className="w-full text-center border-collapse border border-zinc-200 text-xs sm:text-sm font-sans">
               <thead>
-                <tr className="bg-zinc-100 border-b border-zinc-200">
+                <tr className="bg-white">
                   {headers.map((header, colIdx) => {
                     const isWeight = header.toLowerCase().includes('weight');
                     return (
-                      <th key={colIdx} className="p-3 text-[11px] font-black uppercase tracking-wider text-zinc-900 font-mono">
-                        <div className="flex items-center justify-between gap-2">
-                          <span>
-                            {header} {colIdx > 0 && !isWeight ? `(${unit})` : ''}
-                          </span>
+                      <th
+                        key={colIdx}
+                        className="py-3 px-3 sm:py-3.5 sm:px-4 text-center text-xs sm:text-sm font-bold text-zinc-900 border border-zinc-200 tracking-normal font-sans"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span>{header}</span>
+                          {colIdx > 0 && !isWeight && (
+                            <span className="text-[11px] text-zinc-400 font-normal">({unit})</span>
+                          )}
                           {isEditing && colIdx > 0 && (
                             <button
                               type="button"
                               onClick={() => handleDeleteColumn(header)}
-                              className="text-zinc-400 hover:text-rose-600 p-0.5 transition-colors"
+                              className="text-zinc-400 hover:text-rose-600 p-0.5 transition-colors ml-1"
                               title={`Remove ${header} column`}
                             >
                               <X className="h-3 w-3" />
@@ -920,24 +939,24 @@ export default function SizeGuideModal({
                     );
                   })}
                   {isEditing && (
-                    <th className="p-3 text-[11px] font-black uppercase tracking-wider text-zinc-500 font-mono text-center w-12">
+                    <th className="py-3 px-3 text-xs font-bold text-zinc-500 border border-zinc-200 text-center w-14">
                       Action
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody>
                 {(isEditing ? rows : displayedRows).map((row, rowIdx) => (
-                  <tr key={rowIdx} className="hover:bg-zinc-50/80 transition-colors font-medium">
+                  <tr key={rowIdx} className="hover:bg-zinc-50/60 transition-colors">
                     {/* Size column */}
-                    <td className="p-3 font-black text-zinc-950 font-mono bg-zinc-50/40">
+                    <td className="py-3 px-3 sm:py-3.5 sm:px-4 font-bold text-zinc-950 border border-zinc-200 text-center font-sans text-xs sm:text-sm bg-zinc-50/20">
                       {isEditing ? (
                         <input
                           type="text"
                           value={row.size || ''}
                           onChange={(e) => handleSizeNameChange(rowIdx, e.target.value)}
                           placeholder="e.g. S, 38, L"
-                          className="w-full px-2 py-1 bg-white border border-zinc-300 rounded font-mono font-bold text-xs text-zinc-950 focus:outline-none focus:border-zinc-950"
+                          className="w-full text-center px-2 py-1 bg-white border border-zinc-300 rounded font-sans font-bold text-xs text-zinc-950 focus:outline-none focus:border-zinc-950"
                         />
                       ) : (
                         row.size
@@ -949,14 +968,17 @@ export default function SizeGuideModal({
                       const key = header.toLowerCase().trim();
                       const val = row[key] || '';
                       return (
-                        <td key={colIdx} className="p-3 text-zinc-700 font-mono">
+                        <td
+                          key={colIdx}
+                          className="py-3 px-3 sm:py-3.5 sm:px-4 text-zinc-800 border border-zinc-200 text-center font-normal sm:font-medium font-sans text-xs sm:text-sm"
+                        >
                           {isEditing ? (
                             <input
                               type="text"
                               value={val}
                               onChange={(e) => handleCellChange(rowIdx, header, e.target.value)}
                               placeholder="0.0"
-                              className="w-full px-2 py-1 bg-white border border-zinc-200 rounded font-mono font-semibold text-xs text-zinc-800 focus:outline-none focus:border-zinc-950"
+                              className="w-full text-center px-2 py-1 bg-white border border-zinc-200 rounded font-sans font-medium text-xs text-zinc-800 focus:outline-none focus:border-zinc-950"
                             />
                           ) : (
                             val || '—'
@@ -967,7 +989,7 @@ export default function SizeGuideModal({
 
                     {/* Delete Row Button (Edit Mode) */}
                     {isEditing && (
-                      <td className="p-2.5 text-center">
+                      <td className="py-2 px-2 text-center border border-zinc-200">
                         <button
                           type="button"
                           onClick={() => handleDeleteRow(rowIdx)}

@@ -21,37 +21,41 @@ export const SIZE_GUIDE_UPDATE_EVENT = 'onwear_size_guide_updated';
 export const DEFAULT_SIZE_DATA: SizeDataMap = {
   boxy_shirt: {
     title: 'Boxy Full Sleeve Shirts',
-    headers: ['Size', 'Chest', 'Length', 'Shoulder'],
+    headers: ['Size', 'Chest', 'Length', 'Sleeve', 'Collar'],
     rows: {
       in: [
-        { size: 'M', chest: '42 – 43"', length: '28.0"', shoulder: '19.5"' },
-        { size: 'L', chest: '44 – 45"', length: '29.0"', shoulder: '20.5"' },
-        { size: 'XL', chest: '46 – 47"', length: '30.0"', shoulder: '21.5"' },
+        { size: 'S', chest: '40', length: '27', sleeve: '24', collar: '15.5' },
+        { size: 'M', chest: '42', length: '28', sleeve: '24.5', collar: '15.5' },
+        { size: 'L', chest: '44', length: '29', sleeve: '25', collar: '16.5' },
+        { size: 'XL', chest: '46', length: '30', sleeve: '25.5', collar: '16.5' },
+        { size: 'XXL', chest: '48', length: '30.5', sleeve: '26', collar: '17.5' },
       ],
       cm: [
-        { size: 'M', chest: '106.7 – 109.2', length: '71.1', shoulder: '49.5' },
-        { size: 'L', chest: '111.8 – 114.3', length: '73.7', shoulder: '52.1' },
-        { size: 'XL', chest: '116.8 – 119.4', length: '76.2', shoulder: '54.6' },
+        { size: 'S', chest: '101.6', length: '68.6', sleeve: '61.0', collar: '39.4' },
+        { size: 'M', chest: '106.7', length: '71.1', sleeve: '62.2', collar: '39.4' },
+        { size: 'L', chest: '111.8', length: '73.7', sleeve: '63.5', collar: '41.9' },
+        { size: 'XL', chest: '116.8', length: '76.2', sleeve: '64.8', collar: '41.9' },
+        { size: 'XXL', chest: '121.9', length: '77.5', sleeve: '66.0', collar: '44.5' },
       ],
     }
   },
   regular_shirt: {
-    title: 'Regular Fit Shirts',
-    headers: ['Size', 'Chest', 'Length', 'Shoulder'],
+    title: 'Shirt Size Chart',
+    headers: ['Size', 'Chest', 'Length', 'Sleeve', 'Collar'],
     rows: {
       in: [
-        { size: 'S', chest: '38"', length: '27.0"', shoulder: '17.0"' },
-        { size: 'M', chest: '40"', length: '28.0"', shoulder: '17.5"' },
-        { size: 'L', chest: '42"', length: '29.0"', shoulder: '18.5"' },
-        { size: 'XL', chest: '44"', length: '30.0"', shoulder: '19.5"' },
-        { size: 'XXL', chest: '46"', length: '30.5"', shoulder: '20.5"' },
+        { size: 'S', chest: '40', length: '27', sleeve: '24', collar: '15.5' },
+        { size: 'M', chest: '42', length: '28', sleeve: '24.5', collar: '15.5' },
+        { size: 'L', chest: '44', length: '29', sleeve: '25', collar: '16.5' },
+        { size: 'XL', chest: '46', length: '30', sleeve: '25.5', collar: '16.5' },
+        { size: 'XXL', chest: '48', length: '30.5', sleeve: '26', collar: '17.5' },
       ],
       cm: [
-        { size: 'S', chest: '96.5', length: '68.5', shoulder: '43.2' },
-        { size: 'M', chest: '101.6', length: '71.1', shoulder: '44.5' },
-        { size: 'L', chest: '106.7', length: '73.7', shoulder: '47.0' },
-        { size: 'XL', chest: '111.8', length: '76.2', shoulder: '49.5' },
-        { size: 'XXL', chest: '116.8', length: '77.5', shoulder: '52.1' },
+        { size: 'S', chest: '101.6', length: '68.6', sleeve: '61.0', collar: '39.4' },
+        { size: 'M', chest: '106.7', length: '71.1', sleeve: '62.2', collar: '39.4' },
+        { size: 'L', chest: '111.8', length: '73.7', sleeve: '63.5', collar: '41.9' },
+        { size: 'XL', chest: '116.8', length: '76.2', sleeve: '64.8', collar: '41.9' },
+        { size: 'XXL', chest: '121.9', length: '77.5', sleeve: '66.0', collar: '44.5' },
       ],
     }
   },
