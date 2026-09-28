@@ -152,6 +152,9 @@ export default function AdminCategoriesPage() {
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setCategories(data.data);
+        try {
+          localStorage.removeItem('onwear_categories_cache');
+        } catch (e) {}
       }
     } catch (err) {
       console.error('Error fetching categories:', err);

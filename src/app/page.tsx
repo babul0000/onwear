@@ -43,19 +43,19 @@ const DEFAULT_HOME_CATEGORIES: Category[] = [
     id: '03d9c0c8-b06d-4363-9625-5bca126c04ac',
     name: 'Shirts',
     slug: 'shirts',
-    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1789574760/onwear/categories/fgcoq9lgnetckbm1cv7x.webp'
+    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1790482285/onwear/categories/r2gu1dwwwkxwwbkgpecl.jpg'
   },
   {
     id: '9938e717-15df-40b0-87cf-cdb7460cd8c8',
     name: 'T-Shirt',
     slug: 't-shirt',
-    image: 'https://i.ibb.co/N6TPhhdL/file-00000000960081f5b5af98dfcee00762.png'
+    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1790486052/onwear/categories/qdwoty9nf2lu8d8uqeeq.jpg'
   },
   {
     id: '3cad7560-f1e0-41e3-bee9-b4375d9ade32',
     name: 'Pants',
     slug: 'pants',
-    image: 'https://i.ibb.co/CpnHnk19/d5506d9faabca527bcb56c0636dba360-jpg.jpg'
+    image: 'https://res.cloudinary.com/lgmh6vly/image/upload/v1790488619/onwear/categories/p6su77oukaepdp5hl6hy.jpg'
   },
   {
     id: '7500397b-6aa2-4c02-93bb-58f93b524fe3',
@@ -156,22 +156,27 @@ export default function Home() {
     } catch (e) {}
 
     async function loadData() {
+      // Fetch categories immediately without waiting for heavy product query
+      fetch(`${API_URL}/categories`, { cache: 'no-store' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((catsData) => {
+          if (catsData && catsData.success && Array.isArray(catsData.data) && catsData.data.length > 0) {
+            setCategories(catsData.data);
+            try {
+              localStorage.setItem('onwear_categories_cache', JSON.stringify(catsData.data));
+            } catch (e) {}
+          }
+        })
+        .catch((err) => console.error('Error fetching categories:', err));
+
       try {
-        const [catsRes, prodsRes, campsRes] = await Promise.all([
-          fetch(`${API_URL}/categories`).catch(() => null),
+        const [prodsRes, campsRes] = await Promise.all([
           fetch(`${API_URL}/products?limit=36`).catch(() => null),
           fetch(`${API_URL}/campaigns`).catch(() => null)
         ]);
-        const catsData = catsRes ? await catsRes.json() : null;
         const prodsData = prodsRes ? await prodsRes.json() : null;
         const campsData = campsRes ? await campsRes.json() : null;
 
-        if (catsData && catsData.success && Array.isArray(catsData.data) && catsData.data.length > 0) {
-          setCategories(catsData.data);
-          try {
-            localStorage.setItem('onwear_categories_cache', JSON.stringify(catsData.data));
-          } catch (e) {}
-        }
         if (prodsData && prodsData.success && Array.isArray(prodsData.data) && prodsData.data.length > 0) {
           setRawProducts(prodsData.data);
           const balanced = balanceProductsByCategory(prodsData.data, 12);
