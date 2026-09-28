@@ -777,17 +777,6 @@ export default function SizeGuideModal({
         {/* MODAL MAIN CONTENT */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col gap-6 font-sans">
           
-          {/* PRODUCT & FABRIC DESCRIPTION BLOCK (ARJO STYLE) */}
-          {productId && !isEditing && (
-            <div className="flex flex-col gap-2.5 text-xs sm:text-sm text-zinc-600 leading-relaxed font-sans border-b border-zinc-100 pb-4">
-              <p>
-                The <strong className="font-semibold text-zinc-950">{productName || currentChart.title}</strong> from ONWEAR is the perfect choice for effortless modern style. Crafted for comfort and breathability, this lightweight piece keeps you cool and confident during warmer days. With its relaxed fit and timeless silhouette, it's ideal for both casual outings and daily wear. If you're looking for premium apparel for men in BD, this versatile piece is a must-have. Stay stylish and comfortable with ONWEAR.
-              </p>
-              <p className="font-semibold text-zinc-950 text-xs sm:text-sm">
-                Fabric: <span className="font-normal text-zinc-700">Cotton Blend.</span> <span className="ml-3 font-semibold text-zinc-950">GSM:</span> <span className="font-normal text-zinc-700">140-160.</span>
-              </p>
-            </div>
-          )}
 
           {/* TAB HEADER & UNIT SWITCHER FOR PRODUCT VIEW */}
           {productId && !isEditing && (
