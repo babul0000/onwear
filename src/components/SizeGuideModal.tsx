@@ -46,34 +46,78 @@ export default function SizeGuideModal({
 
   // Determine initial active category key
   const getInitialCategoryKey = () => {
-    const combined = `${categoryName || ''} ${productName || ''}`.toLowerCase();
+    const cat = (categoryName || '').toLowerCase().trim();
+    const prod = (productName || '').toLowerCase().trim();
+    const combined = `${cat} ${prod}`;
+
+    // 1. Traditional / Panjabi / Kurta
     if (
-      combined.includes('pant') ||
-      combined.includes('denim') ||
-      combined.includes('chino') ||
-      combined.includes('trouser') ||
-      combined.includes('baggy') ||
-      combined.includes('straight') ||
-      combined.includes('cargo') ||
-      combined.includes('jeans')
+      combined.includes('panjabi') ||
+      combined.includes('kurta') ||
+      combined.includes('katua') ||
+      combined.includes('traditional')
     ) {
-      return 'baggy_denim';
-    }
-    if (combined.includes('panjabi') || combined.includes('kurta') || combined.includes('traditional')) {
       return 'panjabi';
     }
-    if (combined.includes('t-shirt') || combined.includes('tshirt') || combined.includes('polo') || combined.includes('tee')) {
+
+    // 2. T-Shirts & Crewneck Tees (Exclude pants or trousers)
+    const isTee =
+      (combined.includes('t-shirt') ||
+        combined.includes('tshirt') ||
+        combined.includes('tee') ||
+        combined.includes('crewneck') ||
+        combined.includes('v-neck')) &&
+      !combined.includes('pant') &&
+      !combined.includes('trouser');
+    if (isTee) {
       return 'tshirt';
     }
-    if (combined.includes('boxy')) {
+
+    // 3. Polo Shirts
+    if (combined.includes('polo')) {
+      return 'polo';
+    }
+
+    // 4. Upper Wear: Shirts, Overshirts, Jackets, Coats, Hoodies, Cardigans, Sweaters, Vests
+    // (Must take precedence over "denim" or "baggy" so Denim Overshirt or Baggy Shirt is recognized as SHIRT!)
+    const isUpperWear =
+      combined.includes('shirt') ||
+      combined.includes('overshirt') ||
+      combined.includes('jacket') ||
+      combined.includes('coat') ||
+      combined.includes('hoodie') ||
+      combined.includes('cardigan') ||
+      combined.includes('sweater') ||
+      combined.includes('vest') ||
+      cat.includes('shirt') ||
+      cat.includes('winter');
+
+    if (isUpperWear) {
+      if (combined.includes('regular') || combined.includes('formal') || combined.includes('slim')) {
+        return 'regular_shirt';
+      }
       return 'boxy_shirt';
     }
-    if (combined.includes('regular') && combined.includes('shirt')) {
-      return 'regular_shirt';
+
+    // 5. Pants, Jeans, Chinos, Trousers, Cargo, Joggers, Denim Pants
+    const isBottomWear =
+      combined.includes('pant') ||
+      combined.includes('trouser') ||
+      combined.includes('jeans') ||
+      combined.includes('chino') ||
+      combined.includes('cargo') ||
+      combined.includes('denim') ||
+      combined.includes('baggy') ||
+      combined.includes('straight') ||
+      combined.includes('jogger') ||
+      cat.includes('pant') ||
+      cat.includes('bottom');
+
+    if (isBottomWear) {
+      return 'baggy_denim';
     }
-    if (combined.includes('shirt')) {
-      return 'boxy_shirt';
-    }
+
+    // Default to boxy shirt
     return 'boxy_shirt';
   };
 
@@ -176,12 +220,33 @@ export default function SizeGuideModal({
     if (!availableSizes || availableSizes.length === 0) return rows;
     const availUpper = availableSizes.map(s => s.trim().toUpperCase());
 
+    const PANT_LETTER_MAP: Record<string, string> = {
+      'XS': '28',
+      'S': '28',
+      'M': '30',
+      'L': '32',
+      'XL': '34',
+      'XXL': '36',
+      '2XL': '36',
+      '3XL': '36'
+    };
+
     // Rows matching the product's actual sizes
-    const matched = rows.filter(r => availUpper.includes((r.size || '').trim().toUpperCase()));
+    const matched = rows.filter(r => {
+      const rowSize = (r.size || '').trim().toUpperCase();
+      if (availUpper.includes(rowSize)) return true;
+      if (activeType === 'baggy_denim') {
+        return availUpper.some(sz => PANT_LETTER_MAP[sz] === rowSize);
+      }
+      return false;
+    });
 
     // If any size in availableSizes is not yet in preset rows, create an entry
     const matchedSet = new Set(matched.map(r => (r.size || '').trim().toUpperCase()));
-    const missing = availUpper.filter(s => !matchedSet.has(s));
+    const missing = availUpper.filter(s => {
+      const mapped = activeType === 'baggy_denim' ? PANT_LETTER_MAP[s] : null;
+      return !matchedSet.has(s) && (!mapped || !matchedSet.has(mapped));
+    });
 
     if (missing.length > 0 && matched.length > 0) {
       const extraRows: SizeRow[] = missing.map(sz => {
@@ -196,7 +261,7 @@ export default function SizeGuideModal({
     }
 
     return matched.length > 0 ? matched : rows;
-  }, [rows, availableSizes, headers]);
+  }, [rows, availableSizes, headers, activeType]);
 
   // Update cell value
   const handleCellChange = (rowIdx: number, colHeader: string, value: string) => {

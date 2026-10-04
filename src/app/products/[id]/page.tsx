@@ -471,7 +471,40 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
   const meta = parseProductMetadata(product.description);
   const availableColors = meta.colors.length > 0 ? meta.colors : ['Black', 'White', 'Beige', 'Navy'];
-  const availableSizes = meta.sizes.length > 0 ? meta.sizes : ['S', 'M', 'L', 'XL', 'XXL'];
+  // Category-aware fallback sizes if description does not specify explicit sizes
+  const isBottomProduct = (() => {
+    const cat = (product.category?.name || product.category?.slug || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    const isUpper =
+      name.includes('shirt') ||
+      name.includes('jacket') ||
+      name.includes('overshirt') ||
+      name.includes('tee') ||
+      name.includes('polo') ||
+      name.includes('hoodie');
+
+    return (
+      (!isUpper && (cat.includes('pant') || cat.includes('chino') || cat.includes('trouser') || cat.includes('cargo') || cat.includes('jeans') || cat.includes('denim'))) ||
+      name.includes('pant') ||
+      name.includes('trouser') ||
+      name.includes('jeans') ||
+      name.includes('chino') ||
+      name.includes('jogger')
+    );
+  })();
+
+  const isPanjabiProduct = (() => {
+    const combined = `${product.category?.name || ''} ${product.name || ''}`.toLowerCase();
+    return combined.includes('panjabi') || combined.includes('kurta');
+  })();
+
+  const fallbackSizes = isBottomProduct
+    ? ['28', '30', '32', '34', '36']
+    : isPanjabiProduct
+    ? ['38', '40', '42', '44']
+    : ['S', 'M', 'L', 'XL', 'XXL'];
+
+  const availableSizes = meta.sizes.length > 0 ? meta.sizes : fallbackSizes;
 
   // Smart Helper to get image for a color
   const getColorImage = (color: string): string | null => {

@@ -14,6 +14,7 @@ interface AddProductVariantsProps {
   setSizeInput: (val: string) => void;
   onAddSize: (e: React.KeyboardEvent) => void;
   onRemoveSize: (size: string) => void;
+  onSetSizes?: (sizes: string[]) => void;
   colors: ColorOption[];
   colorInput: string;
   setColorInput: (val: string) => void;
@@ -35,6 +36,7 @@ export default function AddProductVariants({
   setSizeInput,
   onAddSize,
   onRemoveSize,
+  onSetSizes,
   colors,
   colorInput,
   setColorInput,
@@ -111,6 +113,32 @@ export default function AddProductVariants({
             onKeyDown={onAddSize}
             className="rounded-xl border border-zinc-200 p-2.5 text-xs bg-zinc-50 focus:bg-white focus:outline-indigo-600 transition-all outline-none"
           />
+          {onSetSizes && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase">Presets:</span>
+              <button
+                type="button"
+                onClick={() => onSetSizes(['S', 'M', 'L', 'XL', 'XXL'])}
+                className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md cursor-pointer transition-colors"
+              >
+                👕 Shirts / Tees (S-XXL)
+              </button>
+              <button
+                type="button"
+                onClick={() => onSetSizes(['28', '30', '32', '34', '36'])}
+                className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md cursor-pointer transition-colors"
+              >
+                👖 Pants (28-36)
+              </button>
+              <button
+                type="button"
+                onClick={() => onSetSizes(['38', '40', '42', '44'])}
+                className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md cursor-pointer transition-colors"
+              >
+                ✨ Panjabi (38-44)
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Colors */}

@@ -134,10 +134,23 @@ export default function AddProduct({ onSuccess, onCancel, isInline = false }: Ad
     }
   }, [token]);
 
-  // Reset subcategory when category selection changes
+  // Reset subcategory when category selection changes and auto-adjust size preset
   useEffect(() => {
     setSubCategory('');
-  }, [categoryId]);
+    if (categoryId) {
+      const selectedCat = categories.find((c) => c.id === categoryId);
+      const catSlug = (selectedCat?.slug || selectedCat?.name || '').toLowerCase();
+      if (catSlug.includes('pant') || catSlug.includes('chino') || catSlug.includes('cargo') || catSlug.includes('trouser') || catSlug.includes('denim')) {
+        if (sizes.includes('S') && sizes.includes('M') && !sizes.includes('30')) {
+          setSizes(['28', '30', '32', '34', '36']);
+        }
+      } else if (catSlug.includes('shirt') || catSlug.includes('tee') || catSlug.includes('polo')) {
+        if (sizes.includes('30') && sizes.includes('32')) {
+          setSizes(['S', 'M', 'L', 'XL', 'XXL']);
+        }
+      }
+    }
+  }, [categoryId, categories]);
 
   // Auto-generate slug and SEO titles
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -552,6 +565,7 @@ Free Shipping: ${freeShipping ? 'Yes' : 'No'}
             setSizeInput={setSizeInput}
             onAddSize={handleAddSize}
             onRemoveSize={handleRemoveSize}
+            onSetSizes={(newSizes) => setSizes(newSizes)}
             colors={colors}
             colorInput={colorInput}
             setColorInput={setColorInput}
