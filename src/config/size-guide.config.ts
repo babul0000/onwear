@@ -59,22 +59,62 @@ export const DEFAULT_SIZE_DATA: SizeDataMap = {
       ],
     }
   },
+  formal_pant: {
+    title: 'Formal Trousers / Tailored Pants',
+    headers: ['Size', 'Waist', 'Length', 'Hip', 'Thigh', 'Leg Opening'],
+    rows: {
+      in: [
+        { size: '28', waist: '28.0"', length: '39.0"', hip: '36.0"', thigh: '21.5"', 'leg opening': '13.5"' },
+        { size: '30', waist: '30.0"', length: '39.5"', hip: '38.0"', thigh: '22.5"', 'leg opening': '14.0"' },
+        { size: '32', waist: '32.0"', length: '40.0"', hip: '40.0"', thigh: '23.5"', 'leg opening': '14.5"' },
+        { size: '34', waist: '34.0"', length: '40.5"', hip: '42.0"', thigh: '24.5"', 'leg opening': '15.0"' },
+        { size: '36', waist: '36.0"', length: '41.0"', hip: '44.0"', thigh: '25.5"', 'leg opening': '15.5"' },
+      ],
+      cm: [
+        { size: '28', waist: '71.1', length: '99.0', hip: '91.4', thigh: '54.6', 'leg opening': '34.3' },
+        { size: '30', waist: '76.2', length: '100.3', hip: '96.5', thigh: '57.2', 'leg opening': '35.6' },
+        { size: '32', waist: '81.3', length: '101.6', hip: '101.6', thigh: '59.7', 'leg opening': '36.8' },
+        { size: '34', waist: '86.4', length: '102.8', hip: '106.7', thigh: '62.2', 'leg opening': '38.1' },
+        { size: '36', waist: '91.4', length: '104.1', hip: '111.8', thigh: '64.8', 'leg opening': '39.4' },
+      ],
+    }
+  },
+  chino_pant: {
+    title: 'Chino & Cargo Pants',
+    headers: ['Size', 'Waist', 'Length', 'Hip', 'Thigh', 'Leg Opening'],
+    rows: {
+      in: [
+        { size: '28', waist: '28.0"', length: '39.0"', hip: '37.0"', thigh: '22.0"', 'leg opening': '14.0"' },
+        { size: '30', waist: '30.0"', length: '40.0"', hip: '39.0"', thigh: '23.0"', 'leg opening': '14.5"' },
+        { size: '32', waist: '32.0"', length: '40.5"', hip: '41.0"', thigh: '24.0"', 'leg opening': '15.0"' },
+        { size: '34', waist: '34.0"', length: '41.0"', hip: '43.0"', thigh: '25.0"', 'leg opening': '15.5"' },
+        { size: '36', waist: '36.0"', length: '41.5"', hip: '45.0"', thigh: '26.0"', 'leg opening': '16.0"' },
+      ],
+      cm: [
+        { size: '28', waist: '71.1', length: '99.0', hip: '94.0', thigh: '55.9', 'leg opening': '35.6' },
+        { size: '30', waist: '76.2', length: '101.6', hip: '99.1', thigh: '58.4', 'leg opening': '36.8' },
+        { size: '32', waist: '81.3', length: '102.8', hip: '104.1', thigh: '61.0', 'leg opening': '38.1' },
+        { size: '34', waist: '86.4', length: '104.1', hip: '109.2', thigh: '63.5', 'leg opening': '39.4' },
+        { size: '36', waist: '91.4', length: '105.4', hip: '114.3', thigh: '66.0', 'leg opening': '40.6' },
+      ],
+    }
+  },
   baggy_denim: {
-    title: 'Pants & Jeans (Denim / Chino / Cargo)',
+    title: 'Denim Jeans & Baggy Pants',
     headers: ['Size', 'Waist', 'Length', 'Leg Opening', 'Weight (Denim)'],
     rows: {
       in: [
-        { size: '28', waist: '28.0"', length: '39.0"', 'leg opening': '14.5"', 'weight (denim)': '13 oz' },
-        { size: '30', waist: '30.0"', length: '40.0"', 'leg opening': '15.0"', 'weight (denim)': '13 oz' },
-        { size: '32', waist: '32.0"', length: '40.5"', 'leg opening': '16.0"', 'weight (denim)': '13 oz' },
-        { size: '34', waist: '34.0"', length: '41.0"', 'leg opening': '17.0"', 'weight (denim)': '13 oz' },
+        { size: '28', waist: '28.0"', length: '39.0"', 'leg opening': '15.5"', 'weight (denim)': '13 oz' },
+        { size: '30', waist: '30.0"', length: '40.0"', 'leg opening': '16.0"', 'weight (denim)': '13 oz' },
+        { size: '32', waist: '32.0"', length: '40.5"', 'leg opening': '17.0"', 'weight (denim)': '13 oz' },
+        { size: '34', waist: '34.0"', length: '41.0"', 'leg opening': '17.5"', 'weight (denim)': '13 oz' },
         { size: '36', waist: '36.0"', length: '41.5"', 'leg opening': '18.0"', 'weight (denim)': '13 oz' },
       ],
       cm: [
-        { size: '28', waist: '71.1', length: '99.0', 'leg opening': '36.8', 'weight (denim)': '13 oz' },
-        { size: '30', waist: '76.2', length: '101.6', 'leg opening': '38.1', 'weight (denim)': '13 oz' },
-        { size: '32', waist: '81.3', length: '102.8', 'leg opening': '40.6', 'weight (denim)': '13 oz' },
-        { size: '34', waist: '86.4', length: '104.1', 'leg opening': '43.2', 'weight (denim)': '13 oz' },
+        { size: '28', waist: '71.1', length: '99.0', 'leg opening': '39.4', 'weight (denim)': '13 oz' },
+        { size: '30', waist: '76.2', length: '101.6', 'leg opening': '40.6', 'weight (denim)': '13 oz' },
+        { size: '32', waist: '81.3', length: '102.8', 'leg opening': '43.2', 'weight (denim)': '13 oz' },
+        { size: '34', waist: '86.4', length: '104.1', 'leg opening': '44.5', 'weight (denim)': '13 oz' },
         { size: '36', waist: '91.4', length: '105.4', 'leg opening': '45.7', 'weight (denim)': '13 oz' },
       ],
     }
@@ -206,7 +246,8 @@ export function getMeasurementForSize(
   }
 
   // 3. For pants, if queried with letter size (S, M, L, XL), map to waist size
-  if (!match && categoryKey === 'baggy_denim') {
+  const isPantChart = categoryKey === 'baggy_denim' || categoryKey === 'formal_pant' || categoryKey === 'chino_pant';
+  if (!match && isPantChart) {
     const mappedWaist = PANT_LETTER_TO_WAIST_MAP[normalizedQuery];
     if (mappedWaist) {
       match = chart.rows[unit].find((row) => row.size.trim().toLowerCase() === mappedWaist);

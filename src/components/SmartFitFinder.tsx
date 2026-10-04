@@ -267,7 +267,7 @@ export default function SmartFitFinder() {
     const totalHeightInches = heightFeet * 12 + heightInches;
 
     // -------------------------------------------------------------
-    // 1. PANTS & CHINOS (StraightFit Baggy Denim)
+    // 1. PANTS & TROUSERS (Formal, Chino, Denim)
     // -------------------------------------------------------------
     if (apparel === 'pant') {
       let waist = 30;
@@ -277,15 +277,22 @@ export default function SmartFitFinder() {
       else if (weightKg <= 85) waist = 34;
       else waist = 36;
 
+      const pantChartKey =
+        fitPreference === 'slim'
+          ? 'formal_pant'
+          : fitPreference === 'regular'
+          ? 'chino_pant'
+          : 'baggy_denim';
+
       // Pull exact dimensions directly from Size Guide in both IN and CM
-      const guideRowIn = getMeasurementForSize('baggy_denim', waist.toString(), 'in');
-      const guideRowCm = getMeasurementForSize('baggy_denim', waist.toString(), 'cm');
+      const guideRowIn = getMeasurementForSize(pantChartKey, waist.toString(), 'in');
+      const guideRowCm = getMeasurementForSize(pantChartKey, waist.toString(), 'cm');
 
       const lengthIn = guideRowIn?.length || (totalHeightInches <= 68 ? '40.0"' : '40.5"');
       const lengthCm = guideRowCm?.length ? `${guideRowCm.length} cm` : `${Math.round((totalHeightInches <= 68 ? 40.0 : 40.5) * 2.54)} cm`;
 
-      let legOpeningIn = guideRowIn?.['leg opening'] || '16.0"';
-      let legOpeningCm = guideRowCm?.['leg opening'] ? `${guideRowCm['leg opening']} cm` : `${Math.round(16 * 2.54)} cm`;
+      let legOpeningIn = guideRowIn?.['leg opening'] || (fitPreference === 'slim' ? '14.0"' : '16.0"');
+      let legOpeningCm = guideRowCm?.['leg opening'] ? `${guideRowCm['leg opening']} cm` : `${Math.round(15 * 2.54)} cm`;
 
       if (fitPreference === 'oversized' && !legOpeningIn.includes('/')) {
         const num = parseFloat(legOpeningIn);
@@ -310,10 +317,10 @@ export default function SmartFitFinder() {
         confidence: 98,
         fitNote:
           fitPreference === 'slim'
-            ? 'Clean straight profile (Asian Standard 13 oz Denim)'
+            ? 'Tailored sleek straight profile (Formal trousers / clean slim silhouette)'
             : fitPreference === 'oversized'
             ? 'Relaxed streetwear baggy drape with extra thigh volume (13 oz Denim)'
-            : 'Signature StraightFit Baggy fit (Standard comfort for Bangladeshi build)'
+            : 'Comfortable regular straight fit (Chinos & everyday trousers)'
       };
     }
 

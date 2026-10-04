@@ -99,17 +99,38 @@ export default function SizeGuideModal({
       return 'boxy_shirt';
     }
 
-    // 5. Pants, Jeans, Chinos, Trousers, Cargo, Joggers, Denim Pants
+    // 5. Formal Pants & Tailored Dress Trousers
+    const isFormalPant =
+      combined.includes('formal') ||
+      combined.includes('trouser') ||
+      combined.includes('tailored') ||
+      combined.includes('dress pant') ||
+      combined.includes('suit pant') ||
+      combined.includes('office');
+
+    if (isFormalPant && !isUpperWear) {
+      return 'formal_pant';
+    }
+
+    // 6. Chino & Cargo Pants
+    const isChinoOrCargo =
+      combined.includes('chino') ||
+      combined.includes('cargo') ||
+      combined.includes('jogger');
+
+    if (isChinoOrCargo && !isUpperWear) {
+      return 'chino_pant';
+    }
+
+    // 7. Denim Jeans & Baggy Pants
     const isBottomWear =
       combined.includes('pant') ||
       combined.includes('trouser') ||
       combined.includes('jeans') ||
-      combined.includes('chino') ||
-      combined.includes('cargo') ||
+      combined.includes('jean') ||
       combined.includes('denim') ||
       combined.includes('baggy') ||
       combined.includes('straight') ||
-      combined.includes('jogger') ||
       cat.includes('pant') ||
       cat.includes('bottom');
 
@@ -235,16 +256,18 @@ export default function SizeGuideModal({
     const matched = rows.filter(r => {
       const rowSize = (r.size || '').trim().toUpperCase();
       if (availUpper.includes(rowSize)) return true;
-      if (activeType === 'baggy_denim') {
+      const isPantChart = activeType === 'baggy_denim' || activeType === 'formal_pant' || activeType === 'chino_pant';
+      if (isPantChart) {
         return availUpper.some(sz => PANT_LETTER_MAP[sz] === rowSize);
       }
       return false;
     });
 
     // If any size in availableSizes is not yet in preset rows, create an entry
+    const isPantChart = activeType === 'baggy_denim' || activeType === 'formal_pant' || activeType === 'chino_pant';
     const matchedSet = new Set(matched.map(r => (r.size || '').trim().toUpperCase()));
     const missing = availUpper.filter(s => {
-      const mapped = activeType === 'baggy_denim' ? PANT_LETTER_MAP[s] : null;
+      const mapped = isPantChart ? PANT_LETTER_MAP[s] : null;
       return !matchedSet.has(s) && (!mapped || !matchedSet.has(mapped));
     });
 
