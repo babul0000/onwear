@@ -176,17 +176,37 @@ export const DEFAULT_SIZE_DATA: SizeDataMap = {
         { size: '44 (XL)', chest: '111.8', length: '114.3', shoulder: '48.3', sleeve: '64.8' },
       ],
     }
+  },
+  footwear: {
+    title: 'Footwear & Sandals',
+    headers: ['Size', 'Foot Length', 'US Size', 'UK Size'],
+    rows: {
+      in: [
+        { size: '40', 'foot length': '9.8"', 'us size': '7.5', 'uk size': '6.5' },
+        { size: '41', 'foot length': '10.2"', 'us size': '8.5', 'uk size': '7.5' },
+        { size: '42', 'foot length': '10.6"', 'us size': '9.5', 'uk size': '8.5' },
+        { size: '43', 'foot length': '11.0"', 'us size': '10.5', 'uk size': '9.5' },
+        { size: '44', 'foot length': '11.4"', 'us size': '11.5', 'uk size': '10.5' },
+      ],
+      cm: [
+        { size: '40', 'foot length': '25.0', 'us size': '7.5', 'uk size': '6.5' },
+        { size: '41', 'foot length': '26.0', 'us size': '8.5', 'uk size': '7.5' },
+        { size: '42', 'foot length': '27.0', 'us size': '9.5', 'uk size': '8.5' },
+        { size: '43', 'foot length': '28.0', 'us size': '10.5', 'uk size': '9.5' },
+        { size: '44', 'foot length': '29.0', 'us size': '11.5', 'uk size': '10.5' },
+      ],
+    }
   }
 };
 
 export const COMMON_PRESET_COLUMNS = [
-  'Chest', 'Length', 'Leg Opening', 'Weight (Denim)', 'Sleeve', 'Shoulder', 'Waist', 'Hip', 'Inseam', 'Thigh', 'Collar', 'Armhole'
+  'Chest', 'Length', 'Leg Opening', 'Weight (Denim)', 'Sleeve', 'Shoulder', 'Waist', 'Hip', 'Inseam', 'Thigh', 'Foot Length', 'US Size', 'UK Size', 'Collar', 'Armhole'
 ];
 
 /**
  * Letter size to waist size mapping for pants
  */
-const PANT_LETTER_TO_WAIST_MAP: Record<string, string> = {
+export const PANT_LETTER_TO_WAIST_MAP: Record<string, string> = {
   xs: '28',
   s: '28',
   m: '30',
@@ -194,8 +214,47 @@ const PANT_LETTER_TO_WAIST_MAP: Record<string, string> = {
   xl: '34',
   xxl: '36',
   '2xl': '36',
-  '3xl': '36'
+  '3xl': '38'
 };
+
+/**
+ * Checks if a size row label matches a queried product size label.
+ * Handles '38 (S)' matching '38' or 'S', and '30' matching 'M' for pants.
+ */
+export function isSizeMatching(rowSize: string, querySize: string, isPant: boolean = false): boolean {
+  const normRow = (rowSize || '').trim().toLowerCase();
+  const normQuery = (querySize || '').trim().toLowerCase();
+  if (!normRow || !normQuery) return false;
+
+  // 1. Exact match
+  if (normRow === normQuery) return true;
+
+  // 2. Prefix or parentheses match: e.g. "38 (S)" matches "38" or "S"
+  if (
+    normRow.startsWith(normQuery + ' ') ||
+    normRow.startsWith(normQuery + '(') ||
+    normRow.endsWith('(' + normQuery + ')') ||
+    normRow.includes('(' + normQuery + ')') ||
+    normQuery.startsWith(normRow + ' ') ||
+    normQuery.includes('(' + normRow + ')')
+  ) {
+    return true;
+  }
+
+  // 3. For pants, map letter to waist
+  if (isPant) {
+    const mappedWaist = PANT_LETTER_TO_WAIST_MAP[normQuery];
+    if (mappedWaist && (normRow === mappedWaist || normRow.startsWith(mappedWaist))) {
+      return true;
+    }
+    const reverseMapped = Object.entries(PANT_LETTER_TO_WAIST_MAP).find(([, w]) => w === normRow);
+    if (reverseMapped && reverseMapped[0] === normQuery) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 /**
  * Returns the active size chart for a category, checking for any custom data in localStorage
@@ -226,33 +285,10 @@ export function getMeasurementForSize(
   const chart = getActiveSizeChart(categoryKey);
   if (!chart || !chart.rows || !chart.rows[unit]) return null;
 
-  const normalizedQuery = sizeQuery.trim().toLowerCase();
-  
-  // 1. Try exact match first
-  let match = chart.rows[unit].find(
-    (row) => row.size.trim().toLowerCase() === normalizedQuery
-  );
-
-  // 2. If not found, try matching prefix or paren, e.g. "M" in "M (BOXY)" or "38" in "38 (S)"
-  if (!match) {
-    match = chart.rows[unit].find((row) => {
-      const rowSize = row.size.trim().toLowerCase();
-      return (
-        rowSize.startsWith(normalizedQuery) ||
-        rowSize.includes(`(${normalizedQuery})`) ||
-        normalizedQuery.startsWith(rowSize)
-      );
-    });
-  }
-
-  // 3. For pants, if queried with letter size (S, M, L, XL), map to waist size
   const isPantChart = categoryKey === 'baggy_denim' || categoryKey === 'formal_pant' || categoryKey === 'chino_pant';
-  if (!match && isPantChart) {
-    const mappedWaist = PANT_LETTER_TO_WAIST_MAP[normalizedQuery];
-    if (mappedWaist) {
-      match = chart.rows[unit].find((row) => row.size.trim().toLowerCase() === mappedWaist);
-    }
-  }
+
+  // Use the smart matching function
+  const match = chart.rows[unit].find((row) => isSizeMatching(row.size, sizeQuery, isPantChart));
 
   return match || null;
 }

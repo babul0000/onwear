@@ -357,38 +357,14 @@ export default function SmartFitFinder() {
       const guideRowIn = getMeasurementForSize(chartKey, lookupKey, 'in');
       const guideRowCm = getMeasurementForSize(chartKey, lookupKey, 'cm');
 
-      let chestIn = guideRowIn?.chest || (baseSize === 'M' ? '40"' : '42"');
-      let chestCm = guideRowCm?.chest ? `${guideRowCm.chest} cm` : (baseSize === 'M' ? '101.6 cm' : '106.7 cm');
+      const chestIn = guideRowIn?.chest || (baseSize === 'M' ? '41.0"' : '43.0"');
+      const chestCm = guideRowCm?.chest ? `${guideRowCm.chest} cm` : (baseSize === 'M' ? '104.1 cm' : '109.2 cm');
 
-      let lengthIn = guideRowIn?.length || (baseSize === 'M' ? '28.0"' : '29.0"');
-      let lengthCm = guideRowCm?.length ? `${guideRowCm.length} cm` : (baseSize === 'M' ? '71.1 cm' : '73.7 cm');
+      const lengthIn = guideRowIn?.length || (baseSize === 'M' ? '29.0"' : '30.0"');
+      const lengthCm = guideRowCm?.length ? `${guideRowCm.length} cm` : (baseSize === 'M' ? '73.7 cm' : '76.2 cm');
 
-      let shoulderIn = guideRowIn?.shoulder || (baseSize === 'M' ? '17.5"' : '18.5"');
-      let shoulderCm = guideRowCm?.shoulder ? `${guideRowCm.shoulder} cm` : (baseSize === 'M' ? '44.5 cm' : '47.0 cm');
-
-      if (fitPreference === 'slim') {
-        if (baseSize === 'S') {
-          chestIn = '36"'; chestCm = '91.4 cm';
-          lengthIn = '26.5"'; lengthCm = '67.3 cm';
-          shoulderIn = '16.5"'; shoulderCm = '41.9 cm';
-        } else if (baseSize === 'M') {
-          chestIn = '38"'; chestCm = '96.5 cm';
-          lengthIn = '27.5"'; lengthCm = '69.8 cm';
-          shoulderIn = '17.0"'; shoulderCm = '43.2 cm';
-        } else if (baseSize === 'L') {
-          chestIn = '40"'; chestCm = '101.6 cm';
-          lengthIn = '28.5"'; lengthCm = '72.4 cm';
-          shoulderIn = '18.0"'; shoulderCm = '45.7 cm';
-        } else if (baseSize === 'XL') {
-          chestIn = '42"'; chestCm = '106.7 cm';
-          lengthIn = '29.5"'; lengthCm = '74.9 cm';
-          shoulderIn = '19.0"'; shoulderCm = '48.3 cm';
-        } else {
-          chestIn = '44"'; chestCm = '111.8 cm';
-          lengthIn = '30.0"'; lengthCm = '76.2 cm';
-          shoulderIn = '20.0"'; shoulderCm = '50.8 cm';
-        }
-      }
+      const shoulderIn = guideRowIn?.shoulder || (baseSize === 'M' ? '18.0"' : '18.5"');
+      const shoulderCm = guideRowCm?.shoulder ? `${guideRowCm.shoulder} cm` : (baseSize === 'M' ? '45.7 cm' : '47.0 cm');
 
       return {
         size: displaySize,
@@ -434,38 +410,14 @@ export default function SmartFitFinder() {
     const guideRowIn = getMeasurementForSize('tshirt', lookupKey, 'in');
     const guideRowCm = getMeasurementForSize('tshirt', lookupKey, 'cm');
 
-    let chestIn = guideRowIn?.chest || (baseSize === 'M' ? '39 – 40"' : '41 – 42"');
-    let chestCm = guideRowCm?.chest ? `${guideRowCm.chest} cm` : (baseSize === 'M' ? '99 – 101.6 cm' : '104 – 106.7 cm');
+    const chestIn = guideRowIn?.chest || (baseSize === 'M' ? '40.0"' : '42.0"');
+    const chestCm = guideRowCm?.chest ? `${guideRowCm.chest} cm` : (baseSize === 'M' ? '101.6 cm' : '106.7 cm');
 
-    let lengthIn = guideRowIn?.length || (baseSize === 'M' ? '28.0"' : '29.0"');
-    let lengthCm = guideRowCm?.length ? `${guideRowCm.length} cm` : (baseSize === 'M' ? '71.1 cm' : '73.6 cm');
+    const lengthIn = guideRowIn?.length || (baseSize === 'M' ? '28.0"' : '29.0"');
+    const lengthCm = guideRowCm?.length ? `${guideRowCm.length} cm` : (baseSize === 'M' ? '71.1 cm' : '73.6 cm');
 
-    let shoulderIn = guideRowIn?.shoulder || (baseSize === 'M' ? '17.5"' : '18.5"');
-    let shoulderCm = guideRowCm?.shoulder ? `${guideRowCm.shoulder} cm` : (baseSize === 'M' ? '44.5 cm' : '47.0 cm');
-
-    if (fitPreference === 'slim') {
-      if (baseSize === 'S') {
-        chestIn = '36"'; chestCm = '91.4 cm';
-        lengthIn = '26.5"'; lengthCm = '67.3 cm';
-        shoulderIn = '16.0"'; shoulderCm = '40.6 cm';
-      } else if (baseSize === 'M') {
-        chestIn = '38"'; chestCm = '96.5 cm';
-        lengthIn = '27.5"'; lengthCm = '69.8 cm';
-        shoulderIn = '17.0"'; shoulderCm = '43.2 cm';
-      } else if (baseSize === 'L') {
-        chestIn = '40"'; chestCm = '101.6 cm';
-        lengthIn = '28.5"'; lengthCm = '72.4 cm';
-        shoulderIn = '18.0"'; shoulderCm = '45.7 cm';
-      } else if (baseSize === 'XL') {
-        chestIn = '42"'; chestCm = '106.7 cm';
-        lengthIn = '29.5"'; lengthCm = '74.9 cm';
-        shoulderIn = '19.0"'; shoulderCm = '48.3 cm';
-      } else {
-        chestIn = '44"'; chestCm = '111.8 cm';
-        lengthIn = '30.0"'; lengthCm = '76.2 cm';
-        shoulderIn = '20.0"'; shoulderCm = '50.8 cm';
-      }
-    }
+    const shoulderIn = guideRowIn?.shoulder || (baseSize === 'M' ? '17.5"' : '18.5"');
+    const shoulderCm = guideRowCm?.shoulder ? `${guideRowCm.shoulder} cm` : (baseSize === 'M' ? '44.5 cm' : '47.0 cm');
 
     return {
       size: displaySize,

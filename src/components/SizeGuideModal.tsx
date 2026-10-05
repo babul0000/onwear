@@ -27,7 +27,9 @@ import {
   SizeDataMap, 
   DEFAULT_SIZE_DATA, 
   COMMON_PRESET_COLUMNS, 
-  SIZE_GUIDE_UPDATE_EVENT 
+  SIZE_GUIDE_UPDATE_EVENT,
+  isSizeMatching,
+  PANT_LETTER_TO_WAIST_MAP
 } from '../config/size-guide.config';
 export { DEFAULT_SIZE_DATA, COMMON_PRESET_COLUMNS };
 
@@ -49,6 +51,20 @@ export default function SizeGuideModal({
     const cat = (categoryName || '').toLowerCase().trim();
     const prod = (productName || '').toLowerCase().trim();
     const combined = `${cat} ${prod}`;
+
+    // 0. Footwear / Shoes / Sandals
+    if (
+      combined.includes('sandal') ||
+      combined.includes('slide') ||
+      combined.includes('shoe') ||
+      combined.includes('loafer') ||
+      combined.includes('sneaker') ||
+      combined.includes('boot') ||
+      cat.includes('sandal') ||
+      cat.includes('footwear')
+    ) {
+      return 'footwear';
+    }
 
     // 1. Traditional / Panjabi / Kurta
     if (
@@ -99,14 +115,15 @@ export default function SizeGuideModal({
       return 'boxy_shirt';
     }
 
-    // 5. Formal Pants & Tailored Dress Trousers
+    // 5. Formal Pants & Tailored / Slim Dress Trousers
     const isFormalPant =
       combined.includes('formal') ||
       combined.includes('trouser') ||
       combined.includes('tailored') ||
       combined.includes('dress pant') ||
       combined.includes('suit pant') ||
-      combined.includes('office');
+      combined.includes('office') ||
+      (combined.includes('slim') && (combined.includes('pant') || cat.includes('pant')));
 
     if (isFormalPant && !isUpperWear) {
       return 'formal_pant';
@@ -235,48 +252,81 @@ export default function SizeGuideModal({
 
   const rows = currentChart.rows[unit] || [];
   const headers = currentChart.headers || ['Size'];
+  const isPantChart = activeType === 'baggy_denim' || activeType === 'formal_pant' || activeType === 'chino_pant';
 
-  // Filter rows by availableSizes to display only this product's configured sizes
+  // Format display size label (e.g. for pants, show '30 (M)' if product has letter size 'M')
+  const formatDisplaySize = (sizeStr: string): string => {
+    if (!availableSizes || availableSizes.length === 0) return sizeStr;
+    if (isPantChart) {
+      const matchedLetter = availableSizes.find(
+        (s) => ['xs', 's', 'm', 'l', 'xl', 'xxl', '2xl', '3xl'].includes(s.toLowerCase()) && isSizeMatching(sizeStr, s, true)
+      );
+      if (matchedLetter && !sizeStr.toUpperCase().includes(matchedLetter.toUpperCase())) {
+        return `${sizeStr} (${matchedLetter.toUpperCase()})`;
+      }
+    }
+    return sizeStr;
+  };
+
+  // Filter or map rows by availableSizes to display this product's configured sizes
   const displayedRows = React.useMemo(() => {
     if (!availableSizes || availableSizes.length === 0) return rows;
-    const availUpper = availableSizes.map(s => s.trim().toUpperCase());
 
-    const PANT_LETTER_MAP: Record<string, string> = {
-      'XS': '28',
-      'S': '28',
-      'M': '30',
-      'L': '32',
-      'XL': '34',
-      'XXL': '36',
-      '2XL': '36',
-      '3XL': '36'
-    };
-
-    // Rows matching the product's actual sizes
-    const matched = rows.filter(r => {
-      const rowSize = (r.size || '').trim().toUpperCase();
-      if (availUpper.includes(rowSize)) return true;
-      const isPantChart = activeType === 'baggy_denim' || activeType === 'formal_pant' || activeType === 'chino_pant';
-      if (isPantChart) {
-        return availUpper.some(sz => PANT_LETTER_MAP[sz] === rowSize);
+    // If product has its own custom size chart saved, use its rows directly
+    if (isCustomProductChart) {
+      const missing = availableSizes.filter((s) => {
+        return !rows.some((r) => isSizeMatching(r.size, s, isPantChart));
+      });
+      if (missing.length > 0) {
+        const extraRows: SizeRow[] = missing.map((sz) => {
+          const extra: SizeRow = { size: sz };
+          headers.forEach((h) => {
+            const k = h.toLowerCase().trim();
+            if (k !== 'size') extra[k] = '';
+          });
+          return extra;
+        });
+        return [...rows, ...extraRows];
       }
-      return false;
+      return rows;
+    }
+
+    // Otherwise, filter standard rows by this product's availableSizes
+    const matched: SizeRow[] = [];
+    const matchedRowSizes = new Set<string>();
+
+    availableSizes.forEach((avail) => {
+      const found = rows.find((r) => isSizeMatching(r.size, avail, isPantChart));
+      if (found && !matchedRowSizes.has(found.size.toLowerCase())) {
+        matched.push(found);
+        matchedRowSizes.add(found.size.toLowerCase());
+      }
     });
 
-    // If any size in availableSizes is not yet in preset rows, create an entry
-    const isPantChart = activeType === 'baggy_denim' || activeType === 'formal_pant' || activeType === 'chino_pant';
-    const matchedSet = new Set(matched.map(r => (r.size || '').trim().toUpperCase()));
-    const missing = availUpper.filter(s => {
-      const mapped = isPantChart ? PANT_LETTER_MAP[s] : null;
-      return !matchedSet.has(s) && (!mapped || !matchedSet.has(mapped));
+    // Include any row explicitly added by user that isn't standard
+    rows.forEach((r) => {
+      if (!matchedRowSizes.has(r.size.toLowerCase())) {
+        const isStandard = DEFAULT_SIZE_DATA[activeType]?.rows?.[unit]?.some(
+          (dr) => dr.size.toLowerCase() === r.size.toLowerCase()
+        );
+        if (!isStandard) {
+          matched.push(r);
+          matchedRowSizes.add(r.size.toLowerCase());
+        }
+      }
     });
 
-    if (missing.length > 0 && matched.length > 0) {
-      const extraRows: SizeRow[] = missing.map(sz => {
+    // Any missing available size
+    const missing = availableSizes.filter(
+      (s) => !rows.some((r) => isSizeMatching(r.size, s, isPantChart))
+    );
+
+    if (missing.length > 0) {
+      const extraRows: SizeRow[] = missing.map((sz) => {
         const extra: SizeRow = { size: sz };
-        headers.forEach(h => {
+        headers.forEach((h) => {
           const k = h.toLowerCase().trim();
-          if (k !== 'size') extra[k] = '—';
+          if (k !== 'size') extra[k] = '';
         });
         return extra;
       });
@@ -284,16 +334,70 @@ export default function SizeGuideModal({
     }
 
     return matched.length > 0 ? matched : rows;
-  }, [rows, availableSizes, headers, activeType]);
+  }, [rows, availableSizes, headers, isPantChart, isCustomProductChart, activeType, unit]);
+
+  // Active rows to show in table:
+  // In edit mode with 'global' scope or when no product is open -> show all template rows
+  // When on a product (preview or product edit scope) -> show displayedRows (SAME in both preview and edit!)
+  const activeRows = (isEditing && editScope === 'global') || !productId || !availableSizes || availableSizes.length === 0
+    ? rows
+    : displayedRows;
+
+  // Handle switching scope between global and product
+  const handleScopeChange = (newScope: 'global' | 'product') => {
+    setEditScope(newScope);
+    if (newScope === 'global') {
+      try {
+        const globalLocal = localStorage.getItem('onwear_size_guide_custom_data');
+        if (globalLocal) {
+          const parsed = JSON.parse(globalLocal);
+          if (parsed && typeof parsed === 'object') {
+            setSizeData(parsed);
+            return;
+          }
+        }
+      } catch (_) {}
+      setSizeData(DEFAULT_SIZE_DATA);
+    } else if (newScope === 'product' && productId) {
+      try {
+        const prodLocal = localStorage.getItem(`onwear_size_guide_prod_${productId}`);
+        if (prodLocal) {
+          const parsed = JSON.parse(prodLocal);
+          if (parsed && typeof parsed === 'object') {
+            setSizeData((prev) => ({ ...prev, [activeType]: parsed }));
+            setIsCustomProductChart(true);
+            return;
+          }
+        } else if (sizeChartUrl) {
+          const parsed = JSON.parse(sizeChartUrl);
+          if (parsed && typeof parsed === 'object') {
+            setSizeData((prev) => ({ ...prev, [activeType]: parsed }));
+            setIsCustomProductChart(true);
+            return;
+          }
+        }
+      } catch (_) {}
+    }
+  };
 
   // Update cell value
   const handleCellChange = (rowIdx: number, colHeader: string, value: string) => {
     const key = colHeader.toLowerCase().trim();
-    const updatedRows = [...rows];
-    updatedRows[rowIdx] = {
-      ...updatedRows[rowIdx],
-      [key]: value
-    };
+    const targetRow = activeRows[rowIdx];
+    if (!targetRow) return;
+
+    const updatedInChart = [...rows];
+    const matchIdx = updatedInChart.findIndex((r) => r.size.toLowerCase() === targetRow.size.toLowerCase());
+
+    if (matchIdx !== -1) {
+      updatedInChart[matchIdx] = {
+        ...updatedInChart[matchIdx],
+        [key]: value
+      };
+    } else {
+      const newRow: SizeRow = { ...targetRow, [key]: value };
+      updatedInChart.push(newRow);
+    }
 
     setSizeData((prev) => ({
       ...prev,
@@ -301,7 +405,7 @@ export default function SizeGuideModal({
         ...prev[activeType],
         rows: {
           ...prev[activeType].rows,
-          [unit]: updatedRows
+          [unit]: updatedInChart
         }
       }
     }));
@@ -309,11 +413,20 @@ export default function SizeGuideModal({
 
   // Update size label
   const handleSizeNameChange = (rowIdx: number, value: string) => {
-    const updatedRows = [...rows];
-    updatedRows[rowIdx] = {
-      ...updatedRows[rowIdx],
-      size: value
-    };
+    const targetRow = activeRows[rowIdx];
+    if (!targetRow) return;
+
+    const updatedInChart = [...rows];
+    const matchIdx = updatedInChart.findIndex((r) => r.size.toLowerCase() === targetRow.size.toLowerCase());
+
+    if (matchIdx !== -1) {
+      updatedInChart[matchIdx] = {
+        ...updatedInChart[matchIdx],
+        size: value
+      };
+    } else {
+      updatedInChart.push({ ...targetRow, size: value });
+    }
 
     setSizeData((prev) => ({
       ...prev,
@@ -321,7 +434,7 @@ export default function SizeGuideModal({
         ...prev[activeType],
         rows: {
           ...prev[activeType].rows,
-          [unit]: updatedRows
+          [unit]: updatedInChart
         }
       }
     }));
@@ -350,7 +463,10 @@ export default function SizeGuideModal({
 
   // Delete row
   const handleDeleteRow = (rowIdx: number) => {
-    const updatedRows = rows.filter((_, idx) => idx !== rowIdx);
+    const targetRow = activeRows[rowIdx];
+    if (!targetRow) return;
+    const updatedRows = rows.filter((r) => r.size.toLowerCase() !== targetRow.size.toLowerCase());
+
     setSizeData((prev) => ({
       ...prev,
       [activeType]: {
@@ -731,8 +847,8 @@ export default function SizeGuideModal({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setEditScope('global')}
-                className={`px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all ${
+                onClick={() => handleScopeChange('global')}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   editScope === 'global'
                     ? 'bg-zinc-950 text-white shadow-xs'
                     : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
@@ -742,8 +858,8 @@ export default function SizeGuideModal({
               </button>
               <button
                 type="button"
-                onClick={() => setEditScope('product')}
-                className={`px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all ${
+                onClick={() => handleScopeChange('product')}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   editScope === 'product'
                     ? 'bg-zinc-950 text-white shadow-xs'
                     : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
@@ -1023,7 +1139,7 @@ export default function SizeGuideModal({
                 </tr>
               </thead>
               <tbody>
-                {(isEditing ? rows : displayedRows).map((row, rowIdx) => (
+                {activeRows.map((row, rowIdx) => (
                   <tr key={rowIdx} className="hover:bg-zinc-50/60 transition-colors">
                     {/* Size column */}
                     <td className="py-3 px-3 sm:py-3.5 sm:px-4 font-bold text-zinc-950 border border-zinc-200 text-center font-sans text-xs sm:text-sm bg-zinc-50/20">
@@ -1036,7 +1152,7 @@ export default function SizeGuideModal({
                           className="w-full text-center px-2 py-1 bg-white border border-zinc-300 rounded font-sans font-bold text-xs text-zinc-950 focus:outline-none focus:border-zinc-950"
                         />
                       ) : (
-                        row.size
+                        formatDisplaySize(row.size)
                       )}
                     </td>
 
@@ -1094,7 +1210,7 @@ export default function SizeGuideModal({
                   <span>Add Size Row</span>
                 </button>
                 <span className="text-[11px] text-zinc-400 font-mono">
-                  {rows.length} size{rows.length !== 1 ? 's' : ''} configured
+                  {activeRows.length} size{activeRows.length !== 1 ? 's' : ''} configured
                 </span>
               </div>
             )}

@@ -498,7 +498,34 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     return combined.includes('panjabi') || combined.includes('kurta');
   })();
 
-  const fallbackSizes = isBottomProduct
+  const isFootwearProduct = (() => {
+    const combined = `${product.category?.name || ''} ${product.name || ''}`.toLowerCase();
+    return (
+      combined.includes('sandal') ||
+      combined.includes('slide') ||
+      combined.includes('shoe') ||
+      combined.includes('loafer') ||
+      combined.includes('sneaker') ||
+      combined.includes('boot') ||
+      combined.includes('footwear')
+    );
+  })();
+
+  const isCapProduct = (() => {
+    const combined = `${product.category?.name || ''} ${product.name || ''}`.toLowerCase();
+    return (
+      combined.includes('cap') ||
+      combined.includes('hat') ||
+      combined.includes('snapback') ||
+      combined.includes('beanie')
+    );
+  })();
+
+  const fallbackSizes = isCapProduct
+    ? ['Free Size']
+    : isFootwearProduct
+    ? ['40', '41', '42', '43', '44']
+    : isBottomProduct
     ? ['28', '30', '32', '34', '36']
     : isPanjabiProduct
     ? ['38', '40', '42', '44']
@@ -892,14 +919,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                   <label className="text-[11px] font-normal tracking-[0.06em] uppercase text-[#232323]">
                     Size: <span className="font-normal text-[#727272]">{selectedSize || 'Select Size'}</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsSizeGuideOpen(true)}
-                    className="text-[11px] font-normal text-[#727272] hover:text-[#232323] hover:underline flex items-center gap-1 uppercase tracking-[0.04em] cursor-pointer"
-                  >
-                    <Ruler className="h-3.5 w-3.5" />
-                    <span>Size Guide</span>
-                  </button>
+                  {!isCapProduct && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSizeGuideOpen(true)}
+                      className="text-[11px] font-normal text-[#727272] hover:text-[#232323] hover:underline flex items-center gap-1 uppercase tracking-[0.04em] cursor-pointer"
+                    >
+                      <Ruler className="h-3.5 w-3.5" />
+                      <span>Size Guide</span>
+                    </button>
+                  )}
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
