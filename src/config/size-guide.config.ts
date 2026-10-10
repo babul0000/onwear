@@ -21,21 +21,17 @@ export const SIZE_GUIDE_UPDATE_EVENT = 'onwear_size_guide_updated';
 export const DEFAULT_SIZE_DATA: SizeDataMap = {
   boxy_shirt: {
     title: 'Boxy Fit Shirts',
-    headers: ['Size', 'Chest', 'Length', 'Shoulder', 'Sleeve'],
+    headers: ['Size', 'Chest', 'Length'],
     rows: {
       in: [
-        { size: 'S', chest: '42.0"', length: '26.5"', shoulder: '19.5"', sleeve: '23.5"' },
-        { size: 'M', chest: '44.0"', length: '27.5"', shoulder: '20.5"', sleeve: '24.0"' },
-        { size: 'L', chest: '46.0"', length: '28.5"', shoulder: '21.5"', sleeve: '24.5"' },
-        { size: 'XL', chest: '48.0"', length: '29.5"', shoulder: '22.5"', sleeve: '25.0"' },
-        { size: 'XXL', chest: '50.0"', length: '30.5"', shoulder: '23.5"', sleeve: '25.5"' },
+        { size: 'M', chest: '43-44"', length: '26.5"' },
+        { size: 'L', chest: '45-46"', length: '27.5"' },
+        { size: 'XL', chest: '47-48"', length: '28.5"' },
       ],
       cm: [
-        { size: 'S', chest: '106.7', length: '67.3', shoulder: '49.5', sleeve: '59.7' },
-        { size: 'M', chest: '111.8', length: '69.8', shoulder: '52.1', sleeve: '61.0' },
-        { size: 'L', chest: '116.8', length: '72.4', shoulder: '54.6', sleeve: '62.2' },
-        { size: 'XL', chest: '121.9', length: '74.9', shoulder: '57.2', sleeve: '63.5' },
-        { size: 'XXL', chest: '127.0', length: '77.5', shoulder: '59.7', sleeve: '64.8' },
+        { size: 'M', chest: '109.2-111.8', length: '67.3' },
+        { size: 'L', chest: '114.3-116.8', length: '69.8' },
+        { size: 'XL', chest: '119.4-121.9', length: '72.4' },
       ],
     }
   },
@@ -259,7 +255,10 @@ export function isSizeMatching(rowSize: string, querySize: string, isPant: boole
 /**
  * Returns the active size chart for a category, checking for any custom data in localStorage
  */
-export function getActiveSizeChart(categoryKey: string): SizeCategory {
+export function getActiveSizeChart(categoryKey: string, customData?: SizeDataMap | null): SizeCategory {
+  if (customData && customData[categoryKey]) {
+    return customData[categoryKey];
+  }
   if (typeof window !== 'undefined') {
     try {
       const globalLocal = localStorage.getItem('onwear_size_guide_custom_data');
@@ -280,9 +279,10 @@ export function getActiveSizeChart(categoryKey: string): SizeCategory {
 export function getMeasurementForSize(
   categoryKey: string,
   sizeQuery: string,
-  unit: Unit = 'in'
+  unit: Unit = 'in',
+  customData?: SizeDataMap | null
 ): SizeRow | null {
-  const chart = getActiveSizeChart(categoryKey);
+  const chart = getActiveSizeChart(categoryKey, customData);
   if (!chart || !chart.rows || !chart.rows[unit]) return null;
 
   const isPantChart = categoryKey === 'baggy_denim' || categoryKey === 'formal_pant' || categoryKey === 'chino_pant';

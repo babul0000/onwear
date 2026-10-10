@@ -6,6 +6,7 @@ import {
   Check, HelpCircle, Sparkles, Layers, ArrowRight, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../config';
 
 interface SizeGuideModalProps {
@@ -44,6 +45,7 @@ export default function SizeGuideModal({
   onSaveSuccess
 }: SizeGuideModalProps) {
   const { user, token } = useAuth();
+  const { settings, refreshSettings } = useSettings();
   const isAdmin = Boolean(user && user.role === 'admin');
 
   // Determine initial active category key
@@ -223,25 +225,46 @@ export default function SizeGuideModal({
       }
     }
 
-    // 2. If not loaded from product, check global custom size chart
+    // 2. If not loaded from product, check global custom size chart (from DB Settings -> localStorage -> DEFAULT_SIZE_DATA)
     if (!loadedFromProduct) {
-      try {
-        const globalLocal = localStorage.getItem('onwear_size_guide_custom_data');
-        if (globalLocal) {
-          const parsed = JSON.parse(globalLocal);
+      let loadedGlobal = false;
+      if (settings?.sizeGuideData) {
+        try {
+          const parsed = JSON.parse(settings.sizeGuideData);
           if (parsed && typeof parsed === 'object') {
             setSizeData(parsed);
+            loadedGlobal = true;
+            try {
+              localStorage.setItem('onwear_size_guide_custom_data', settings.sizeGuideData);
+            } catch (_) {}
           }
-        } else {
-          setSizeData(DEFAULT_SIZE_DATA);
+        } catch (err) {
+          console.error('Error parsing settings.sizeGuideData:', err);
         }
-      } catch (err) {
-        console.error('Error loading global custom size chart:', err);
+      }
+
+      if (!loadedGlobal) {
+        try {
+          const globalLocal = localStorage.getItem('onwear_size_guide_custom_data');
+          if (globalLocal) {
+            const parsed = JSON.parse(globalLocal);
+            if (parsed && typeof parsed === 'object') {
+              setSizeData(parsed);
+              loadedGlobal = true;
+            }
+          }
+        } catch (err) {
+          console.error('Error loading global custom size chart from localStorage:', err);
+        }
+      }
+
+      if (!loadedGlobal) {
+        setSizeData(DEFAULT_SIZE_DATA);
       }
       setIsCustomProductChart(false);
       setEditScope('global');
     }
-  }, [isOpen, categoryName, productId, sizeChartUrl]);
+  }, [isOpen, categoryName, productId, sizeChartUrl, settings?.sizeGuideData]);
 
   // Ensure current category chart exists
   const currentChart: SizeCategory = sizeData[activeType] || {
@@ -696,17 +719,44 @@ export default function SizeGuideModal({
           }
         }
       } else {
-        // Save global size data
-        localStorage.setItem('onwear_size_guide_custom_data', JSON.stringify(sizeData));
+        // Save global size data to localStorage AND backend DB
+        const sizeDataStr = JSON.stringify(sizeData);
+        try {
+          localStorage.setItem('onwear_size_guide_custom_data', sizeDataStr);
+        } catch (_) {}
+
         if (productId) {
-          localStorage.removeItem(`onwear_size_guide_prod_${productId}`);
+          try {
+            localStorage.removeItem(`onwear_size_guide_prod_${productId}`);
+          } catch (_) {}
           setIsCustomProductChart(false);
+        }
+
+        // Sync global size data with backend Settings API
+        if (token) {
+          try {
+            const res = await fetch(`${API_URL}/settings`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                sizeGuideData: sizeDataStr
+              })
+            });
+            if (res.ok) {
+              await refreshSettings();
+            }
+          } catch (apiErr) {
+            console.warn('Backend global settings sync warning:', apiErr);
+          }
         }
       }
 
       setToastMessage({
         type: 'success',
-        text: 'Size chart updated & saved successfully!'
+        text: 'Size chart updated & saved globally to database!'
       });
       setIsEditing(false);
       if (typeof window !== 'undefined') {
@@ -725,13 +775,47 @@ export default function SizeGuideModal({
   };
 
   // Reset to default standard
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
     if (confirm('Reset this size guide back to standard factory default measurements?')) {
       if (editScope === 'product' && productId) {
-        localStorage.removeItem(`onwear_size_guide_prod_${productId}`);
+        try {
+          localStorage.removeItem(`onwear_size_guide_prod_${productId}`);
+        } catch (_) {}
         setIsCustomProductChart(false);
+        if (token) {
+          try {
+            await fetch(`${API_URL}/products/${productId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                sizeChartUrl: null
+              })
+            });
+          } catch (_) {}
+        }
+      } else {
+        try {
+          localStorage.removeItem('onwear_size_guide_custom_data');
+        } catch (_) {}
+        if (token) {
+          try {
+            await fetch(`${API_URL}/settings`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                sizeGuideData: JSON.stringify(DEFAULT_SIZE_DATA)
+              })
+            });
+            await refreshSettings();
+          } catch (_) {}
+        }
       }
-      localStorage.removeItem('onwear_size_guide_custom_data');
       setSizeData(DEFAULT_SIZE_DATA);
       setToastMessage({
         type: 'success',

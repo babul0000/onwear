@@ -42,6 +42,7 @@ export interface StoreSetting {
   welcomeOfferTitle?: string | null;
   welcomeOfferText?: string | null;
   welcomeOfferCode?: string | null;
+  sizeGuideData?: string | null;
   updatedAt: string;
 }
 
