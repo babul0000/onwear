@@ -20,7 +20,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'onwear-server.onrender.com',
+        hostname: 'onwear-server.vercel.app',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.vercel.app',
         port: '',
         pathname: '/**',
       },

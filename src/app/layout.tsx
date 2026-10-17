@@ -155,10 +155,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="preconnect" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://onwear-server.onrender.com" />
+        <link rel="preconnect" href="https://onwear-server.vercel.app" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link rel="dns-prefetch" href="https://onwear-server.onrender.com" />
+        <link rel="dns-prefetch" href="https://onwear-server.vercel.app" />
         {/* Favicon & Web App Icons */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
