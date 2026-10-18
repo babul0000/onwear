@@ -1,6 +1,6 @@
-# ShopNest Client (onwear)
+# ONWEAR - Unique Way of Elegance (Client)
 
-The frontend client application for **ShopNest**, a premium full-stack e-commerce platform built with Next.js, React, TailwindCSS, and Lucide Icons.
+The frontend client application for **ONWEAR**, a premium full-stack e-commerce platform built with Next.js, React, TailwindCSS, and Lucide Icons.
 
 ## Features
 
