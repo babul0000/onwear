@@ -229,11 +229,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
             ...s,
             linkUrl: s.linkUrl && s.linkUrl.includes('category=denim') ? '/products' : (s.linkUrl || '/products')
           }));
-          // Compare with current slides to avoid unnecessary flash / rerender
-          const isSame = JSON.stringify(newSlides) === JSON.stringify(slides);
-          if (!isSame) {
-            setSlides(newSlides);
-          }
+          setSlides(newSlides);
           try {
             localStorage.setItem('onwear_hero_slides', JSON.stringify(newSlides));
           } catch (e) {}
@@ -243,7 +239,7 @@ export default function EcommerceHero({ user, token }: EcommerceHeroProps) {
       }
     }
     loadSlides();
-  }, [slides]);
+  }, []);
 
   // Scroll scale-down transition for the last slide (if multi-slide)
   useEffect(() => {

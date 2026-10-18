@@ -11,6 +11,21 @@ export default function VisitorTracker() {
   const lastTrackedPath = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!pathname || pathname.startsWith('/admin')) return;
+
+    // Throttle: avoid re-tracking same path within 60 seconds in this session
+    try {
+      if (typeof window !== 'undefined') {
+        const cacheKey = `onwear_tracked_${pathname}`;
+        const lastTime = sessionStorage.getItem(cacheKey);
+        const now = Date.now();
+        if (lastTime && now - parseInt(lastTime, 10) < 60000) {
+          return;
+        }
+        sessionStorage.setItem(cacheKey, now.toString());
+      }
+    } catch {}
+
     // Avoid re-tracking identical path on immediate re-renders
     if (lastTrackedPath.current === pathname) return;
     lastTrackedPath.current = pathname;

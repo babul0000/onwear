@@ -34,22 +34,9 @@ export default function CustomerReviewsSection() {
 
   const loadRealReviews = useCallback(async () => {
     try {
-      const timestamp = Date.now();
       const [featRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/reviews/featured?_t=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            Pragma: 'no-cache',
-          },
-        }).catch(() => null),
-        fetch(`${API_URL}/reviews/stats?_t=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            Pragma: 'no-cache',
-          },
-        }).catch(() => null),
+        fetch(`${API_URL}/reviews/featured`).catch(() => null),
+        fetch(`${API_URL}/reviews/stats`).catch(() => null),
       ]);
 
       if (featRes && featRes.ok) {
@@ -99,19 +86,13 @@ export default function CustomerReviewsSection() {
   useEffect(() => {
     loadRealReviews();
 
-    // 1. Instant re-fetch whenever user switches back to this browser tab
-    const handleFocus = () => {
-      loadRealReviews();
-    };
-    window.addEventListener('focus', handleFocus);
-
-    // 2. Instant re-fetch when a review is deleted or added in admin or product page
+    // Re-fetch when a review is deleted or added in admin or product page
     const handleReviewUpdate = () => {
       loadRealReviews();
     };
     window.addEventListener('onwear_review_updated', handleReviewUpdate);
 
-    // 3. Instant cross-tab synchronization via storage event
+    // Cross-tab synchronization via storage event
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'onwear_review_updated') {
         loadRealReviews();
@@ -120,7 +101,6 @@ export default function CustomerReviewsSection() {
     window.addEventListener('storage', handleStorage);
 
     return () => {
-      window.removeEventListener('focus', handleFocus);
       window.removeEventListener('onwear_review_updated', handleReviewUpdate);
       window.removeEventListener('storage', handleStorage);
     };

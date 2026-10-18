@@ -156,9 +156,9 @@ export default function Home() {
     } catch (e) {}
 
     async function loadData() {
-      // Fetch categories immediately without waiting for heavy product query
-      fetch(`${API_URL}/categories`, { cache: 'no-store' })
-        .then((res) => (res.ok ? res.json() : null))
+      // Fetch categories dynamically if not already cached
+      fetch(`${API_URL}/categories`)
+        .then((res) => (res && res.ok ? res.json() : null))
         .then((catsData) => {
           if (catsData && catsData.success && Array.isArray(catsData.data) && catsData.data.length > 0) {
             setCategories(catsData.data);

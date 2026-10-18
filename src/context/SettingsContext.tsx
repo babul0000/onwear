@@ -106,6 +106,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
       if (data.success && data.data) {
         setSettings(data.data);
+        try {
+          localStorage.setItem('onwear_settings_cache', JSON.stringify(data.data));
+          localStorage.setItem('onwear_settings_time', Date.now().toString());
+        } catch {}
       }
     } catch (err) {
       console.error('Error fetching store settings:', err);
@@ -115,6 +119,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('onwear_settings_cache');
+      const cachedTime = localStorage.getItem('onwear_settings_time');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          setSettings(parsed);
+          setLoading(false);
+          // If cached less than 15 minutes ago, skip network call
+          if (cachedTime && Date.now() - parseInt(cachedTime, 10) < 15 * 60 * 1000) {
+            return;
+          }
+        }
+      }
+    } catch {}
+
     fetchSettings();
   }, []);
 
