@@ -82,45 +82,59 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   let productPages: MetadataRoute.Sitemap = [];
-  try {
-    const res = await fetch(`${API_URL}/products?limit=500`, {
-      next: { revalidate: 3600 },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const products = data.data?.products || data.data || [];
-      if (Array.isArray(products)) {
-        productPages = products.map((prod: any) => ({
-          url: `${baseUrl}/products/${prod.slug || prod.id}`,
-          lastModified: prod.updatedAt ? new Date(prod.updatedAt) : new Date(),
-          changeFrequency: 'daily' as const,
-          priority: 0.85,
-        }));
-      }
-    }
-  } catch (err) {
-    console.warn('[sitemap] Error fetching products for sitemap:', err);
-  }
-
   let categoryPages: MetadataRoute.Sitemap = [];
-  try {
-    const res = await fetch(`${API_URL}/categories`, {
-      next: { revalidate: 3600 },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const categories = data.data || [];
-      if (Array.isArray(categories)) {
-        categoryPages = categories.map((cat: any) => ({
-          url: `${baseUrl}/products?category=${encodeURIComponent(cat.slug || cat.id)}`,
-          lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
-          changeFrequency: 'weekly' as const,
-          priority: 0.75,
-        }));
-      }
+
+  const isValidUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
     }
-  } catch (err) {
-    console.warn('[sitemap] Error fetching categories for sitemap:', err);
+  };
+
+  if (isValidUrl(API_URL)) {
+    try {
+      const res = await fetch(`${API_URL}/products?limit=500`, {
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const products = data.data?.products || data.data || [];
+        if (Array.isArray(products)) {
+          productPages = products.map((prod: any) => ({
+            url: `${baseUrl}/products/${prod.slug || prod.id}`,
+            lastModified: prod.updatedAt ? new Date(prod.updatedAt) : new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.85,
+          }));
+        }
+      }
+    } catch (err: any) {
+      console.warn('[sitemap] Skipped dynamic product fetch:', err?.message || err);
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/categories`, {
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const categories = data.data || [];
+        if (Array.isArray(categories)) {
+          categoryPages = categories.map((cat: any) => ({
+            url: `${baseUrl}/products?category=${encodeURIComponent(cat.slug || cat.id)}`,
+            lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.75,
+          }));
+        }
+      }
+    } catch (err: any) {
+      console.warn('[sitemap] Skipped dynamic category fetch:', err?.message || err);
+    }
   }
 
   return [...staticPages, ...categoryPages, ...productPages];
